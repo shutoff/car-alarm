@@ -19,6 +19,7 @@ public class CarDrawable {
     static final int ALARM   = 0xC04141;
     static final int BLACK   = 0x000000;
 
+    Drawable dBg;
     Drawable dCar;
     Drawable dDoors;
     Drawable dDoorsOpen;
@@ -107,6 +108,9 @@ public class CarDrawable {
     State state = new State();
 
     CarDrawable(Context ctx) {
+        dBg = new BitmapDrawable(ctx.getResources(), BitmapFactory.decodeResource(ctx.getResources(), R.drawable.bg));
+        dBg.setColorFilter(new ColorMatrixColorFilter(createMatrix(BLACK)));
+
         Bitmap bmpCar = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.car);
         width  = bmpCar.getWidth();
         height = bmpCar.getHeight();
@@ -149,6 +153,7 @@ public class CarDrawable {
 
         Drawable[] drawables =
                 {
+                        dBg,
                         dCar,
                         dDoors,
                         dDoorsOpen,

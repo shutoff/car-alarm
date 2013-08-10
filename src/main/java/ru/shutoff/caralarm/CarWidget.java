@@ -1,10 +1,14 @@
 package ru.shutoff.caralarm;
 
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.widget.RemoteViews;
@@ -14,9 +18,13 @@ import java.util.Date;
 
 public class CarWidget extends AppWidgetProvider {
 
-//    static final int WIDGET_UPDATE_TIMEOUT = 5 * 60 * 1000;
+    static final int UPDATE_INTERVAL = 5 * 1000;
+    final String UPDATE_ALL_WIDGETS = "update_all_widgets";
 
     CarDrawable drawable;
+    AlarmManager alarmMgr;
+    PendingIntent pi;
+    BroadcastReceiver br;
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -25,6 +33,65 @@ public class CarWidget extends AppWidgetProvider {
             drawable = new CarDrawable(context);
         for (int i : appWidgetIds) {
             updateWidget(context, appWidgetManager, i);
+        }
+    }
+
+    @Override
+    public void onEnabled (Context context) {
+        super.onEnabled(context);
+
+        br = new BroadcastReceiver(){
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                updateWidgets(context);
+                stopTimer();
+                startTimer(false);
+            }
+        };
+        IntentFilter intFilter = new IntentFilter(StatusService.ACTION_UPDATE);
+        context.registerReceiver(br, intFilter);
+
+        alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, CarWidget.class);
+        intent.setAction(UPDATE_ALL_WIDGETS);
+        pi = PendingIntent.getBroadcast(context, 0, intent, 0);
+        startTimer(true);
+    }
+
+    @Override
+    public void onDisabled (Context context){
+        super.onDisabled(context);
+        context.unregisterReceiver(br);
+        stopTimer();
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (intent.getAction().equalsIgnoreCase(UPDATE_ALL_WIDGETS)){
+            Intent si = new Intent(context, StatusService.class);
+            context.startService(si);
+            return;
+        }
+        super.onReceive(context, intent);
+    }
+
+    void startTimer(boolean now) {
+        alarmMgr.setInexactRepeating(AlarmManager.RTC, now ? UPDATE_INTERVAL : 0, UPDATE_INTERVAL, pi);
+    }
+
+    void stopTimer() {
+        alarmMgr.cancel(pi);
+    }
+
+    void updateWidgets(Context context){
+        ComponentName thisAppWidget = new ComponentName(
+                context.getPackageName(), getClass().getName());
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        if (appWidgetManager != null){
+            int ids[] = appWidgetManager.getAppWidgetIds(thisAppWidget);
+            for (int appWidgetID : ids) {
+                updateWidget(context, appWidgetManager, appWidgetID);
+            }
         }
     }
 
@@ -54,4 +121,5 @@ public class CarWidget extends AppWidgetProvider {
 
         appWidgetManager.updateAppWidget(widgetID, widgetView);
     }
+
 }

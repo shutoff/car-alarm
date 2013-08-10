@@ -66,7 +66,7 @@ public class MainActivity extends ActionBarActivity {
             public void onReceive(Context context, Intent intent) {
                 update();
                 stopTimer();
-                startTimer();
+                startTimer(false);
             }
         };
         IntentFilter intFilter = new IntentFilter(StatusService.ACTION_UPDATE);
@@ -99,7 +99,7 @@ public class MainActivity extends ActionBarActivity {
     {
         super.onResume();
         active = true;
-        startTimer();
+        startTimer(true);
     }
 
     @Override
@@ -118,10 +118,10 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    void startTimer() {
+    void startTimer(boolean now) {
         if (!active)
             return;
-        alarmMgr.setInexactRepeating(AlarmManager.RTC, 0, UPDATE_INTERVAL, pi);
+        alarmMgr.setInexactRepeating(AlarmManager.RTC, now ? 0 : UPDATE_INTERVAL, UPDATE_INTERVAL, pi);
     }
 
     void stopTimer() {
