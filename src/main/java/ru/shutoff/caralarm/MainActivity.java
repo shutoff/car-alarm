@@ -15,7 +15,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
-import android.app.Activity;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -38,25 +37,31 @@ public class MainActivity extends ActionBarActivity {
     TextView tvTemperature;
 
     Drawable dCar;
-/*
     Drawable dDoors;
-    Drawable dTrunk;
+    Drawable dDoorsOpen;
     Drawable dHood;
+    Drawable dHoodOpen;
+    Drawable dTrunk;
+    Drawable dTrunkOpen;
     Drawable dLock;
-*/
+    Drawable dUnlock;
+    Drawable dIgnition;
 
     static final int UNKNOWN = 0x888888;
-    static final int NORMAL  = 0xCCCCCC;
-    static final int GUARD   = 0x66FF99;
-    static final int ALARM   = 0xFF0033;
+    static final int NORMAL  = 0x6180A0;
+    static final int GUARD   = 0x6D936D;
+    static final int ALARM   = 0xC04141;
+    static final int BLACK   = 0x000000;
 
     static final int REQUEST_ALARM = 4000;
-    static final int UPDATE_INTERVAL = 5 * 60 * 1000;
+    static final int UPDATE_INTERVAL = 1 * 60 * 1000;
 
     PendingIntent pi;
 
     BroadcastReceiver br;
     AlarmManager alarmMgr;
+
+    boolean active;
 
     /** Called when the activity is first created. */
     @Override
@@ -73,46 +78,70 @@ public class MainActivity extends ActionBarActivity {
         tvBalance = (TextView)findViewById(R.id.balance);
         tvTemperature = (TextView)findViewById(R.id.temperature);
 
-        dCar = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.car));
+        dCar = new BitmapDrawable(getResources(), BitmapFactory.decodeResource(getResources(), R.drawable.car));
         dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(UNKNOWN)));
 
-/*
-        dDoors = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.doors));
+        dDoors = new BitmapDrawable(getResources(), BitmapFactory.decodeResource(getResources(), R.drawable.doors));
         dDoors.setColorFilter(new ColorMatrixColorFilter(createMatrix(UNKNOWN)));
 
-        dTrunk = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.trunk));
-        dTrunk.setColorFilter(new ColorMatrixColorFilter(createMatrix(UNKNOWN)));
+        dDoorsOpen = new BitmapDrawable(getResources(), BitmapFactory.decodeResource(getResources(), R.drawable.doors_open));
+        dDoorsOpen.setColorFilter(new ColorMatrixColorFilter(createMatrix(UNKNOWN)));
+        dDoorsOpen.setAlpha(0);
 
-        dHood = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.hood));
+        dHood = new BitmapDrawable(getResources(), BitmapFactory.decodeResource(getResources(), R.drawable.hood));
         dHood.setColorFilter(new ColorMatrixColorFilter(createMatrix(UNKNOWN)));
 
-        dLock = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.lock));
-        dLock.setColorFilter(new ColorMatrixColorFilter(createMatrix(0x000000)));
+        dHoodOpen = new BitmapDrawable(getResources(), BitmapFactory.decodeResource(getResources(), R.drawable.hood_open));
+        dHoodOpen.setColorFilter(new ColorMatrixColorFilter(createMatrix(UNKNOWN)));
+        dHoodOpen.setAlpha(0);
+
+        dTrunk = new BitmapDrawable(getResources(), BitmapFactory.decodeResource(getResources(), R.drawable.trunk));
+        dTrunk.setColorFilter(new ColorMatrixColorFilter(createMatrix(UNKNOWN)));
+
+        dTrunkOpen = new BitmapDrawable(getResources(), BitmapFactory.decodeResource(getResources(), R.drawable.trunk_open));
+        dTrunkOpen.setColorFilter(new ColorMatrixColorFilter(createMatrix(UNKNOWN)));
+        dTrunkOpen.setAlpha(0);
+
+        dLock = new BitmapDrawable(getResources(), BitmapFactory.decodeResource(getResources(), R.drawable.lock));
+        dLock.setColorFilter(new ColorMatrixColorFilter(createMatrix(BLACK)));
         dLock.setAlpha(0);
+
+        dUnlock = new BitmapDrawable(getResources(), BitmapFactory.decodeResource(getResources(), R.drawable.unlock));
+        dUnlock.setColorFilter(new ColorMatrixColorFilter(createMatrix(BLACK)));
+        dUnlock.setAlpha(0);
+
+        dIgnition = new BitmapDrawable(getResources(), BitmapFactory.decodeResource(getResources(), R.drawable.ignition));
+        dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(UNKNOWN)));
+        dIgnition.setAlpha(0);
 
         Drawable[] drawables =
                 {
                         dCar,
                         dDoors,
-                        dTrunk,
+                        dDoorsOpen,
                         dHood,
-                        dLock
+                        dHoodOpen,
+                        dTrunk,
+                        dTrunkOpen,
+                        dLock,
+                        dUnlock,
+                        dIgnition
                 };
 
         LayerDrawable drawable = new LayerDrawable(drawables);
-*/
-
-        imgCar.setImageDrawable(dCar);
+        imgCar.setImageDrawable(drawable);
 
         removeNotifications();
         br = new BroadcastReceiver(){
             @Override
             public void onReceive(Context context, Intent intent) {
                 update();
+                stopTimer();
+                startTimer();
             }
         };
-        IntentFilter intFilt = new IntentFilter(StatusService.ACTION_UPDATE);
-        registerReceiver(br, intFilt);
+        IntentFilter intFilter = new IntentFilter(StatusService.ACTION_UPDATE);
+        registerReceiver(br, intFilter);
 
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         pi = createPendingResult(REQUEST_ALARM, new Intent(), 0);
@@ -125,6 +154,7 @@ public class MainActivity extends ActionBarActivity {
             startActivity(intent);
         }
 
+        active = false;
         update();
     }
 
@@ -139,14 +169,16 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume()
     {
         super.onResume();
-        alarmMgr.setInexactRepeating(AlarmManager.RTC, 0, UPDATE_INTERVAL, pi);
+        active = true;
+        startTimer();
     }
 
     @Override
     protected void onPause()
     {
         super.onPause();
-        alarmMgr.cancel(pi);
+        active = false;
+        stopTimer();
     }
 
     @Override
@@ -157,8 +189,17 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    static ColorMatrix createMatrix(int color)
-    {
+    void startTimer() {
+        if (!active)
+            return;
+        alarmMgr.setInexactRepeating(AlarmManager.RTC, 0, UPDATE_INTERVAL, pi);
+    }
+
+    void stopTimer() {
+        alarmMgr.cancel(pi);
+    }
+
+    static ColorMatrix createMatrix(int color) {
         int red   = (color >> 16) & 0xFF;
         int green = (color >> 8) & 0xFF;
         int blue  = color & 0xFF;
@@ -167,15 +208,9 @@ public class MainActivity extends ActionBarActivity {
                         red / 255f, 0, 0, 0, 0,
                         0, green / 255f, 0, 0, 0,
                         0, 0, blue / 255f, 0, 0,
-                        1, 0, 0, 0, 0
+                        0, 0, 0, 1, 0
                 };
-        ColorMatrix cm = new ColorMatrix(matrix);
-        return cm;
-    }
-
-    protected static float cleanValue(float p_val, float p_limit)
-    {
-        return Math.min(p_limit, Math.max(-p_limit, p_val));
+        return new ColorMatrix(matrix);
     }
 
     @Override
@@ -183,7 +218,6 @@ public class MainActivity extends ActionBarActivity {
     {
         removeNotifications();
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -200,6 +234,7 @@ public class MainActivity extends ActionBarActivity {
             try {
                 manager.cancel(i);
             }catch (NumberFormatException e) {
+                // ignore
             }
         }
         SharedPreferences.Editor ed = preferences.edit();
@@ -242,5 +277,70 @@ public class MainActivity extends ActionBarActivity {
         tvReserve.setText(preferences.getString(Names.RESERVE, "?") + " V");
         tvBalance.setText(preferences.getString(Names.BALANCE, "?"));
         tvTemperature.setText(preferences.getString(Names.TEMPERATURE, "?") + " °C");
+        int color = UNKNOWN;
+        int alarm = UNKNOWN;
+        int guard = preferences.getInt(Names.GUARD, 0);
+        if (guard > 0){
+            dLock.setAlpha(255);
+            dUnlock.setAlpha(0);
+            color = GUARD;
+            alarm = ALARM;
+        }else if (guard < 0) {
+            dLock.setAlpha(0);
+            dUnlock.setAlpha(255);
+            color = NORMAL;
+            alarm = NORMAL;
+        }else{
+            dLock.setAlpha(0);
+            dUnlock.setAlpha(0);
+        }
+        int accessory = preferences.getInt(Names.ACCESSORY, 0);
+        if (accessory > 0){
+            dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
+        }else{
+            dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
+        }
+        int doors = preferences.getInt(Names.DOOR, 0);
+        if (doors > 0){
+            dDoors.setAlpha(0);
+            dDoorsOpen.setAlpha(255);
+            dDoorsOpen.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
+        }else{
+            dDoorsOpen.setAlpha(0);
+            dDoors.setAlpha(255);
+            dDoors.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
+        }
+        int hood = preferences.getInt(Names.HOOD, 0);
+        if (hood > 0){
+            dHood.setAlpha(0);
+            dHoodOpen.setAlpha(255);
+            dHoodOpen.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
+        }else{
+            dHoodOpen.setAlpha(0);
+            dHood.setAlpha(255);
+            dHood.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
+        }
+        int trunk = preferences.getInt(Names.TRUNK, 0);
+        if (trunk > 0){
+            dTrunk.setAlpha(0);
+            dTrunkOpen.setAlpha(255);
+            dTrunkOpen.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
+        }else{
+            dTrunkOpen.setAlpha(0);
+            dTrunk.setAlpha(255);
+            dTrunk.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
+        }
+        int engine = preferences.getInt(Names.ENGINE, 0);
+        if (engine > 0){
+            dIgnition.setAlpha(255);
+            int ignition = preferences.getInt(Names.IGNITION, 0);
+            if (ignition > 0){
+                dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
+            }else{
+                dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
+            }
+        }else{
+            dIgnition.setAlpha(0);
+        }
     }
 }

@@ -76,7 +76,7 @@ public class StatusService extends Service {
 		abstract void process(JSONObject result, HttpTask task);
 		abstract void postProcess(SharedPreferences.Editor ed);
 		String	url_;
-	};
+	}
 	
 	class HttpTask extends AsyncTask<Void, Void, Void> {
 
@@ -103,9 +103,8 @@ public class StatusService extends Service {
 		@Override
 		protected Void doInBackground(Void... params) {
 		    HttpClient httpclient = new DefaultHttpClient();
-			for (int i = 0; i < requests_.size(); i++){
+			for (HttpRequest req: requests_){
 				try{
-					HttpRequest req = requests_.get(i);
 					String url = req.url_;
 					HttpResponse response = httpclient.execute(new HttpGet(url));
 					StatusLine statusLine = response.getStatusLine();
@@ -129,8 +128,8 @@ public class StatusService extends Service {
 			super.onPostExecute(result);
 		    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 		    SharedPreferences.Editor ed = preferences.edit();
-			for (int i = 0; i < requests_.size(); i++){
-				requests_.get(i).postProcess(ed);
+			for (HttpRequest req: requests_){
+				req.postProcess(ed);
 			}
 			ed.commit();
 			process_request = false;
@@ -145,6 +144,7 @@ public class StatusService extends Service {
 			Intent intent = new Intent(ACTION_UPDATE);
 			sendBroadcast(intent);
 		} catch (Exception e){
+            // ignore
 		}
 	}
 	
@@ -156,7 +156,7 @@ public class StatusService extends Service {
 			url_ += latitude;
 			url_ += ",";
 			url_ += longitude;
-			url_ += "&sensor=true&language=";
+			url_ += "&sensor=false&language=";
 			url_ += Locale.getDefault().getLanguage();
 		}
 		
@@ -173,7 +173,7 @@ public class StatusService extends Service {
 		
 		String address_;
 		
-	};
+	}
 	
 	class TemperatureRequest extends HttpRequest {
 
@@ -198,7 +198,7 @@ public class StatusService extends Service {
 				ed.putString(Names.TEMPERATURE, temperature);
 		}
 		
-	};
+	}
 	
 	class LastInfoRequest extends HttpRequest {
 
@@ -207,10 +207,13 @@ public class StatusService extends Service {
 		String main_voltage;
 		String reserve_voltage;
 		
-		boolean guard;
-		boolean door;
-		boolean hood;
-		boolean trunk;
+		int guard;
+		int door;
+		int hood;
+		int trunk;
+        int engine;
+        int accessory;
+        int ignition;
 		
 		String balance_;
 		String api_key_;
@@ -248,10 +251,13 @@ public class StatusService extends Service {
 					task.add(new LocationRequest(longitude_, latitude_));
 			}
 			
-			guard = getBoolean(result, "contact.stGuard");
-			door  = getBoolean(result, "contact.stZoneDoor");
-			hood  = getBoolean(result, "contact.stZoneHood");
-			trunk = getBoolean(result, "contact.stZoneTrunk");
+			guard  = getBoolean(result, "contact.stGuard");
+            engine = getBoolean(result, "contact.stEngine");
+			door   = getBoolean(result, "contact.stZoneDoor");
+			hood   = getBoolean(result, "contact.stZoneHood");
+			trunk  = getBoolean(result, "contact.stZoneTrunk");
+            accessory = getBoolean(result, "contact.stZoneAccessoryOn");
+            ignition  = getBoolean(result, "contact.stZoneIgnitionOn");
 		}
 
 		@Override
@@ -273,12 +279,15 @@ public class StatusService extends Service {
 				if (m.find())
 					ed.putString(Names.BALANCE, m.group(0));
 			}
-			ed.putBoolean(Names.GUARD, guard);
-			ed.putBoolean(Names.DOOR, door);
-			ed.putBoolean(Names.HOOD, hood);
-			ed.putBoolean(Names.TRUNK, trunk);
-		}
-	};
+			ed.putInt(Names.GUARD, guard);
+			ed.putInt(Names.DOOR, door);
+			ed.putInt(Names.HOOD, hood);
+			ed.putInt(Names.TRUNK, trunk);
+            ed.putInt(Names.ENGINE, engine);
+            ed.putInt(Names.IGNITION, ignition);
+            ed.putInt(Names.ACCESSORY, accessory);
+        }
+	}
 
 	void startRequest(){
 		if (process_request)
@@ -302,6 +311,7 @@ public class StatusService extends Service {
 		try{
 			unregisterReceiver(mReceiver);
 		} catch (Exception e){
+            // ignore
 		}
 		alarmMgr.cancel(pi);
 	    new HttpTask(new LastInfoRequest(preferences, api_key));
@@ -328,7 +338,8 @@ public class StatusService extends Service {
 				obj = get(obj, sub_keys[i]);
 			}
 			return obj.getDouble(sub_keys[sub_keys.length - 1]);
-		}catch (Exception e){			
+		}catch (Exception e){
+            // ignore
 		}
 		return 0;
 	}
@@ -342,21 +353,23 @@ public class StatusService extends Service {
 			}
 			return obj.getString(sub_keys[sub_keys.length - 1]);
 		}catch (Exception e){
+            // ignore
 		}
 		return "";
 	}
 	
-	static boolean getBoolean(JSONObject obj, String key)
+	static int getBoolean(JSONObject obj, String key)
 	{
 		try{
 			String[] sub_keys = key.split("\\.");
 			for (int i = 0; i < sub_keys.length - 1; i++){
 				obj = get(obj, sub_keys[i]);
 			}
-			return obj.getBoolean(sub_keys[sub_keys.length - 1]);
+			return obj.getBoolean(sub_keys[sub_keys.length - 1]) ? 1 : -1;
 		}catch (Exception e){
+            // ignore
 		}
-		return false;
+		return 0;
 	}
 
 }
