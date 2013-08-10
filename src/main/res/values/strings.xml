@@ -31,4 +31,5 @@
 	<string name="motor_on_sum">Start engine</string>
 	<string name="motor_off_sum">Stop engine</string>
 	<string name="unknown">unknown</string>
+    <string name="widget_name">Car alarm</string>
 </resources>

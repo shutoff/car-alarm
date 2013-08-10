@@ -103,7 +103,9 @@ public class StatusService extends Service {
 		@Override
 		protected Void doInBackground(Void... params) {
 		    HttpClient httpclient = new DefaultHttpClient();
-			for (HttpRequest req: requests_){
+            int nRequest = 0;
+            while (nRequest < requests_.size()){
+			    HttpRequest req = requests_.get(nRequest);
 				try{
 					String url = req.url_;
 					HttpResponse response = httpclient.execute(new HttpGet(url));
@@ -119,6 +121,7 @@ public class StatusService extends Service {
 				} catch (Exception e){
 					error_ = e.getMessage();
 				}
+                nRequest++;
 			}
 			return null;
 		}
@@ -162,7 +165,22 @@ public class StatusService extends Service {
 		
 		@Override
 		void process(JSONObject result, HttpTask task) {
-			address_ = getString(result, "results[0].formatted_address");
+            try{
+                JSONArray arr = getArray(result, "results");
+                for (int i = 0; i < arr.length(); i++){
+                    JSONObject addr = arr.getJSONObject(i);
+                    JSONArray types = getArray(addr, "types");
+                    for (int n = 0; n < types.length(); n++){
+                        if (types.getString(n).equals("street_address")){
+                            address_ = addr.getString("formatted_address");
+                            return;
+                        }
+                    }
+                }
+			    address_ = getString(result, "results[0].formatted_address");
+            }catch (Exception e){
+                // ignore
+            }
 		}
 
 		@Override
@@ -329,7 +347,21 @@ public class StatusService extends Service {
 		}
 		return obj.getJSONObject(key);
 	}
-	
+
+    static JSONArray getArray(JSONObject obj, String key)
+    {
+        try{
+            String[] sub_keys = key.split("\\.");
+            for (int i = 0; i < sub_keys.length - 1; i++){
+                obj = get(obj, sub_keys[i]);
+            }
+            return obj.getJSONArray(sub_keys[sub_keys.length - 1]);
+        }catch (Exception e){
+            // ignore
+        }
+        return null;
+    }
+
 	static double getDouble(JSONObject obj, String key)
 	{
 		try{
@@ -343,7 +375,7 @@ public class StatusService extends Service {
 		}
 		return 0;
 	}
-	
+
 	static String getString(JSONObject obj, String key)
 	{
 		try{

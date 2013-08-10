@@ -71,7 +71,20 @@
             </intent-filter>
         </receiver>
 
-        <service android:name="StatusService"></service>
+        <service android:name="StatusService"/>
+
+        <receiver
+                android:name="CarWidget">
+            <intent-filter>
+                <action
+                        android:name="android.appwidget.action.APPWIDGET_UPDATE">
+                </action>
+            </intent-filter>
+            <meta-data
+                    android:name="android.appwidget.provider"
+                    android:resource="@xml/widget_metadata">
+            </meta-data>
+        </receiver>
 
     </application>
 
