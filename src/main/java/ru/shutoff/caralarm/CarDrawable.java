@@ -14,10 +14,10 @@ import android.graphics.drawable.LayerDrawable;
 public class CarDrawable {
 
     static final int UNKNOWN = 0x888888;
-    static final int NORMAL  = 0x6180A0;
-    static final int GUARD   = 0x6D936D;
-    static final int ALARM   = 0xC04141;
-    static final int BLACK   = 0x000000;
+    static final int NORMAL = 0x6180A0;
+    static final int GUARD = 0x6D936D;
+    static final int ALARM = 0xC04141;
+    static final int BLACK = 0x000000;
 
     Drawable dBg;
     Drawable dCar;
@@ -105,14 +105,14 @@ public class CarDrawable {
         }
     }
 
-    State state = new State();
+    State state;
 
     CarDrawable(Context ctx) {
         dBg = new BitmapDrawable(ctx.getResources(), BitmapFactory.decodeResource(ctx.getResources(), R.drawable.bg));
         dBg.setColorFilter(new ColorMatrixColorFilter(createMatrix(BLACK)));
 
         Bitmap bmpCar = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.car);
-        width  = bmpCar.getWidth();
+        width = bmpCar.getWidth();
         height = bmpCar.getHeight();
 
         dCar = new BitmapDrawable(ctx.getResources(), bmpCar);
@@ -167,6 +167,7 @@ public class CarDrawable {
                 };
 
         drawable = new LayerDrawable(drawables);
+        state = new State();
     }
 
     Drawable getDrawable() {
@@ -187,36 +188,36 @@ public class CarDrawable {
 
         int guard = preferences.getInt(Names.GUARD, 0);
         boolean res = state.setGuard(guard);
-        if (guard > 0){
+        if (guard > 0) {
             dLock.setAlpha(255);
             dUnlock.setAlpha(0);
             color = GUARD;
             alarm = ALARM;
-        }else if (guard < 0) {
+        } else if (guard < 0) {
             dLock.setAlpha(0);
             dUnlock.setAlpha(255);
             color = NORMAL;
             alarm = NORMAL;
-        }else{
+        } else {
             dLock.setAlpha(0);
             dUnlock.setAlpha(0);
         }
 
         int accessory = preferences.getInt(Names.ACCESSORY, 0);
         res |= state.setAccessory(accessory);
-        if (accessory > 0){
+        if (accessory > 0) {
             dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
-        }else{
+        } else {
             dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
         int doors = preferences.getInt(Names.DOOR, 0);
         res |= state.setDoors(doors);
-        if (doors > 0){
+        if (doors > 0) {
             dDoors.setAlpha(0);
             dDoorsOpen.setAlpha(255);
             dDoorsOpen.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
-        }else{
+        } else {
             dDoorsOpen.setAlpha(0);
             dDoors.setAlpha(255);
             dDoors.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
@@ -224,11 +225,11 @@ public class CarDrawable {
 
         int hood = preferences.getInt(Names.HOOD, 0);
         res |= state.setHood(hood);
-        if (hood > 0){
+        if (hood > 0) {
             dHood.setAlpha(0);
             dHoodOpen.setAlpha(255);
             dHoodOpen.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
-        }else{
+        } else {
             dHoodOpen.setAlpha(0);
             dHood.setAlpha(255);
             dHood.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
@@ -236,11 +237,11 @@ public class CarDrawable {
 
         int trunk = preferences.getInt(Names.TRUNK, 0);
         res |= state.setTrunk(trunk);
-        if (trunk > 0){
+        if (trunk > 0) {
             dTrunk.setAlpha(0);
             dTrunkOpen.setAlpha(255);
             dTrunkOpen.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
-        }else{
+        } else {
             dTrunkOpen.setAlpha(0);
             dTrunk.setAlpha(255);
             dTrunk.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
@@ -248,25 +249,25 @@ public class CarDrawable {
 
         int engine = preferences.getInt(Names.ENGINE, 0);
         res |= state.setEngine(engine);
-        if (engine > 0){
+        if (engine > 0) {
             dIgnition.setAlpha(255);
             int ignition = preferences.getInt(Names.IGNITION, 0);
             res |= state.setIgnition(ignition);
-            if (ignition > 0){
+            if (ignition > 0) {
                 dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
-            }else{
+            } else {
                 dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
             }
-        }else{
+        } else {
             dIgnition.setAlpha(0);
         }
         return res;
     }
 
     static ColorMatrix createMatrix(int color) {
-        int red   = (color >> 16) & 0xFF;
+        int red = (color >> 16) & 0xFF;
         int green = (color >> 8) & 0xFF;
-        int blue  = color & 0xFF;
+        int blue = color & 0xFF;
         float matrix[] =
                 {
                         red / 255f, 0, 0, 0, 0,

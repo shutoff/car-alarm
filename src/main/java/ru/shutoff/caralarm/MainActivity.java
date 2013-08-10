@@ -42,7 +42,9 @@ public class MainActivity extends ActionBarActivity {
 
     boolean active;
 
-    /** Called when the activity is first created. */
+    /**
+     * Called when the activity is first created.
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,18 +52,18 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.main);
 
         imgCar = (ImageView) findViewById(R.id.car);
-        tvAddress = (TextView)findViewById(R.id.address);
-        tvLast = (TextView)findViewById(R.id.last);
-        tvVoltage = (TextView)findViewById(R.id.voltage);
-        tvReserve = (TextView)findViewById(R.id.reserve);
-        tvBalance = (TextView)findViewById(R.id.balance);
-        tvTemperature = (TextView)findViewById(R.id.temperature);
+        tvAddress = (TextView) findViewById(R.id.address);
+        tvLast = (TextView) findViewById(R.id.last);
+        tvVoltage = (TextView) findViewById(R.id.voltage);
+        tvReserve = (TextView) findViewById(R.id.reserve);
+        tvBalance = (TextView) findViewById(R.id.balance);
+        tvTemperature = (TextView) findViewById(R.id.temperature);
 
         drawable = new CarDrawable(this);
         imgCar.setImageDrawable(drawable.getDrawable());
 
         removeNotifications();
-        br = new BroadcastReceiver(){
+        br = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 update();
@@ -78,7 +80,7 @@ public class MainActivity extends ActionBarActivity {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String phone = preferences.getString(Names.PHONE, "");
         String key = preferences.getString(Names.KEY, "");
-        if ((phone.length() == 0) || (key.length() == 0)){
+        if ((phone.length() == 0) || (key.length() == 0)) {
             Intent intent = new Intent(this, Preferences.class);
             startActivity(intent);
         }
@@ -88,23 +90,20 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Override
-    protected void onDestroy()
-    {
+    protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(br);
     }
 
     @Override
-    protected void onResume()
-    {
+    protected void onResume() {
         super.onResume();
         active = true;
         startTimer(true);
     }
 
     @Override
-    protected void onPause()
-    {
+    protected void onPause() {
         super.onPause();
         active = false;
         stopTimer();
@@ -112,7 +111,7 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_ALARM){
+        if (requestCode == REQUEST_ALARM) {
             Intent intent = new Intent(this, StatusService.class);
             startService(intent);
         }
@@ -121,7 +120,8 @@ public class MainActivity extends ActionBarActivity {
     void startTimer(boolean now) {
         if (!active)
             return;
-        alarmMgr.setInexactRepeating(AlarmManager.RTC, now ? 0 : UPDATE_INTERVAL, UPDATE_INTERVAL, pi);
+        alarmMgr.setInexactRepeating(AlarmManager.RTC,
+                System.currentTimeMillis() + (now ? 0 : UPDATE_INTERVAL), UPDATE_INTERVAL, pi);
     }
 
     void stopTimer() {
@@ -129,14 +129,13 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Override
-    protected void onNewIntent(Intent intent)
-    {
+    protected void onNewIntent(Intent intent) {
         removeNotifications();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater=getMenuInflater();
+        MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
         return super.onCreateOptionsMenu(menu);
     }
@@ -145,10 +144,10 @@ public class MainActivity extends ActionBarActivity {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         int id = preferences.getInt(Names.IDS, 0);
-        for (int i = 1; i <= id; i++){
+        for (int i = 1; i <= id; i++) {
             try {
                 manager.cancel(i);
-            }catch (NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 // ignore
             }
         }
@@ -158,15 +157,13 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.preferences:
-            {
+        switch (item.getItemId()) {
+            case R.id.preferences: {
                 Intent intent = new Intent(this, Preferences.class);
                 startActivity(intent);
                 break;
             }
-            case R.id.actions:
-            {
+            case R.id.actions: {
                 Intent intent = new Intent(this, Actions.class);
                 startActivity(intent);
             }
@@ -174,18 +171,17 @@ public class MainActivity extends ActionBarActivity {
         return false;
     }
 
-    void update()
-    {
+    void update() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         tvAddress.setText(
                 preferences.getString(Names.LATITUDE, "") + " " + preferences.getString(Names.LONGITUDE, "") + "\n" +
                         preferences.getString(Names.ADDRESS, ""));
         long last = preferences.getLong(Names.LAST_EVENT, 0);
-        if (last != 0){
+        if (last != 0) {
             Date d = new Date(last);
             SimpleDateFormat sf = new SimpleDateFormat();
             tvLast.setText(sf.format(d));
-        }else{
+        } else {
             tvLast.setText(getString(R.string.unknown));
         }
         tvVoltage.setText(preferences.getString(Names.VOLTAGE, "?") + " V");

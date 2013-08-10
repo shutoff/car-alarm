@@ -28,9 +28,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Data;
-import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
@@ -43,151 +43,149 @@ import android.widget.AlphabetIndexer;
 import android.widget.ListView;
 import android.widget.SectionIndexer;
 
-public class ContactsListFragment extends ListFragment implements 
-	LoaderCallbacks<Cursor>{
+public class ContactsListFragment extends ListFragment implements
+        LoaderCallbacks<Cursor> {
 
-	private OnContactSelectedListener mContactsListener;
-	private SimpleCursorAdapter mAdapter;
-	private String mCurrentFilter = null;
-	
-	private static final String[] CONTACTS_SUMMARY_PROJECTION = new String[] {
-			Contacts._ID, 
-			Contacts.DISPLAY_NAME, 
-			Contacts.HAS_PHONE_NUMBER,
-			Contacts.LOOKUP_KEY
-	};
-	
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_contacts_list, container, false);
-	}
-	
-	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
+    private OnContactSelectedListener mContactsListener;
+    private SimpleCursorAdapter mAdapter;
+    private String mCurrentFilter = null;
 
-		setHasOptionsMenu(true);
-		
-		getLoaderManager().initLoader(0, null, this);
-		
-		mAdapter = new IndexedListAdapter(
-				this.getActivity(),
-				R.layout.list_item_contacts,
-				null,
-				new String[] {ContactsContract.Contacts.DISPLAY_NAME},
-				new int[] {R.id.display_name});
-		
-		setListAdapter(mAdapter);
-		getListView().setFastScrollEnabled(true);
-		
-	}
-	
-	@Override
-	public void onListItemClick(ListView l, View v, int position, long id) {
-		/* Retrieving the phone numbers in order to see if we have more than one */
-		String phoneNumber = null;
-		String name = null;
-		
-		String[] projection = new String[] {Phone.DISPLAY_NAME, Phone.NUMBER};
-    	final Cursor phoneCursor = getActivity().getContentResolver().query(
-			Phone.CONTENT_URI,
-			projection,
-			Data.CONTACT_ID + "=?",
-			new String[]{String.valueOf(id)},
-			null);
-    	
-    	if(phoneCursor.moveToFirst() && phoneCursor.isLast()) {
-    		final int contactNumberColumnIndex 	= phoneCursor.getColumnIndex(Phone.NUMBER);    			
-   			phoneNumber = phoneCursor.getString(contactNumberColumnIndex);
-   			name = phoneCursor.getString(phoneCursor.getColumnIndex(Phone.DISPLAY_NAME));
-    	}
-		
-    	if (phoneNumber != null){    		  		
-    		mContactsListener.onContactNumberSelected(phoneNumber, name);
-    	}
-    	else {
-    		mContactsListener.onContactNameSelected(id);
-    	}
-	}
-	
-	@Override
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
-		
-		try {			
-			mContactsListener = (OnContactSelectedListener) activity;
-		} catch (ClassCastException	e) {
-			throw new ClassCastException(activity.toString() + " must implement OnContactSelectedListener");
-		}
-	}
-	
-	@Override
-	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		Uri baseUri;
-		
-		if (mCurrentFilter != null) {
+    private static final String[] CONTACTS_SUMMARY_PROJECTION = new String[]{
+            Contacts._ID,
+            Contacts.DISPLAY_NAME,
+            Contacts.HAS_PHONE_NUMBER,
+            Contacts.LOOKUP_KEY
+    };
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_contacts_list, container, false);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        setHasOptionsMenu(true);
+
+        getLoaderManager().initLoader(0, null, this);
+
+        mAdapter = new IndexedListAdapter(
+                this.getActivity(),
+                R.layout.list_item_contacts,
+                null,
+                new String[]{ContactsContract.Contacts.DISPLAY_NAME},
+                new int[]{R.id.display_name});
+
+        setListAdapter(mAdapter);
+        getListView().setFastScrollEnabled(true);
+
+    }
+
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        /* Retrieving the phone numbers in order to see if we have more than one */
+        String phoneNumber = null;
+        String name = null;
+
+        String[] projection = new String[]{Phone.DISPLAY_NAME, Phone.NUMBER};
+        final Cursor phoneCursor = getActivity().getContentResolver().query(
+                Phone.CONTENT_URI,
+                projection,
+                Data.CONTACT_ID + "=?",
+                new String[]{String.valueOf(id)},
+                null);
+
+        if (phoneCursor.moveToFirst() && phoneCursor.isLast()) {
+            final int contactNumberColumnIndex = phoneCursor.getColumnIndex(Phone.NUMBER);
+            phoneNumber = phoneCursor.getString(contactNumberColumnIndex);
+            name = phoneCursor.getString(phoneCursor.getColumnIndex(Phone.DISPLAY_NAME));
+        }
+
+        if (phoneNumber != null) {
+            mContactsListener.onContactNumberSelected(phoneNumber, name);
+        } else {
+            mContactsListener.onContactNameSelected(id);
+        }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        try {
+            mContactsListener = (OnContactSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnContactSelectedListener");
+        }
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
+        Uri baseUri;
+
+        if (mCurrentFilter != null) {
             baseUri = Uri.withAppendedPath(Contacts.CONTENT_FILTER_URI,
                     Uri.encode(mCurrentFilter));
         } else {
             baseUri = Contacts.CONTENT_URI;
         }
-		
-		String selection = "((" + Contacts.DISPLAY_NAME + " NOTNULL) AND ("
-	            + Contacts.HAS_PHONE_NUMBER + "=1) AND ("
-	            + Contacts.DISPLAY_NAME + " != '' ))";
-		
-		String sortOrder = ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
-		
-		return new CursorLoader(getActivity(), baseUri, CONTACTS_SUMMARY_PROJECTION, selection, null, sortOrder);
-	}
-	
-	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-		mAdapter.swapCursor(data);
-	}
 
-	@Override
-	public void onLoaderReset(Loader<Cursor> loader) {
-		mAdapter.swapCursor(null);
-	}
+        String selection = "((" + Contacts.DISPLAY_NAME + " NOTNULL) AND ("
+                + Contacts.HAS_PHONE_NUMBER + "=1) AND ("
+                + Contacts.DISPLAY_NAME + " != '' ))";
 
-	class IndexedListAdapter extends SimpleCursorAdapter implements SectionIndexer{
+        String sortOrder = ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";
 
-		AlphabetIndexer alphaIndexer;
-		
-		public IndexedListAdapter(Context context, int layout, Cursor c,
-				String[] from, int[] to) {
-			super(context, layout, c, from, to, 0);		
-		}
+        return new CursorLoader(getActivity(), baseUri, CONTACTS_SUMMARY_PROJECTION, selection, null, sortOrder);
+    }
 
-		@Override
-		public Cursor swapCursor(Cursor c) {
-			if (c != null) {
-				alphaIndexer = new AlphabetIndexer(c,
-						c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME),
-						" ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-			}
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mAdapter.swapCursor(data);
+    }
 
-			return super.swapCursor(c);
-		}
-		
-		@Override
-		public int getPositionForSection(int section) {
-			return alphaIndexer.getPositionForSection(section);
-		}
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mAdapter.swapCursor(null);
+    }
 
-		@Override
-		public int getSectionForPosition(int position) {
-			return alphaIndexer.getSectionForPosition(position);
-		}
+    class IndexedListAdapter extends SimpleCursorAdapter implements SectionIndexer {
 
-		@Override
-		public Object[] getSections() {
-			return alphaIndexer == null ? null : alphaIndexer.getSections();
-		}
-	
-	}
+        AlphabetIndexer alphaIndexer;
 
+        public IndexedListAdapter(Context context, int layout, Cursor c,
+                                  String[] from, int[] to) {
+            super(context, layout, c, from, to, 0);
+        }
+
+        @Override
+        public Cursor swapCursor(Cursor c) {
+            if (c != null) {
+                alphaIndexer = new AlphabetIndexer(c,
+                        c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME),
+                        " ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+            }
+
+            return super.swapCursor(c);
+        }
+
+        @Override
+        public int getPositionForSection(int section) {
+            return alphaIndexer.getPositionForSection(section);
+        }
+
+        @Override
+        public int getSectionForPosition(int position) {
+            return alphaIndexer.getSectionForPosition(position);
+        }
+
+        @Override
+        public Object[] getSections() {
+            return alphaIndexer == null ? null : alphaIndexer.getSections();
+        }
+
+    }
 
 
 }

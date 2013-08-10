@@ -1,28 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" android:key="root">
-    
-    <Preference 
-        android:summary="@string/api_key_summary" 
-        android:title="@string/api_key" 
-        android:key="api_key" />
-    
-    <Preference 
-        android:summary="@string/phone_number_summary" 
-        android:title="@string/phone_number" 
-        android:key="phone" />
-    
-    <Preference 
-        android:title="@string/alarm_sound" 
-        android:summary="@string/def"
-        android:key="alarm"/>
-    
-    <Preference 
-        android:title="@string/notify_sound" 
-        android:summary="@string/def"
-        android:key="notify"/>
-    
-    <Preference android:title="@string/sms_mode"
-        android:summary="@string/sms_mode_summary"
-        android:key="sms_mode"/>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:key="root">
+
+    <Preference
+            android:summary="@string/api_key_summary"
+            android:title="@string/api_key"
+            android:key="api_key"/>
+
+    <Preference
+            android:summary="@string/phone_number_summary"
+            android:title="@string/phone_number"
+            android:key="phone"/>
+
+    <Preference
+            android:title="@string/alarm_sound"
+            android:summary="@string/def"
+            android:key="alarm"/>
+
+    <Preference
+            android:title="@string/notify_sound"
+            android:summary="@string/def"
+            android:key="notify"/>
+
+    <Preference
+            android:title="@string/sms_mode"
+            android:summary="@string/sms_mode_summary"
+            android:key="sms_mode"/>
 
 </PreferenceScreen>

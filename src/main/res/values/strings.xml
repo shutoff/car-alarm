@@ -1,35 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CarAlarm</string>
-	<string name="notification">Light shock|Low card battery|Supply reserve|Supply regular|ERROR LAN-devices|Low reserve voltage|Roaming. Internet OFF</string>
-	<string name="alarm">Heavy shock|Trunk|Hood|Doors|Ignition Lock|MovTilt sensor|Rogue</string>
-	<string name="def">default</string>
-	<string name="phone_number_summary">Select car phone number</string>
-	<string name="phone_number">Phone number</string>
-	<string name="alarm_sound">Alarm sound</string>
-	<string name="notify_sound">Notify sound</string>
-	<string name="preferences">Preferences</string>
-	<string name="actions">Actions</string>
-	<string name="sms_mode">Switch to SMS mode</string>
-	<string name="sms_mode_summary">Click here to switch in SMS mode</string>
-	<string name="api_key">API key</string>
-	<string name="api_key_summary">Get API key on car-online.ru and enter here or send via SMS on your phone</string>
-	<string name="sms_error">Can&amp;t send SMS</string>
-	<string name="save">Save</string>
-	<string name="bad_key">Enter valid API-key</string>
-	<string name="ccode">Enter C-Code</string>
-	<string name="valet_on">VALET On</string>
-	<string name="valet_off">VALET Off</string>
-	<string name="valet_on_sum">Deactivate guard</string>
-	<string name="valet_off_sum">Activate guard</string>
-	<string name="internet_on">Internet On</string>
-	<string name="internet_off">Internet Off</string>
-	<string name="internet_on_sum">Enable internet on the device</string>
-	<string name="internet_off_sum">Disable internet on the device</string>
-	<string name="motor_on">Motor On</string>
-	<string name="motor_off">Motor Off</string>
-	<string name="motor_on_sum">Start engine</string>
-	<string name="motor_off_sum">Stop engine</string>
-	<string name="unknown">unknown</string>
+    <string name="notification">Light shock|Low card battery|Supply reserve|Supply regular|ERROR
+        LAN-devices|Low reserve voltage|Roaming. Internet OFF
+    </string>
+    <string name="alarm">Heavy shock|Trunk|Hood|Doors|Ignition Lock|MovTilt sensor|Rogue</string>
+    <string name="def">default</string>
+    <string name="phone_number_summary">Select car phone number</string>
+    <string name="phone_number">Phone number</string>
+    <string name="alarm_sound">Alarm sound</string>
+    <string name="notify_sound">Notify sound</string>
+    <string name="preferences">Preferences</string>
+    <string name="actions">Actions</string>
+    <string name="sms_mode">Switch to SMS mode</string>
+    <string name="sms_mode_summary">Click here to switch in SMS mode</string>
+    <string name="api_key">API key</string>
+    <string name="api_key_summary">Get API key on car-online.ru and enter here or send via SMS on
+        your phone
+    </string>
+    <string name="sms_error">Can&amp;t send SMS</string>
+    <string name="save">Save</string>
+    <string name="bad_key">Enter valid API-key</string>
+    <string name="ccode">Enter C-Code</string>
+    <string name="valet_on">VALET On</string>
+    <string name="valet_off">VALET Off</string>
+    <string name="valet_on_sum">Deactivate guard</string>
+    <string name="valet_off_sum">Activate guard</string>
+    <string name="internet_on">Internet On</string>
+    <string name="internet_off">Internet Off</string>
+    <string name="internet_on_sum">Enable internet on the device</string>
+    <string name="internet_off_sum">Disable internet on the device</string>
+    <string name="motor_on">Motor On</string>
+    <string name="motor_off">Motor Off</string>
+    <string name="motor_on_sum">Start engine</string>
+    <string name="motor_off_sum">Stop engine</string>
+    <string name="unknown">unknown</string>
     <string name="widget_name">Car alarm</string>
 </resources>

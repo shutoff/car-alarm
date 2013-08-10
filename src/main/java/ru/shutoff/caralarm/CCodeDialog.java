@@ -10,31 +10,33 @@ import android.widget.EditText;
 
 public class CCodeDialog extends Activity {
 
-	Button btnAction;
-	EditText etCode;
-	
-	/** Called when the activity is first created. */
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-	    super.onCreate(savedInstanceState);	
-		setContentView(R.layout.ccode);
-		btnAction = (Button)findViewById(R.id.action);
-		etCode = (EditText)findViewById(R.id.ccode);
-		Bundle bundle = getIntent().getExtras();
-		if (bundle != null)
-			btnAction.setText(bundle.getString(Names.TITLE));
-		
-		btnAction.setOnClickListener(new OnClickListener(){
+    Button btnAction;
+    EditText etCode;
 
-			@Override
-			public void onClick(View v) {
-			    Intent intent = new Intent();
-			    intent.putExtra(Names.CCODE, etCode.getText().toString());
-			    setResult(RESULT_OK, intent);
-				finish();	
-			}
-			
-		});
-	}
+    /**
+     * Called when the activity is first created.
+     */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.ccode);
+        btnAction = (Button) findViewById(R.id.action);
+        etCode = (EditText) findViewById(R.id.ccode);
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null)
+            btnAction.setText(bundle.getString(Names.TITLE));
+
+        btnAction.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.putExtra(Names.CCODE, etCode.getText().toString());
+                setResult(RESULT_OK, intent);
+                finish();
+            }
+
+        });
+    }
 
 }
