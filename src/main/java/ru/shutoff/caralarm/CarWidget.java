@@ -1,15 +1,12 @@
 package ru.shutoff.caralarm;
 
-import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.widget.RemoteViews;
 
@@ -17,9 +14,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class CarWidget extends AppWidgetProvider {
-
-    static final int UPDATE_INTERVAL = 5 * 60 * 1000;
-    static final String UPDATE_ALL_WIDGETS = "update_all_widgets";
 
     CarDrawable drawable;
 
@@ -34,47 +28,23 @@ public class CarWidget extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
-        Intent intent = new Intent(context, CarWidget.class);
-        intent.setAction(UPDATE_ALL_WIDGETS);
-        PendingIntent pIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis(),
-                UPDATE_INTERVAL, pIntent);
+        Intent intent = new Intent(context, WidgetService.class);
+        context.startService(intent);
     }
 
     @Override
     public void onDisabled(Context context) {
         super.onDisabled(context);
-        Intent intent = new Intent(context, CarWidget.class);
-        intent.setAction(UPDATE_ALL_WIDGETS);
-        PendingIntent pIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
-        AlarmManager alarmManager = (AlarmManager) context
-                .getSystemService(Context.ALARM_SERVICE);
-        alarmManager.cancel(pIntent);
+        Intent intent = new Intent(context, WidgetService.class);
+        intent.putExtra(Names.STOP, 1);
+        context.startService(intent);
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equalsIgnoreCase(StatusService.ACTION_UPDATE)) {
+            State.appendLog("Update widgets");
             updateWidgets(context);
-            PendingIntent pIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
-            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-            alarmManager.cancel(pIntent);
-            PowerManager powerMgr = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            if (powerMgr.isScreenOn())
-                alarmManager.setInexactRepeating(AlarmManager.RTC,
-                        System.currentTimeMillis() + UPDATE_INTERVAL, UPDATE_INTERVAL, pIntent);
-            return;
-        }
-        if (intent.getAction().equalsIgnoreCase(UPDATE_ALL_WIDGETS)) {
-            Intent si = new Intent(context, StatusService.class);
-            context.startService(si);
-            return;
-        }
-        if (intent.getAction().equalsIgnoreCase(Intent.ACTION_SCREEN_ON)) {
-            Intent si = new Intent(context, StatusService.class);
-            context.startService(si);
-            return;
         }
         super.onReceive(context, intent);
     }

@@ -75,7 +75,7 @@ public class StatusService extends Service {
 
         abstract void process(JSONObject result, HttpTask task);
 
-        abstract void postProcess(SharedPreferences.Editor ed);
+        abstract boolean postProcess(SharedPreferences.Editor ed);
 
         String url_;
     }
@@ -108,6 +108,7 @@ public class StatusService extends Service {
                 HttpRequest req = requests_.get(nRequest);
                 try {
                     String url = req.url_;
+                    State.appendLog("GET " + url);
                     HttpResponse response = httpclient.execute(new HttpGet(url));
                     StatusLine statusLine = response.getStatusLine();
                     int status = statusLine.getStatusCode();
@@ -120,6 +121,7 @@ public class StatusService extends Service {
                     req.process(new JSONObject(res), this);
                 } catch (Exception e) {
                     error_ = e.getMessage();
+                    State.appendLog("Err: " + error_);
                 }
                 nRequest++;
             }
@@ -131,14 +133,21 @@ public class StatusService extends Service {
             super.onPostExecute(result);
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             SharedPreferences.Editor ed = preferences.edit();
+            boolean res = false;
             for (HttpRequest req : requests_) {
-                req.postProcess(ed);
+                res |= req.postProcess(ed);
             }
-            ed.commit();
             process_request = false;
-            sendUpdate();
-            if (error_ != null)
-                alarmMgr.setInexactRepeating(AlarmManager.RTC, REPEAT_AFTER_ERROR, REPEAT_AFTER_ERROR, pi);
+            if (res){
+                State.appendLog("Send update");
+                ed.commit();
+                sendUpdate();
+            }
+            if (error_ != null){
+                State.appendLog("Restart request");
+                alarmMgr.setInexactRepeating(AlarmManager.RTC,
+                        System.currentTimeMillis() + REPEAT_AFTER_ERROR, REPEAT_AFTER_ERROR, pi);
+            }
         }
     }
 
@@ -183,9 +192,10 @@ public class StatusService extends Service {
         }
 
         @Override
-        void postProcess(SharedPreferences.Editor ed) {
+        boolean postProcess(SharedPreferences.Editor ed) {
             if (address_ != null)
                 ed.putString(Names.ADDRESS, address_);
+            return true;
         }
 
         String address_;
@@ -210,16 +220,19 @@ public class StatusService extends Service {
         }
 
         @Override
-        void postProcess(SharedPreferences.Editor ed) {
+        boolean postProcess(SharedPreferences.Editor ed) {
             if (temperature != null)
                 ed.putString(Names.TEMPERATURE, temperature);
+            return true;
         }
 
     }
 
     class LastInfoRequest extends HttpRequest {
 
-        double last_time;
+        long last_time;
+        long last_id;
+        long prev_id;
 
         String main_voltage;
         String reserve_voltage;
@@ -249,11 +262,17 @@ public class StatusService extends Service {
             api_key_ = api_key;
             latitude_prev = preferences.getString(Names.LATITUDE, "");
             longitude_prev = preferences.getString(Names.LONGITUDE, "");
+            prev_id = preferences.getLong(Names.EVENT_ID, 0);
         }
 
         @Override
         void process(JSONObject result, HttpTask task) {
-            last_time = getDouble(result, "gps.eventTime");
+            last_id = getLong(result, "event.eventId");
+            if (last_id == prev_id)
+                return;
+            if (last_id == 0)
+                return;
+            last_time = getLong(result, "event.eventTime");
             main_voltage = getString(result, "voltage.main");
             reserve_voltage = getString(result, "voltage.reserved");
             balance_ = getString(result, "balance.source");
@@ -278,9 +297,14 @@ public class StatusService extends Service {
         }
 
         @Override
-        void postProcess(SharedPreferences.Editor ed) {
+        boolean postProcess(SharedPreferences.Editor ed) {
+            if (last_id == prev_id)
+                return false;
+            if (last_id == 0)
+                return false;
+            ed.putLong(Names.EVENT_ID, last_id);
             if (last_time != 0)
-                ed.putLong(Names.LAST_EVENT, (long) last_time);
+                ed.putLong(Names.LAST_EVENT, last_time);
             if (main_voltage != null)
                 ed.putString(Names.VOLTAGE, main_voltage);
             if (reserve_voltage != null)
@@ -303,28 +327,33 @@ public class StatusService extends Service {
             ed.putInt(Names.ENGINE, engine);
             ed.putInt(Names.IGNITION, ignition);
             ed.putInt(Names.ACCESSORY, accessory);
+            return true;
         }
     }
 
     void startRequest() {
-        if (process_request)
+        if (process_request){
+            State.appendLog("Already processed");
             return;
+        }
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         String api_key = preferences.getString(Names.KEY, "");
         if (api_key.length() == 0)
             return;
-        process_request = true;
         final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
         if ((activeNetwork == null) || !activeNetwork.isConnected()) {
+            State.appendLog("No connection wait...");
             IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
             registerReceiver(mReceiver, filter);
             return;
         }
         if (!powerMgr.isScreenOn()) {
+            State.appendLog("Screen is off wait");
             IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
             registerReceiver(mReceiver, filter);
             return;
         }
+        process_request = true;
         try {
             unregisterReceiver(mReceiver);
         } catch (Exception e) {
@@ -359,13 +388,13 @@ public class StatusService extends Service {
         return null;
     }
 
-    static double getDouble(JSONObject obj, String key) {
+    static long getLong(JSONObject obj, String key) {
         try {
             String[] sub_keys = key.split("\\.");
             for (int i = 0; i < sub_keys.length - 1; i++) {
                 obj = get(obj, sub_keys[i]);
             }
-            return obj.getDouble(sub_keys[sub_keys.length - 1]);
+            return obj.getLong(sub_keys[sub_keys.length - 1]);
         } catch (Exception e) {
             // ignore
         }

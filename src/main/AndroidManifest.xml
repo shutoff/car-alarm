@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
             android:allowBackup="true"
@@ -40,7 +41,13 @@
         </activity>
 
         <activity
+                android:name="ru.shutoff.caralarm.TestActivity"
+                android:label="@string/app_name">
+        </activity>
+
+        <activity
                 android:name="ru.shutoff.caralarm.Alarm"
+                android:configChanges="keyboard|keyboardHidden|orientation"
                 android:launchMode="singleTop">
         </activity>
 
@@ -72,11 +79,11 @@
         </receiver>
 
         <service android:name="StatusService"/>
+        <service android:name="WidgetService"/>
 
         <receiver android:name="CarWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-                <action android:name="android.intent.action.SCREEN_ON"/>
                 <action android:name="ru.shutoff.caralarm.UPDATE"/>
             </intent-filter>
             <meta-data

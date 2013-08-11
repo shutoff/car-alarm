@@ -32,7 +32,7 @@ public class SmsMonitor extends BroadcastReceiver {
             }
             String sms_from = messages[0].getOriginatingAddress();
             StringBuilder bodyText = new StringBuilder();
-            for (SmsMessage m: messages) {
+            for (SmsMessage m : messages) {
                 bodyText.append(m.getMessageBody());
             }
             String body = bodyText.toString();
@@ -110,8 +110,8 @@ public class SmsMonitor extends BroadcastReceiver {
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(context)
                         .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle("Car Aarm")   //$NON-NLS-1$
-                        .setContentText(text);   //$NON-NLS-1$
+                        .setContentTitle("Car Alarm")
+                        .setContentText(text);
 
         Intent notificationIntent = new Intent(context, MainActivity.class);
         notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

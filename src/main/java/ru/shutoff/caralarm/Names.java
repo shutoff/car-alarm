@@ -21,6 +21,7 @@ public final class Names {
     static final String VOLTAGE = "voltage";
     static final String RESERVE = "reserve";
     static final String BALANCE = "balance";
+    static final String EVENT_ID = "event";
 
     static final String GUARD = "guard_";
     static final String DOOR = "door_";
@@ -34,4 +35,5 @@ public final class Names {
     public static final String LATITUDE = "latitude";
 
     static final String SPEED = "speed";
+    static final String STOP  = "stop";
 }

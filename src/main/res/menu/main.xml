@@ -6,5 +6,8 @@
     <item
             android:id="@+id/preferences"
             android:title="@string/preferences"/>
+    <item
+            android:id="@+id/alarm"
+            android:title="Test"/>
 
 </menu>

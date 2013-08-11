@@ -3,9 +3,15 @@ package ru.shutoff.caralarm;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetFileDescriptor;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.Ringtone;
@@ -13,17 +19,22 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.BaseColumns;
+import android.provider.ContactsContract;
 import android.support.v4.app.NotificationCompat;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.InputStream;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class Alarm extends Activity {
 
     TextView tvAlarm;
+    ImageView imgPhoto;
     MediaPlayer player;
     AudioManager audioManager;
     VolumeTask volumeTask;
@@ -38,6 +49,40 @@ public class Alarm extends Activity {
 
         setContentView(R.layout.alarm);
         tvAlarm = (TextView) findViewById(R.id.text_alarm);
+        imgPhoto = (ImageView) findViewById(R.id.photo);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        String number = preferences.getString(Names.PHONE, "");
+
+        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
+
+        ContentResolver contentResolver = getContentResolver();
+        Cursor contactLookup = contentResolver.query(uri, new String[]{BaseColumns._ID,
+                ContactsContract.PhoneLookup.DISPLAY_NAME}, null, null, null);
+
+        try {
+            if (contactLookup != null && contactLookup.getCount() > 0) {
+                contactLookup.moveToNext();
+                String contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
+
+                Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(contactId));
+                Uri displayPhotoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
+                AssetFileDescriptor fd =
+                        getContentResolver().openAssetFileDescriptor(displayPhotoUri, "r");
+                InputStream inputStream = fd.createInputStream();
+                if (inputStream != null) {
+                    Bitmap photo = BitmapFactory.decodeStream(inputStream);
+                    imgPhoto.setImageBitmap(photo);
+                    inputStream.close();
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+        } finally {
+            if (contactLookup != null) {
+                contactLookup.close();
+            }
+        }
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         process(getIntent());

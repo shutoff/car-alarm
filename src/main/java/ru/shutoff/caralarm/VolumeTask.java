@@ -11,6 +11,7 @@ public class VolumeTask extends TimerTask {
 
     int start_level;
     int max_level;
+    int prev_level;
     int count;
     int count_vibro;
     Timer timer;
@@ -24,6 +25,7 @@ public class VolumeTask extends TimerTask {
         audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         start_level = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+        prev_level = start_level;
         max_level = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
         count = 0;
         count_vibro = 0;
@@ -36,18 +38,26 @@ public class VolumeTask extends TimerTask {
         if (count < max_count)
             count++;
         if (count_vibro == 0) {
-            vibrator.vibrate(700);
+            vibrator.vibrate(1000);
             count_vibro = 5;
         }
         count_vibro--;
-        int level = start_level + (max_level - start_level) * count / max_count;
-        audioManager.setStreamVolume(AudioManager.STREAM_RING, level, 0);
+        if (start_level >= 0) {
+            if (audioManager.getStreamVolume(AudioManager.STREAM_RING) != prev_level) {
+                start_level = -1;
+                return;
+            }
+            int level = start_level + (max_level - start_level) * count / max_count;
+            audioManager.setStreamVolume(AudioManager.STREAM_RING, level, 0);
+            prev_level = level;
+        }
 
     }
 
     void stop() {
         timer.cancel();
         vibrator.cancel();
-        audioManager.setStreamVolume(AudioManager.STREAM_RING, start_level, 0);
+        if (start_level >= 0)
+            audioManager.setStreamVolume(AudioManager.STREAM_RING, start_level, 0);
     }
 }

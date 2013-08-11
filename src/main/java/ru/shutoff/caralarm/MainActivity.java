@@ -96,15 +96,15 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
         active = true;
         startTimer(true);
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStop() {
+        super.onStop();
         active = false;
         stopTimer();
     }
@@ -120,11 +120,13 @@ public class MainActivity extends ActionBarActivity {
     void startTimer(boolean now) {
         if (!active)
             return;
+        State.appendLog("Start timer" +(now ? " now" : ""));
         alarmMgr.setInexactRepeating(AlarmManager.RTC,
                 System.currentTimeMillis() + (now ? 0 : UPDATE_INTERVAL), UPDATE_INTERVAL, pi);
     }
 
     void stopTimer() {
+        State.appendLog("Stop timer");
         alarmMgr.cancel(pi);
     }
 
@@ -166,12 +168,20 @@ public class MainActivity extends ActionBarActivity {
             case R.id.actions: {
                 Intent intent = new Intent(this, Actions.class);
                 startActivity(intent);
+                break;
             }
+            case R.id.alarm: {
+                Intent intent = new Intent(this, TestActivity.class);
+                startActivity(intent);
+                break;
+            }
+
         }
         return false;
     }
 
     void update() {
+        State.appendLog("Activity update");
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         tvAddress.setText(
                 preferences.getString(Names.LATITUDE, "") + " " + preferences.getString(Names.LONGITUDE, "") + "\n" +
