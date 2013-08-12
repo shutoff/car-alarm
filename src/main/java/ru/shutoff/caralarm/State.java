@@ -13,22 +13,16 @@ public class State {
     static String waitAnswer;
     static PendingIntent waitAnswerPI;
 
-    static public void appendLog(String text)
-    {
+    static public void appendLog(String text) {
         File logFile = new File("/sdcard/car.log");
-        if (!logFile.exists())
-        {
-            try
-            {
+        if (!logFile.exists()) {
+            try {
                 logFile.createNewFile();
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        try
-        {
+        try {
             //BufferedWriter for performance, true to set append to file flag
             BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
             Date d = new Date();
@@ -37,9 +31,7 @@ public class State {
             buf.append(text);
             buf.newLine();
             buf.close();
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

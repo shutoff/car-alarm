@@ -95,6 +95,7 @@ public class CarDrawable {
             ignition = value;
             return true;
         }
+
         boolean setDoorsAlarm(int value) {
             if (doors_alarm == value)
                 return false;
@@ -252,9 +253,9 @@ public class CarDrawable {
         }
         int doors_alarm = preferences.getInt(Names.DOOR_ALARM, 0);
         res |= state.setDoorsAlarm(doors_alarm);
-        if (doors_alarm > 0){
+        if (doors_alarm > 0) {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
-        }else{
+        } else {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
@@ -272,9 +273,9 @@ public class CarDrawable {
         }
         int hood_alarm = preferences.getInt(Names.HOOD_ALARM, 0);
         res |= state.setHoodAlarm(hood_alarm);
-        if (hood_alarm > 0){
+        if (hood_alarm > 0) {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
-        }else{
+        } else {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
@@ -291,9 +292,9 @@ public class CarDrawable {
         }
         int trunk_alarm = preferences.getInt(Names.TRUNK_ALARM, 0);
         res |= state.setTrunkAlarm(trunk_alarm);
-        if (trunk_alarm > 0){
+        if (trunk_alarm > 0) {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
-        }else{
+        } else {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 

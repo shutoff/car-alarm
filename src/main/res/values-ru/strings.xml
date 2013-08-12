@@ -39,4 +39,6 @@
     <string name="motor_on_sum">Произвести дистанционный запуск двигателя</string>
     <string name="motor_off_sum">Дистанционно остановить двигатель</string>
     <string name="unknown">неизвестно</string>
+    <string name="alarm_test">Проверка тревоги</string>
+    <string name="alarm_test_sum">Нажмите для проверки тревоги</string>
 </resources>
