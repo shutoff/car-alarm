@@ -48,7 +48,8 @@ public class CarWidget extends AppWidgetProvider {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equalsIgnoreCase(StatusService.ACTION_UPDATE)) {
+        String action = intent.getAction();
+        if ((action != null) && action.equalsIgnoreCase(StatusService.ACTION_UPDATE)) {
             State.appendLog("Update widgets");
             updateWidgets(context);
             Intent i = new Intent(context, WidgetService.class);
