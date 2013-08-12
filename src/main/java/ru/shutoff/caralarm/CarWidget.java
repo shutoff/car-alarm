@@ -20,21 +20,27 @@ public class CarWidget extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
+        State.appendLog("Widget onUpdate");
+        Intent intent = new Intent(context, WidgetService.class);
+        context.startService(intent);
         for (int i : appWidgetIds) {
-            updateWidget(context, appWidgetManager, i);
+            updateWidget(context, appWidgetManager, i, true);
         }
     }
 
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
+        State.appendLog("Widget onEnabled");
         Intent intent = new Intent(context, WidgetService.class);
         context.startService(intent);
+        updateWidgets(context);
     }
 
     @Override
     public void onDisabled(Context context) {
         super.onDisabled(context);
+        State.appendLog("Widget onDisabled");
         Intent intent = new Intent(context, WidgetService.class);
         intent.putExtra(Names.STOP, 1);
         context.startService(intent);
@@ -56,12 +62,13 @@ public class CarWidget extends AppWidgetProvider {
         if (appWidgetManager != null) {
             int ids[] = appWidgetManager.getAppWidgetIds(thisAppWidget);
             for (int appWidgetID : ids) {
-                updateWidget(context, appWidgetManager, appWidgetID);
+                updateWidget(context, appWidgetManager, appWidgetID, false);
             }
         }
     }
 
-    void updateWidget(Context context, AppWidgetManager appWidgetManager, int widgetID) {
+    void updateWidget(Context context, AppWidgetManager appWidgetManager, int widgetID, boolean force) {
+        State.appendLog("Update widget " + widgetID);
         RemoteViews widgetView = new RemoteViews(context.getPackageName(), R.layout.widget);
 
         Intent configIntent = new Intent(context, MainActivity.class);
@@ -78,14 +85,14 @@ public class CarWidget extends AppWidgetProvider {
             widgetView.setTextViewText(R.id.last, context.getString(R.string.unknown));
         }
 
-        widgetView.setTextViewText(R.id.voltage, preferences.getString(Names.VOLTAGE, "?") + " V");
-        widgetView.setTextViewText(R.id.balance, preferences.getString(Names.BALANCE, "?"));
-        widgetView.setTextViewText(R.id.temperature, preferences.getString(Names.TEMPERATURE, "?") + " °C");
+        widgetView.setTextViewText(R.id.voltage, preferences.getString(Names.VOLTAGE, "--") + " V");
+        widgetView.setTextViewText(R.id.balance, preferences.getString(Names.BALANCE, "---.--"));
+        widgetView.setTextViewText(R.id.temperature, preferences.getString(Names.TEMPERATURE, "--") + " °C");
 
         if (drawable == null)
             drawable = new CarDrawable(context);
 
-        if (drawable.update(preferences))
+        if (drawable.update(preferences) || force)
             widgetView.setImageViewBitmap(R.id.car, drawable.getBitmap());
 
         appWidgetManager.updateAppWidget(widgetID, widgetView);

@@ -49,6 +49,15 @@ public class MainActivity extends ActionBarActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+
+            @Override
+            public void uncaughtException(Thread thread, Throwable ex) {
+                State.appendLog("Error thread: " + thread.toString());
+                State.appendLog("Error: " + ex.toString());
+            }
+        });
+
         setContentView(R.layout.main);
 
         imgCar = (ImageView) findViewById(R.id.car);

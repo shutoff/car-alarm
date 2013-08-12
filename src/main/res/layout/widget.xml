@@ -10,6 +10,7 @@
 
     <ImageView
             android:id="@+id/car"
+            android:src="@drawable/full"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"/>
@@ -23,6 +24,7 @@
                 android:id="@+id/last"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:text="@string/unknown"
                 android:textSize="10sp"/>
 
         <LinearLayout
@@ -39,6 +41,7 @@
                     android:id="@+id/voltage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="@string/empty_voltage"
                     android:textStyle="bold"
                     android:textAppearance="?android:attr/textAppearanceSmall"/>
         </LinearLayout>
@@ -57,6 +60,7 @@
                     android:id="@+id/balance"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="@string/empty_balance"
                     android:textStyle="bold"
                     android:textAppearance="?android:attr/textAppearanceSmall"/>
         </LinearLayout>
@@ -75,6 +79,7 @@
                     android:id="@+id/temperature"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="@string/empty_temperature"
                     android:textStyle="bold"
                     android:textAppearance="?android:attr/textAppearanceSmall"/>
         </LinearLayout>

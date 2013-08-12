@@ -38,4 +38,5 @@
     <string name="motor_off">Зашлушить двигатель</string>
     <string name="motor_on_sum">Произвести дистанционный запуск двигателя</string>
     <string name="motor_off_sum">Дистанционно остановить двигатель</string>
+    <string name="unknown">неизвестно</string>
 </resources>
