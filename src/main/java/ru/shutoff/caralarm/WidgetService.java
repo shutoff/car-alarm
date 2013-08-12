@@ -44,9 +44,14 @@ public class WidgetService extends Service {
                     stopTimer();
                     startTimer(true);
                 }
+                if (intent.getAction().equalsIgnoreCase(Intent.ACTION_SCREEN_OFF)) {
+                    State.appendLog("Widget service SCREEN OFF");
+                    stopTimer();
+                }
             }
         };
         registerReceiver(br, new IntentFilter(Intent.ACTION_SCREEN_ON));
+        registerReceiver(br, new IntentFilter(Intent.ACTION_SCREEN_OFF));
         registerReceiver(br, new IntentFilter(StatusService.ACTION_UPDATE));
 
     }

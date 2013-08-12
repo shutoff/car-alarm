@@ -238,12 +238,17 @@ public class StatusService extends Service {
         String reserve_voltage;
 
         int guard;
+
         int door;
-        int hood;
         int trunk;
-        int engine;
-        int accessory;
         int ignition;
+        int hood;
+
+        int door_alarm;
+        int trunk_alarm;
+        int ignition_alarm;
+        int hood_alarm;
+        int accessory_alarm;
 
         String balance_;
         String api_key_;
@@ -288,12 +293,17 @@ public class StatusService extends Service {
             }
 
             guard = getBoolean(result, "contact.stGuard");
-            engine = getBoolean(result, "contact.stEngine");
-            door = getBoolean(result, "contact.stZoneDoor");
-            hood = getBoolean(result, "contact.stZoneHood");
-            trunk = getBoolean(result, "contact.stZoneTrunk");
-            accessory = getBoolean(result, "contact.stZoneAccessoryOn");
-            ignition = getBoolean(result, "contact.stZoneIgnitionOn");
+
+            door = getBoolean(result, "contact.stInput1");
+            trunk = getBoolean(result, "contact.stInput2");
+            ignition = getBoolean(result, "contact.stInput3");
+            hood = getBoolean(result, "contact.stInput4");
+
+            door_alarm = getBoolean(result, "contact.stZoneDoor");
+            hood_alarm = getBoolean(result, "contact.stZoneHood");
+            trunk_alarm = getBoolean(result, "contact.stZoneTrunk");
+            accessory_alarm = getBoolean(result, "contact.stZoneAccessoryOn");
+            ignition_alarm = getBoolean(result, "contact.stZoneIgnitionOn");
         }
 
         @Override
@@ -324,9 +334,12 @@ public class StatusService extends Service {
             ed.putInt(Names.DOOR, door);
             ed.putInt(Names.HOOD, hood);
             ed.putInt(Names.TRUNK, trunk);
-            ed.putInt(Names.ENGINE, engine);
             ed.putInt(Names.IGNITION, ignition);
-            ed.putInt(Names.ACCESSORY, accessory);
+            ed.putInt(Names.DOOR_ALARM, door_alarm);
+            ed.putInt(Names.HOOD_ALARM, hood_alarm);
+            ed.putInt(Names.TRUNK_ALARM, trunk_alarm);
+            ed.putInt(Names.IGNITION_ALARM, ignition_alarm);
+            ed.putInt(Names.ACCESSORY_ALARM, accessory_alarm);
             return true;
         }
     }

@@ -156,46 +156,43 @@ public class Alarm extends Activity {
     }
 
     void process(Intent intent) {
-        Bundle bundle = intent.getExtras();
-        if (bundle != null) {
-            String alarm = bundle.getString(Names.ALARM);
-            if (alarm != null) {
-                SharedPreferences sPref = PreferenceManager.getDefaultSharedPreferences(this);
-                tvAlarm.setText(alarm);
-                String sound = sPref.getString(Names.ALARM, "");
-                Uri uri = Uri.parse(sound);
-                Ringtone ringtone = RingtoneManager.getRingtone(getBaseContext(), uri);
-                if (ringtone == null)
-                    uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-                if (timer != null)
-                    timer.cancel();
-                TimerTask timerTask = new TimerTask() {
-                    @Override
-                    public void run() {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                cancelAlarm();
-                            }
-                        });
-                    }
-                };
-                timer = new Timer();
-                timer.schedule(timerTask, 3 * 60 * 1000);
-
-                try {
-                    if (player == null) {
-                        volumeTask = new VolumeTask(this);
-                        player = new MediaPlayer();
-                        player.setDataSource(this, uri);
-                        player.setAudioStreamType(AudioManager.STREAM_RING);
-                        player.setLooping(true);
-                        player.prepare();
-                        player.start();
-                    }
-                } catch (Exception err) {
-                    // ignore
+        String alarm = intent.getStringExtra(Names.ALARM);
+        if (alarm != null) {
+            SharedPreferences sPref = PreferenceManager.getDefaultSharedPreferences(this);
+            tvAlarm.setText(alarm);
+            String sound = sPref.getString(Names.ALARM, "");
+            Uri uri = Uri.parse(sound);
+            Ringtone ringtone = RingtoneManager.getRingtone(getBaseContext(), uri);
+            if (ringtone == null)
+                uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+            if (timer != null)
+                timer.cancel();
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            cancelAlarm();
+                        }
+                    });
                 }
+            };
+            timer = new Timer();
+            timer.schedule(timerTask, 3 * 60 * 1000);
+
+            try {
+                if (player == null) {
+                    volumeTask = new VolumeTask(this);
+                    player = new MediaPlayer();
+                    player.setDataSource(this, uri);
+                    player.setAudioStreamType(AudioManager.STREAM_RING);
+                    player.setLooping(true);
+                    player.prepare();
+                    player.start();
+                }
+            } catch (Exception err) {
+                // ignore
             }
         }
     }

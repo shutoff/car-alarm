@@ -38,34 +38,33 @@ public class CarDrawable {
 
     class State {
         int guard;
-        int accessory;
         int doors;
         int hood;
         int trunk;
-        int engine;
         int ignition;
+        int doors_alarm;
+        int hood_alarm;
+        int trunk_alarm;
+        int ignition_alarm;
+        int accessory_alarm;
 
         State() {
             guard = 0;
-            accessory = 0;
             doors = 0;
             hood = 0;
             trunk = 0;
-            engine = 0;
             ignition = 0;
+            doors_alarm = 0;
+            hood_alarm = 0;
+            trunk_alarm = 0;
+            ignition_alarm = 0;
+            accessory_alarm = 0;
         }
 
         boolean setGuard(int value) {
             if (guard == value)
                 return false;
             guard = value;
-            return true;
-        }
-
-        boolean setAccessory(int value) {
-            if (accessory == value)
-                return false;
-            accessory = value;
             return true;
         }
 
@@ -90,19 +89,47 @@ public class CarDrawable {
             return true;
         }
 
-        boolean setEngine(int value) {
-            if (engine == value)
-                return false;
-            engine = value;
-            return true;
-        }
-
         boolean setIgnition(int value) {
             if (ignition == value)
                 return false;
             ignition = value;
             return true;
         }
+        boolean setDoorsAlarm(int value) {
+            if (doors_alarm == value)
+                return false;
+            doors_alarm = value;
+            return true;
+        }
+
+        boolean setHoodAlarm(int value) {
+            if (hood_alarm == value)
+                return false;
+            hood_alarm = value;
+            return true;
+        }
+
+        boolean setTrunkAlarm(int value) {
+            if (trunk_alarm == value)
+                return false;
+            trunk_alarm = value;
+            return true;
+        }
+
+        boolean setIgnitionAlarm(int value) {
+            if (ignition_alarm == value)
+                return false;
+            ignition_alarm = value;
+            return true;
+        }
+
+        boolean setAccessoryAlarm(int value) {
+            if (accessory_alarm == value)
+                return false;
+            accessory_alarm = value;
+            return true;
+        }
+
     }
 
     State state;
@@ -203,36 +230,52 @@ public class CarDrawable {
             dUnlock.setAlpha(0);
         }
 
-        int accessory = preferences.getInt(Names.ACCESSORY, 0);
-        res |= state.setAccessory(accessory);
+        int accessory = preferences.getInt(Names.ACCESSORY_ALARM, 0);
+        res |= state.setAccessoryAlarm(accessory);
         if (accessory > 0) {
             dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
+        Drawable d;
         int doors = preferences.getInt(Names.DOOR, 0);
         res |= state.setDoors(doors);
         if (doors > 0) {
             dDoors.setAlpha(0);
             dDoorsOpen.setAlpha(255);
-            dDoorsOpen.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
+            d = dDoorsOpen;
         } else {
             dDoorsOpen.setAlpha(0);
             dDoors.setAlpha(255);
-            dDoors.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
+            d = dDoors;
         }
+        int doors_alarm = preferences.getInt(Names.DOOR_ALARM, 0);
+        res |= state.setDoorsAlarm(doors_alarm);
+        if (doors_alarm > 0){
+            d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
+        }else{
+            d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
+        }
+
 
         int hood = preferences.getInt(Names.HOOD, 0);
         res |= state.setHood(hood);
         if (hood > 0) {
             dHood.setAlpha(0);
             dHoodOpen.setAlpha(255);
-            dHoodOpen.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
+            d = dHoodOpen;
         } else {
             dHoodOpen.setAlpha(0);
             dHood.setAlpha(255);
-            dHood.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
+            d = dHood;
+        }
+        int hood_alarm = preferences.getInt(Names.HOOD_ALARM, 0);
+        res |= state.setHoodAlarm(hood_alarm);
+        if (hood_alarm > 0){
+            d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
+        }else{
+            d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
         int trunk = preferences.getInt(Names.TRUNK, 0);
@@ -240,20 +283,28 @@ public class CarDrawable {
         if (trunk > 0) {
             dTrunk.setAlpha(0);
             dTrunkOpen.setAlpha(255);
-            dTrunkOpen.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
+            d = dTrunkOpen;
         } else {
             dTrunkOpen.setAlpha(0);
             dTrunk.setAlpha(255);
-            dTrunk.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
+            d = dTrunk;
+        }
+        int trunk_alarm = preferences.getInt(Names.TRUNK_ALARM, 0);
+        res |= state.setTrunkAlarm(trunk_alarm);
+        if (trunk_alarm > 0){
+            d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
+        }else{
+            d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
-        int engine = preferences.getInt(Names.ENGINE, 0);
-        res |= state.setEngine(engine);
-        if (engine > 0) {
+
+        int ignition = preferences.getInt(Names.IGNITION, 0);
+        res |= state.setIgnition(ignition);
+        if (ignition > 0) {
             dIgnition.setAlpha(255);
-            int ignition = preferences.getInt(Names.IGNITION, 0);
-            res |= state.setIgnition(ignition);
-            if (ignition > 0) {
+            int ignition_alarm = preferences.getInt(Names.IGNITION_ALARM, 0);
+            res |= state.setIgnitionAlarm(ignition_alarm);
+            if (ignition_alarm > 0) {
                 dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
             } else {
                 dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));

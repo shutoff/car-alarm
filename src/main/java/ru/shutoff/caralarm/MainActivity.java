@@ -171,7 +171,8 @@ public class MainActivity extends ActionBarActivity {
                 break;
             }
             case R.id.alarm: {
-                Intent intent = new Intent(this, TestActivity.class);
+                Intent intent = new Intent(this, Alarm.class);
+                intent.putExtra(Names.ALARM, "Test");
                 startActivity(intent);
                 break;
             }

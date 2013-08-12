@@ -24,12 +24,17 @@ public final class Names {
     static final String EVENT_ID = "event";
 
     static final String GUARD = "guard_";
+
     static final String DOOR = "door_";
     static final String HOOD = "hood_";
     static final String TRUNK = "trunk_";
-    static final String ENGINE = "engine_";
     static final String IGNITION = "ignition_";
-    static final String ACCESSORY = "accessory_";
+
+    static final String DOOR_ALARM = "door_alarm";
+    static final String HOOD_ALARM = "hood_alarm";
+    static final String TRUNK_ALARM = "trunk_alarm";
+    static final String IGNITION_ALARM = "ignition_alarm";
+    static final String ACCESSORY_ALARM = "accessory_alarm";
 
     public static final String LONGITUDE = "longitude";
     public static final String LATITUDE = "latitude";
