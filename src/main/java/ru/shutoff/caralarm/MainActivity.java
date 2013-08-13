@@ -129,7 +129,7 @@ public class MainActivity extends ActionBarActivity {
     void startTimer(boolean now) {
         if (!active)
             return;
-        State.appendLog("Start timer" +(now ? " now" : ""));
+        State.appendLog("Start timer" + (now ? " now" : ""));
         alarmMgr.setInexactRepeating(AlarmManager.RTC,
                 System.currentTimeMillis() + (now ? 0 : UPDATE_INTERVAL), UPDATE_INTERVAL, pi);
     }
@@ -179,13 +179,6 @@ public class MainActivity extends ActionBarActivity {
                 startActivity(intent);
                 break;
             }
-            case R.id.alarm: {
-                Intent intent = new Intent(this, Alarm.class);
-                intent.putExtra(Names.ALARM, "Test");
-                startActivity(intent);
-                break;
-            }
-
         }
         return false;
     }

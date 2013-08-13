@@ -38,5 +38,7 @@
     <string name="widget_name">Car alarm</string>
     <string name="empty_voltage">-- V</string>
     <string name="empty_balance">---.--</string>
-    <string name="empty_temperature">--  °C</string>
+    <string name="empty_temperature">-- °C</string>
+    <string name="alarm_test">Alarm test</string>
+    <string name="alarm_test_sum">Click for test alarm</string>
 </resources>

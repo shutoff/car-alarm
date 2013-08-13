@@ -41,9 +41,9 @@ public class CarWidget extends AppWidgetProvider {
     public void onDisabled(Context context) {
         super.onDisabled(context);
         State.appendLog("Widget onDisabled");
-        Intent intent = new Intent(context, WidgetService.class);
-        intent.putExtra(Names.STOP, 1);
-        context.startService(intent);
+        Intent i = new Intent(context, WidgetService.class);
+        i.setAction(WidgetService.ACTION_STOP);
+        context.startService(i);
     }
 
     @Override
@@ -51,6 +51,9 @@ public class CarWidget extends AppWidgetProvider {
         if (intent.getAction().equalsIgnoreCase(StatusService.ACTION_UPDATE)) {
             State.appendLog("Update widgets");
             updateWidgets(context);
+            Intent i = new Intent(context, WidgetService.class);
+            i.setAction(WidgetService.ACTION_UPDATE);
+            context.startService(i);
         }
         super.onReceive(context, intent);
     }

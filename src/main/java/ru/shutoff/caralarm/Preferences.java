@@ -24,6 +24,7 @@ public class Preferences extends PreferenceActivity {
     Preference notifyPref;
     Preference smsPref;
     Preference apiPref;
+    Preference testPref;
     String alarmUri;
     String notifyUri;
     ProgressDialog smsProgress;
@@ -107,6 +108,16 @@ public class Preferences extends PreferenceActivity {
         apiPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
                 Intent intent = new Intent(getBaseContext(), ApiKeyDialog.class);
+                startActivity(intent);
+                return true;
+            }
+        });
+
+        testPref = (Preference) findPreference("alarm_test");
+        testPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+            public boolean onPreferenceClick(Preference preference) {
+                Intent intent = new Intent(getBaseContext(), Alarm.class);
+                intent.putExtra(Names.ALARM, getString(R.string.alarm_test));
                 startActivity(intent);
                 return true;
             }

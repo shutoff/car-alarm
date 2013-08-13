@@ -40,5 +40,5 @@ public final class Names {
     public static final String LATITUDE = "latitude";
 
     static final String SPEED = "speed";
-    static final String STOP  = "stop";
+
 }

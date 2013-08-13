@@ -138,12 +138,12 @@ public class StatusService extends Service {
                 res |= req.postProcess(ed);
             }
             process_request = false;
-            if (res){
+            if (res) {
                 State.appendLog("Send update");
                 ed.commit();
                 sendUpdate();
             }
-            if (error_ != null){
+            if (error_ != null) {
                 State.appendLog("Restart request");
                 alarmMgr.setInexactRepeating(AlarmManager.RTC,
                         System.currentTimeMillis() + REPEAT_AFTER_ERROR, REPEAT_AFTER_ERROR, pi);
@@ -345,7 +345,7 @@ public class StatusService extends Service {
     }
 
     void startRequest() {
-        if (process_request){
+        if (process_request) {
             State.appendLog("Already processed");
             return;
         }
