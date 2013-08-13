@@ -30,6 +30,14 @@ public class WidgetService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+
+            @Override
+            public void uncaughtException(Thread thread, Throwable ex) {
+                State.appendLog("Error thread: " + thread.toString());
+                State.appendLog("Error: " + ex.toString());
+            }
+        });
         State.appendLog("WidgetService.onStart");
         powerMgr = (PowerManager) getSystemService(Context.POWER_SERVICE);
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);

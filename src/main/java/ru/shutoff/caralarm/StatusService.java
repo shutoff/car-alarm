@@ -56,6 +56,14 @@ public class StatusService extends Service {
 
     @Override
     public void onCreate() {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+
+            @Override
+            public void uncaughtException(Thread thread, Throwable ex) {
+                State.appendLog("Error thread: " + thread.toString());
+                State.appendLog("Error: " + ex.toString());
+            }
+        });
         super.onCreate();
         process_request = false;
         conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
