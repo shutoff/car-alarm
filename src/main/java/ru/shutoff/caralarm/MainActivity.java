@@ -50,15 +50,7 @@ public class MainActivity extends ActionBarActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-
-            @Override
-            public void uncaughtException(Thread thread, Throwable ex) {
-                State.appendLog("Error thread: " + thread.toString());
-                State.appendLog("Error: " + ex.toString());
-            }
-        });
-
+        State.setExceptionHandler();
         setContentView(R.layout.main);
 
         imgCar = (ImageView) findViewById(R.id.car);
@@ -191,6 +183,11 @@ public class MainActivity extends ActionBarActivity {
             case R.id.map: {
                 Intent intent = new Intent(this, MapView.class);
                 startActivity(intent);
+                break;
+            }
+            case R.id.tracks: {
+                CaldroidFragment dialogCaldroidFragment = CaldroidFragment.newInstance("Select a date", 3, 2013);
+                dialogCaldroidFragment.show(getSupportFragmentManager(),"TAG");
                 break;
             }
         }

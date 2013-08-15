@@ -6,6 +6,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Date;
 
 public class State {
@@ -19,7 +21,6 @@ public class State {
             try {
                 logFile.createNewFile();
             } catch (IOException e) {
-                e.printStackTrace();
             }
         }
         try {
@@ -32,8 +33,24 @@ public class State {
             buf.newLine();
             buf.close();
         } catch (IOException e) {
-            e.printStackTrace();
         }
+    }
+
+    static public void setExceptionHandler(){
+/*
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+
+            @Override
+            public void uncaughtException(Thread thread, Throwable ex) {
+            ex.printStackTrace();
+            appendLog("Error: " + ex.toString());
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String s = sw.toString();
+            appendLog(s);
+            }
+        });
+*/
     }
 
 }

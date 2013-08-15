@@ -4,6 +4,9 @@
             android:id="@+id/map"
             android:title="@string/map"/>
     <item
+            android:id="@+id/tracks"
+            android:title="@string/tracks"/>
+    <item
             android:id="@+id/actions"
             android:title="@string/actions"/>
     <item

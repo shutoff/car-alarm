@@ -30,6 +30,7 @@ public class WidgetService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        State.setExceptionHandler();
         State.appendLog("WidgetService.onStart");
         powerMgr = (PowerManager) getSystemService(Context.POWER_SERVICE);
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -62,20 +63,22 @@ public class WidgetService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        String action = intent.getAction();
-        if (action != null) {
-            if (action.equals(ACTION_STOP)) {
-                State.appendLog("Widget service disabled");
-                stopTimer();
-                stopSelf();
-                return START_STICKY;
-            }
-            if (action.equals(ACTION_UPDATE)) {
-                State.appendLog("Widget service update");
-                stopTimer();
-                if (powerMgr.isScreenOn())
-                    startTimer(false);
-                return START_STICKY;
+        if (intent != null) {
+            String action = intent.getAction();
+            if (action != null) {
+                if (action.equals(ACTION_STOP)) {
+                    State.appendLog("Widget service disabled");
+                    stopTimer();
+                    stopSelf();
+                    return START_STICKY;
+                }
+                if (action.equals(ACTION_UPDATE)) {
+                    State.appendLog("Widget service update");
+                    stopTimer();
+                    if (powerMgr.isScreenOn())
+                        startTimer(false);
+                    return START_STICKY;
+                }
             }
         }
         State.appendLog("Widget service do update");
