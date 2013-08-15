@@ -12,8 +12,7 @@ import android.os.PowerManager;
 
 public class WidgetService extends Service {
 
-    static final int UPDATE_INTERVAL   = 5 * 60 * 1000;
-    static final int INACTIVE_INTERVAL = 60 * 60 * 1000;
+    static final int UPDATE_INTERVAL = 5 * 60 * 1000;
 
     static final String ACTION_STOP = "ru.shutoff.caralarm.WIDGET_STOP";
     static final String ACTION_UPDATE = "ru.shutoff.caralarm.WIDGET_UPDATE";
@@ -31,16 +30,6 @@ public class WidgetService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-
-            @Override
-            public void uncaughtException(Thread thread, Throwable ex) {
-                State.appendLog("Error thread: " + thread.toString());
-                State.appendLog("Error: " + ex.toString());
-            }
-        });
-
         State.appendLog("WidgetService.onStart");
         powerMgr = (PowerManager) getSystemService(Context.POWER_SERVICE);
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -51,12 +40,11 @@ public class WidgetService extends Service {
                 if (intent.getAction().equalsIgnoreCase(Intent.ACTION_SCREEN_ON)) {
                     State.appendLog("Widget service SCREEN ON - Update now");
                     stopTimer();
-                    startTimer(0, UPDATE_INTERVAL);
+                    startTimer(true);
                 }
                 if (intent.getAction().equalsIgnoreCase(Intent.ACTION_SCREEN_OFF)) {
                     State.appendLog("Widget service SCREEN OFF");
                     stopTimer();
-                    startTimer(INACTIVE_INTERVAL, INACTIVE_INTERVAL);
                 }
             }
         };
@@ -85,11 +73,8 @@ public class WidgetService extends Service {
             if (action.equals(ACTION_UPDATE)) {
                 State.appendLog("Widget service update");
                 stopTimer();
-                if (powerMgr.isScreenOn()){
-                    startTimer(UPDATE_INTERVAL, UPDATE_INTERVAL);
-                }else{
-                    startTimer(INACTIVE_INTERVAL, INACTIVE_INTERVAL);
-                }
+                if (powerMgr.isScreenOn())
+                    startTimer(false);
                 return START_STICKY;
             }
         }
@@ -99,10 +84,10 @@ public class WidgetService extends Service {
         return START_STICKY;
     }
 
-    void startTimer(long first, long interval) {
-        State.appendLog("Widget service start timer " + first + "," + interval);
+    void startTimer(boolean now) {
+        State.appendLog("Widget service start timer");
         alarmMgr.setInexactRepeating(AlarmManager.RTC,
-                System.currentTimeMillis() + first, interval, pi);
+                System.currentTimeMillis() + (now ? 0 : UPDATE_INTERVAL), UPDATE_INTERVAL, pi);
     }
 
     void stopTimer() {

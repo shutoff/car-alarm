@@ -41,4 +41,5 @@
     <string name="unknown">неизвестно</string>
     <string name="alarm_test">Проверка тревоги</string>
     <string name="alarm_test_sum">Нажмите для проверки тревоги</string>
+    <string name="map">Карта</string>
 </resources>

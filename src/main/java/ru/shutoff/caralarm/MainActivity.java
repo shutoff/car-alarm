@@ -14,6 +14,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -93,6 +94,14 @@ public class MainActivity extends ActionBarActivity {
             Intent intent = new Intent(this, Preferences.class);
             startActivity(intent);
         }
+
+        tvAddress.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getBaseContext(), MapView.class);
+                startActivity(intent);
+            }
+        });
 
         active = false;
         update();
@@ -176,6 +185,11 @@ public class MainActivity extends ActionBarActivity {
             }
             case R.id.actions: {
                 Intent intent = new Intent(this, Actions.class);
+                startActivity(intent);
+                break;
+            }
+            case R.id.map: {
+                Intent intent = new Intent(this, MapView.class);
                 startActivity(intent);
                 break;
             }

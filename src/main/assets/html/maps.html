@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+        html, body, #map-canvas {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        #panel {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            margin-left: -180px;
+            z-index: 5;
+            background-color: #fff;
+            padding: 5px;
+            border: 1px solid #999;
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <script>
+
+var map;
+var marker;
+function initialize() {
+   var latitude = android.getLatitude();
+   var longitude = android.getLongitude();
+   var mapOptions = {
+    zoom: 15,
+    center: new google.maps.LatLng(latitude, longitude),
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+   };
+   map = new google.maps.Map(document.getElementById('map-canvas'),
+      mapOptions);
+   marker = new google.maps.Marker({
+      position: new google.maps.LatLng(latitude, longitude),
+      map: map
+   });
+}
+function update() {
+  var latitude = android.getLatitude();
+  var longitude = android.getLongitude();
+  marker.setPosition(new google.maps.LatLng(latitude, longitude));
+}
+function center() {
+  var latitude = android.getLatitude();
+  var longitude = android.getLongitude();
+  map.setCenter(new google.maps.LatLng(latitude, longitude));
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+
+    </script>
+</head>
+<body>
+<div id="map-canvas"></div>
+</body>
+</html>

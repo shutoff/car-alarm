@@ -41,4 +41,5 @@
     <string name="empty_temperature">-- °C</string>
     <string name="alarm_test">Alarm test</string>
     <string name="alarm_test_sum">Click for test alarm</string>
+    <string name="map">Map</string>
 </resources>
