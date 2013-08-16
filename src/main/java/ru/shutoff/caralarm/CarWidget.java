@@ -20,18 +20,16 @@ public class CarWidget extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
-        State.appendLog("Widget onUpdate");
         Intent intent = new Intent(context, WidgetService.class);
         context.startService(intent);
         for (int i : appWidgetIds) {
-            updateWidget(context, appWidgetManager, i, true);
+            updateWidget(context, appWidgetManager, i);
         }
     }
 
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
-        State.appendLog("Widget onEnabled");
         Intent intent = new Intent(context, WidgetService.class);
         context.startService(intent);
         updateWidgets(context);
@@ -40,7 +38,6 @@ public class CarWidget extends AppWidgetProvider {
     @Override
     public void onDisabled(Context context) {
         super.onDisabled(context);
-        State.appendLog("Widget onDisabled");
         Intent i = new Intent(context, WidgetService.class);
         i.setAction(WidgetService.ACTION_STOP);
         context.startService(i);
@@ -50,7 +47,6 @@ public class CarWidget extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         if ((action != null) && action.equalsIgnoreCase(StatusService.ACTION_UPDATE)) {
-            State.appendLog("Update widgets");
             updateWidgets(context);
             Intent i = new Intent(context, WidgetService.class);
             i.setAction(WidgetService.ACTION_UPDATE);
@@ -66,13 +62,12 @@ public class CarWidget extends AppWidgetProvider {
         if (appWidgetManager != null) {
             int ids[] = appWidgetManager.getAppWidgetIds(thisAppWidget);
             for (int appWidgetID : ids) {
-                updateWidget(context, appWidgetManager, appWidgetID, false);
+                updateWidget(context, appWidgetManager, appWidgetID);
             }
         }
     }
 
-    void updateWidget(Context context, AppWidgetManager appWidgetManager, int widgetID, boolean force) {
-        State.appendLog("Update widget " + widgetID);
+    void updateWidget(Context context, AppWidgetManager appWidgetManager, int widgetID) {
         RemoteViews widgetView = new RemoteViews(context.getPackageName(), R.layout.widget);
 
         Intent configIntent = new Intent(context, MainActivity.class);
@@ -80,7 +75,7 @@ public class CarWidget extends AppWidgetProvider {
         widgetView.setOnClickPendingIntent(R.id.widget, pIntent);
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        long last = preferences.getLong(Names.LAST_EVENT, 0);
+        long last = preferences.getLong(Names.EventTime, 0);
         if (last != 0) {
             Date d = new Date(last);
             SimpleDateFormat sf = new SimpleDateFormat();
@@ -89,15 +84,15 @@ public class CarWidget extends AppWidgetProvider {
             widgetView.setTextViewText(R.id.last, context.getString(R.string.unknown));
         }
 
-        widgetView.setTextViewText(R.id.voltage, preferences.getString(Names.VOLTAGE, "--") + " V");
-        widgetView.setTextViewText(R.id.balance, preferences.getString(Names.BALANCE, "---.--"));
-        widgetView.setTextViewText(R.id.temperature, preferences.getString(Names.TEMPERATURE, "--") + " °C");
+        widgetView.setTextViewText(R.id.voltage, preferences.getString(Names.VoltageMain, "--") + " V");
+        widgetView.setTextViewText(R.id.balance, preferences.getString(Names.Balance, "---.--"));
+        widgetView.setTextViewText(R.id.temperature, preferences.getString(Names.Temperature, "--") + " °C");
 
         if (drawable == null)
             drawable = new CarDrawable(context);
 
-        if (drawable.update(preferences) || force)
-            widgetView.setImageViewBitmap(R.id.car, drawable.getBitmap());
+        drawable.update(preferences);
+        widgetView.setImageViewBitmap(R.id.car, drawable.getBitmap());
 
         appWidgetManager.updateAppWidget(widgetID, widgetView);
     }

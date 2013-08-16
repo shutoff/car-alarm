@@ -24,6 +24,7 @@ public class WidgetService extends Service {
 
     PowerManager powerMgr;
     AlarmManager alarmMgr;
+
     PendingIntent pi;
     BroadcastReceiver br;
 
@@ -31,7 +32,6 @@ public class WidgetService extends Service {
     public void onCreate() {
         super.onCreate();
         State.setExceptionHandler();
-        State.appendLog("WidgetService.onStart");
         powerMgr = (PowerManager) getSystemService(Context.POWER_SERVICE);
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         pi = PendingIntent.getService(this, 0, new Intent(this, WidgetService.class), 0);
@@ -39,12 +39,10 @@ public class WidgetService extends Service {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equalsIgnoreCase(Intent.ACTION_SCREEN_ON)) {
-                    State.appendLog("Widget service SCREEN ON - Update now");
                     stopTimer();
                     startTimer(true);
                 }
                 if (intent.getAction().equalsIgnoreCase(Intent.ACTION_SCREEN_OFF)) {
-                    State.appendLog("Widget service SCREEN OFF");
                     stopTimer();
                 }
             }
@@ -56,7 +54,6 @@ public class WidgetService extends Service {
 
     @Override
     public void onDestroy() {
-        State.appendLog("WidgetService.onDestroy");
         unregisterReceiver(br);
         super.onDestroy();
     }
@@ -67,13 +64,11 @@ public class WidgetService extends Service {
             String action = intent.getAction();
             if (action != null) {
                 if (action.equals(ACTION_STOP)) {
-                    State.appendLog("Widget service disabled");
                     stopTimer();
                     stopSelf();
                     return START_STICKY;
                 }
                 if (action.equals(ACTION_UPDATE)) {
-                    State.appendLog("Widget service update");
                     stopTimer();
                     if (powerMgr.isScreenOn())
                         startTimer(false);
@@ -81,20 +76,17 @@ public class WidgetService extends Service {
                 }
             }
         }
-        State.appendLog("Widget service do update");
         Intent i = new Intent(this, StatusService.class);
         startService(i);
         return START_STICKY;
     }
 
     void startTimer(boolean now) {
-        State.appendLog("Widget service start timer");
         alarmMgr.setInexactRepeating(AlarmManager.RTC,
                 System.currentTimeMillis() + (now ? 0 : UPDATE_INTERVAL), UPDATE_INTERVAL, pi);
     }
 
     void stopTimer() {
-        State.appendLog("Widget service stop timer");
         alarmMgr.cancel(pi);
     }
 }

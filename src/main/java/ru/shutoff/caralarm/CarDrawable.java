@@ -36,105 +36,6 @@ public class CarDrawable {
     int width;
     int height;
 
-    class State {
-        int guard;
-        int doors;
-        int hood;
-        int trunk;
-        int ignition;
-        int doors_alarm;
-        int hood_alarm;
-        int trunk_alarm;
-        int ignition_alarm;
-        int accessory_alarm;
-
-        State() {
-            guard = 0;
-            doors = 0;
-            hood = 0;
-            trunk = 0;
-            ignition = 0;
-            doors_alarm = 0;
-            hood_alarm = 0;
-            trunk_alarm = 0;
-            ignition_alarm = 0;
-            accessory_alarm = 0;
-        }
-
-        boolean setGuard(int value) {
-            if (guard == value)
-                return false;
-            guard = value;
-            return true;
-        }
-
-        boolean setDoors(int value) {
-            if (doors == value)
-                return false;
-            doors = value;
-            return true;
-        }
-
-        boolean setHood(int value) {
-            if (hood == value)
-                return false;
-            hood = value;
-            return true;
-        }
-
-        boolean setTrunk(int value) {
-            if (trunk == value)
-                return false;
-            trunk = value;
-            return true;
-        }
-
-        boolean setIgnition(int value) {
-            if (ignition == value)
-                return false;
-            ignition = value;
-            return true;
-        }
-
-        boolean setDoorsAlarm(int value) {
-            if (doors_alarm == value)
-                return false;
-            doors_alarm = value;
-            return true;
-        }
-
-        boolean setHoodAlarm(int value) {
-            if (hood_alarm == value)
-                return false;
-            hood_alarm = value;
-            return true;
-        }
-
-        boolean setTrunkAlarm(int value) {
-            if (trunk_alarm == value)
-                return false;
-            trunk_alarm = value;
-            return true;
-        }
-
-        boolean setIgnitionAlarm(int value) {
-            if (ignition_alarm == value)
-                return false;
-            ignition_alarm = value;
-            return true;
-        }
-
-        boolean setAccessoryAlarm(int value) {
-            if (accessory_alarm == value)
-                return false;
-            accessory_alarm = value;
-            return true;
-        }
-
-    }
-
-    State state;
-
     CarDrawable(Context ctx) {
         dBg = new BitmapDrawable(ctx.getResources(), BitmapFactory.decodeResource(ctx.getResources(), R.drawable.bg));
         dBg.setColorFilter(new ColorMatrixColorFilter(createMatrix(BLACK)));
@@ -195,7 +96,6 @@ public class CarDrawable {
                 };
 
         drawable = new LayerDrawable(drawables);
-        state = new State();
     }
 
     Drawable getDrawable() {
@@ -210,102 +110,80 @@ public class CarDrawable {
         return bitmap;
     }
 
-    boolean update(SharedPreferences preferences) {
+    void update(SharedPreferences preferences) {
         int color = UNKNOWN;
         int alarm = UNKNOWN;
 
-        int guard = preferences.getInt(Names.GUARD, 0);
-        boolean res = state.setGuard(guard);
-        if (guard > 0) {
+        if (!preferences.contains(Names.Guard)){
+            dLock.setAlpha(0);
+            dUnlock.setAlpha(0);
+        }else if (preferences.getBoolean(Names.Guard, false)){
             dLock.setAlpha(255);
             dUnlock.setAlpha(0);
             color = GUARD;
             alarm = ALARM;
-        } else if (guard < 0) {
+        }else{
             dLock.setAlpha(0);
             dUnlock.setAlpha(255);
             color = NORMAL;
             alarm = NORMAL;
-        } else {
-            dLock.setAlpha(0);
-            dUnlock.setAlpha(0);
         }
 
-        int accessory = preferences.getInt(Names.ACCESSORY_ALARM, 0);
-        res |= state.setAccessoryAlarm(accessory);
-        if (accessory > 0) {
+        if (preferences.getBoolean(Names.ZoneAccessory, false)){
             dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
         Drawable d;
-        int doors = preferences.getInt(Names.DOOR, 0);
-        res |= state.setDoors(doors);
-        if (doors > 0) {
+        if (preferences.getBoolean(Names.Input1, false)){
             dDoors.setAlpha(0);
             dDoorsOpen.setAlpha(255);
             d = dDoorsOpen;
-        } else {
+        }else{
             dDoorsOpen.setAlpha(0);
             dDoors.setAlpha(255);
             d = dDoors;
         }
-        int doors_alarm = preferences.getInt(Names.DOOR_ALARM, 0);
-        res |= state.setDoorsAlarm(doors_alarm);
-        if (doors_alarm > 0) {
+        if (preferences.getBoolean(Names.ZoneDoor, false)){
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
-
-        int hood = preferences.getInt(Names.HOOD, 0);
-        res |= state.setHood(hood);
-        if (hood > 0) {
+        if (preferences.getBoolean(Names.Input4, false)){
             dHood.setAlpha(0);
             dHoodOpen.setAlpha(255);
             d = dHoodOpen;
-        } else {
+        }else{
             dHoodOpen.setAlpha(0);
             dHood.setAlpha(255);
             d = dHood;
         }
-        int hood_alarm = preferences.getInt(Names.HOOD_ALARM, 0);
-        res |= state.setHoodAlarm(hood_alarm);
-        if (hood_alarm > 0) {
+        if (preferences.getBoolean(Names.ZoneHood, false)){
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
-        int trunk = preferences.getInt(Names.TRUNK, 0);
-        res |= state.setTrunk(trunk);
-        if (trunk > 0) {
+        if (preferences.getBoolean(Names.Input2, false)){
             dTrunk.setAlpha(0);
             dTrunkOpen.setAlpha(255);
             d = dTrunkOpen;
-        } else {
+        }else{
             dTrunkOpen.setAlpha(0);
             dTrunk.setAlpha(255);
             d = dTrunk;
         }
-        int trunk_alarm = preferences.getInt(Names.TRUNK_ALARM, 0);
-        res |= state.setTrunkAlarm(trunk_alarm);
-        if (trunk_alarm > 0) {
+        if (preferences.getBoolean(Names.ZoneTrunk, false)){
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
-
-        int ignition = preferences.getInt(Names.IGNITION, 0);
-        res |= state.setIgnition(ignition);
-        if (ignition > 0) {
+        if (preferences.getBoolean(Names.Input3, false)){
             dIgnition.setAlpha(255);
-            int ignition_alarm = preferences.getInt(Names.IGNITION_ALARM, 0);
-            res |= state.setIgnitionAlarm(ignition_alarm);
-            if (ignition_alarm > 0) {
+            if (preferences.getBoolean(Names.ZoneIgnition, false)){
                 dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
             } else {
                 dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
@@ -313,7 +191,6 @@ public class CarDrawable {
         } else {
             dIgnition.setAlpha(0);
         }
-        return res;
     }
 
     static ColorMatrix createMatrix(int color) {

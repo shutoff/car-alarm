@@ -2,19 +2,12 @@ package ru.shutoff.caralarm;
 
 import android.app.PendingIntent;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Date;
-
 public class State {
 
     static String waitAnswer;
     static PendingIntent waitAnswerPI;
 
+/*
     static public void appendLog(String text) {
         File logFile = new File("/sdcard/car.log");
         if (!logFile.exists()) {
@@ -35,8 +28,9 @@ public class State {
         } catch (IOException e) {
         }
     }
+*/
 
-    static public void setExceptionHandler(){
+    static public void setExceptionHandler() {
 /*
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 

@@ -15,9 +15,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -39,7 +41,9 @@ public class MainActivity extends ActionBarActivity {
     BroadcastReceiver br;
     AlarmManager alarmMgr;
 
+    SharedPreferences preferences;
     CarDrawable drawable;
+    Address address;
 
     boolean active;
 
@@ -51,7 +55,20 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
 
         State.setExceptionHandler();
+
+        try {
+            ViewConfiguration config = ViewConfiguration.get(this);
+            Field menuKeyField = ViewConfiguration.class.getDeclaredField("sHasPermanentMenuKey");
+            if (menuKeyField != null) {
+                menuKeyField.setAccessible(true);
+                menuKeyField.setBoolean(config, false);
+            }
+        } catch (Exception ex) {
+            // Ignore
+        }
+
         setContentView(R.layout.main);
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         imgCar = (ImageView) findViewById(R.id.car);
         tvAddress = (TextView) findViewById(R.id.address);
@@ -79,7 +96,7 @@ public class MainActivity extends ActionBarActivity {
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         pi = createPendingResult(REQUEST_ALARM, new Intent(), 0);
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
         String phone = preferences.getString(Names.PHONE, "");
         String key = preferences.getString(Names.KEY, "");
         if ((phone.length() == 0) || (key.length() == 0)) {
@@ -96,6 +113,18 @@ public class MainActivity extends ActionBarActivity {
         });
 
         active = false;
+
+        address = new Address(preferences) {
+            @Override
+            void onResult() {
+                tvAddress.setText(
+                    preferences.getString(Names.Latitude, "") + " " +
+                    preferences.getString(Names.Longitude, "") + "\n" +
+                    preferences.getString(Names.Address, ""));
+            }
+        };
+        address.update();
+        address.onResult();
         update();
     }
 
@@ -130,13 +159,11 @@ public class MainActivity extends ActionBarActivity {
     void startTimer(boolean now) {
         if (!active)
             return;
-        State.appendLog("Start timer" + (now ? " now" : ""));
         alarmMgr.setInexactRepeating(AlarmManager.RTC,
                 System.currentTimeMillis() + (now ? 0 : UPDATE_INTERVAL), UPDATE_INTERVAL, pi);
     }
 
     void stopTimer() {
-        State.appendLog("Stop timer");
         alarmMgr.cancel(pi);
     }
 
@@ -154,7 +181,6 @@ public class MainActivity extends ActionBarActivity {
 
     private void removeNotifications() {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         int id = preferences.getInt(Names.IDS, 0);
         for (int i = 1; i <= id; i++) {
             try {
@@ -186,8 +212,12 @@ public class MainActivity extends ActionBarActivity {
                 break;
             }
             case R.id.tracks: {
+/*
                 CaldroidFragment dialogCaldroidFragment = CaldroidFragment.newInstance("Select a date", 3, 2013);
-                dialogCaldroidFragment.show(getSupportFragmentManager(),"TAG");
+                dialogCaldroidFragment.show(getSupportFragmentManager(), "TAG");
+*/
+                Intent intent = new Intent(this, TracksActivity.class);
+                startActivity(intent);
                 break;
             }
         }
@@ -195,12 +225,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
     void update() {
-        State.appendLog("Activity update");
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        tvAddress.setText(
-                preferences.getString(Names.LATITUDE, "") + " " + preferences.getString(Names.LONGITUDE, "") + "\n" +
-                        preferences.getString(Names.ADDRESS, ""));
-        long last = preferences.getLong(Names.LAST_EVENT, 0);
+        long last = preferences.getLong(Names.EventTime, 0);
         if (last != 0) {
             Date d = new Date(last);
             SimpleDateFormat sf = new SimpleDateFormat();
@@ -208,11 +233,13 @@ public class MainActivity extends ActionBarActivity {
         } else {
             tvLast.setText(getString(R.string.unknown));
         }
-        tvVoltage.setText(preferences.getString(Names.VOLTAGE, "?") + " V");
-        tvReserve.setText(preferences.getString(Names.RESERVE, "?") + " V");
-        tvBalance.setText(preferences.getString(Names.BALANCE, "?"));
-        tvTemperature.setText(preferences.getString(Names.TEMPERATURE, "?") + " °C");
+        tvVoltage.setText(preferences.getString(Names.VoltageMain, "?") + " V");
+        tvReserve.setText(preferences.getString(Names.VoltageReserved, "?") + " V");
+        tvBalance.setText(preferences.getString(Names.Balance, "?"));
+        tvTemperature.setText(preferences.getString(Names.Temperature, "?") + " °C");
 
         drawable.update(preferences);
+        address.update();
     }
+
 }

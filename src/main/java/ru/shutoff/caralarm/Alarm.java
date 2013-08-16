@@ -31,12 +31,12 @@ import java.io.InputStream;
 import java.util.Timer;
 import java.util.TimerTask;
 
+@SuppressWarnings("ConstantConditions")
 public class Alarm extends Activity {
 
     TextView tvAlarm;
     ImageView imgPhoto;
     MediaPlayer player;
-    AudioManager audioManager;
     VolumeTask volumeTask;
     Timer timer;
 
@@ -83,8 +83,6 @@ public class Alarm extends Activity {
                 contactLookup.close();
             }
         }
-
-        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         process(getIntent());
     }
 

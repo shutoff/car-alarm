@@ -12,33 +12,35 @@ public final class Names {
 
     static final String CCODE = "ccode";
 
-    static final String ADDRESS = "address";
-
     static final int ANSWER_OK = 4000;
 
-    static final String TEMPERATURE = "temperature";
-    static final String LAST_EVENT = "last";
-    static final String VOLTAGE = "voltage";
-    static final String RESERVE = "reserve";
-    static final String BALANCE = "balance";
-    static final String EVENT_ID = "event";
+    static final String EventId = "EventId";
+    static final String EventTime = "EventTime";
 
-    static final String GUARD = "guard_";
+    static final String VoltageMain = "VoltageMain";
+    static final String VoltageReserved = "VoltageReserved";
 
-    static final String DOOR = "door_";
-    static final String HOOD = "hood_";
-    static final String TRUNK = "trunk_";
-    static final String IGNITION = "ignition_";
+    static final String Balance = "Balance";
 
-    static final String DOOR_ALARM = "door_alarm";
-    static final String HOOD_ALARM = "hood_alarm";
-    static final String TRUNK_ALARM = "trunk_alarm";
-    static final String IGNITION_ALARM = "ignition_alarm";
-    static final String ACCESSORY_ALARM = "accessory_alarm";
+    static final String Latitude = "Latitude";
+    static final String Longitude = "Longitude";
+    static final String Speed = "Speed";
 
-    public static final String LONGITUDE = "longitude";
-    public static final String LATITUDE = "latitude";
+    static final String Guard = "Guard";
+    static final String Input1 = "Input1";
+    static final String Input2 = "Input2";
+    static final String Input3 = "Input3";
+    static final String Input4 = "Input4";
+    static final String ZoneDoor = "ZoneDoor";
+    static final String ZoneHood = "ZoneHood";
+    static final String ZoneTrunk = "ZoneTrunk";
+    static final String ZoneAccessory = "ZoneAccessory";
+    static final String ZoneIgnition = "ZoneIgnition";
 
-    static final String SPEED = "speed";
+    static final String Temperature = "Temperature";
+
+    static final String Address = "Address";
+    static final String AddrLatitude = "AddrLatitude";
+    static final String AddrLongitude = "AddrLongitude";
 
 }
