@@ -63,7 +63,7 @@ import android.widget.TextView;
 
 @SuppressLint("DefaultLocale")
 public class CaldroidFragment extends DialogFragment {
-	public String TAG = "CaldroidFragment";
+
 	/**
 	 * To customize the selected background drawable and text color
 	 */
@@ -776,15 +776,20 @@ public class CaldroidFragment extends DialogFragment {
 		return dateItemClickListener;
 	}
 
+    static String monthYear(int year, int month){
+        String s = new DateTime(year, month, 1, 0, 0, 0, 0)
+                .monthOfYear().getAsText().toUpperCase();
+        s = s.replaceAll("Я$", "Ь").replaceAll("А$", "");
+        return s + " " + year;
+    }
+
 	/**
 	 * Refresh view when parameter changes. You should always change all
 	 * parameters first, then call this method.
 	 */
 	public void refreshView() {
 		// Refresh title view
-		monthTitleTextView.setText(new DateTime(year, month, 1, 0, 0, 0, 0)
-				.monthOfYear().getAsText().toUpperCase()
-				+ " " + year);
+		monthTitleTextView.setText(monthYear(year, month));
 
 		// Refresh the date grid views
 		for (CaldroidGridAdapter adapter : datePagerAdapters) {

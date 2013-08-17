@@ -43,4 +43,11 @@
     <string name="alarm_test_sum">Нажмите для проверки тревоги</string>
     <string name="map">Карта</string>
     <string name="tracks">Маршруты</string>
+    <string name="status" formatted="false">Расстояние: %.2f км\nВремя в пути: %s\nСредняя скорость: %.2f км/ч\nМаксимальная скорость: %.2f км/ч</string>
+    <string name="m_format" formatted="false">%d мин</string>
+    <string name="hm_format" formatted="false">%d ч %02d мин</string>
+    <string name="day">Выберите день</string>
+    <string name="no_data">Нет данных</string>
+    <string name="mileage">%.2f км</string>
+    <string name="short_status" formatted="false">Средняя скорость: %.2f км/ч\nМаксимальная скорость: %.2f км/ч\n</string>
 </resources>

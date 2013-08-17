@@ -43,4 +43,11 @@
     <string name="alarm_test_sum">Click for test alarm</string>
     <string name="map">Map</string>
     <string name="tracks">Tracks</string>
+    <string name="status" formatted="false">Mileage: %.2f km\nEngine time: %s\nAverage speed: %.2f kmh\nMax speed: %.2f kmh</string>
+    <string name="m_format" formatted="false">%d min</string>
+    <string name="hm_format" formatted="false">%d h %02d min</string>
+    <string name="day">Select a day</string>
+    <string name="no_data">No data</string>
+    <string name="mileage">%.2f km</string>
+    <string name="short_status" formatted="false">Average speed: %.2f kmh\nMax speed: %.2f kmh\n</string>
 </resources>

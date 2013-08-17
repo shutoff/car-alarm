@@ -212,10 +212,6 @@ public class MainActivity extends ActionBarActivity {
                 break;
             }
             case R.id.tracks: {
-/*
-                CaldroidFragment dialogCaldroidFragment = CaldroidFragment.newInstance("Select a date", 3, 2013);
-                dialogCaldroidFragment.show(getSupportFragmentManager(), "TAG");
-*/
                 Intent intent = new Intent(this, TracksActivity.class);
                 startActivity(intent);
                 break;

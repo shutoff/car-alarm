@@ -51,12 +51,4 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
         }
     }
 
-    static String getString(JSONObject obj, String name){
-        try{
-            return obj.getString(name);
-        }catch (Exception e){
-            // ignore
-        }
-        return null;
-    }
 }
