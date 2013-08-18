@@ -380,8 +380,17 @@ public class TracksActivity extends ActionBarActivity {
 
             String address = null;
             try {
-
                 JSONArray res = data.getJSONArray("results");
+                if (res.length() == 0){
+                    String status = data.getString("status");
+                    if ((status != null) && status.equals("OVER_QUERY_LIMIT")){
+                        TrackPositionFetcher fetcher = create();
+                        fetcher.pause = 1000;
+                        fetcher.update(id, pos);
+                        return;
+                    }
+                }
+
                 int i;
                 for (i = 0; i < res.length(); i++) {
                     JSONObject addr = res.getJSONObject(i);
@@ -398,7 +407,8 @@ public class TracksActivity extends ActionBarActivity {
                     i = 0;
 
                 JSONObject addr = res.getJSONObject(i);
-                String[] parts = addr.getString("formatted_address").split(", ");
+                address = addr.getString("formatted_address");
+                String[] parts = address.split(", ");
                 JSONArray components = addr.getJSONArray("address_components");
                 for (i = 0; i < components.length(); i++) {
                     JSONObject component = components.getJSONObject(i);
@@ -417,6 +427,7 @@ public class TracksActivity extends ActionBarActivity {
                     }
                 }
 
+                address = null;
                 for (i = 0; i < parts.length; i++) {
                     if (parts[i] == null)
                         continue;
@@ -427,7 +438,7 @@ public class TracksActivity extends ActionBarActivity {
                         address += parts[i];
                     }
                 }
-            } catch (Exception e) {
+            } catch (Exception ex) {
                 Track track = tracks.get(pos);
                 Point p = getPoint(track);
                 address = p.latitude + "," + p.longitude;

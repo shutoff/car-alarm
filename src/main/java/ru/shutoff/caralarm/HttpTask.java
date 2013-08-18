@@ -18,6 +18,8 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
     abstract void result(JSONObject res) throws JSONException;
     abstract void error();
 
+    int pause = 0;
+
     @Override
     protected JSONObject doInBackground(String... params) {
         HttpClient httpclient = new DefaultHttpClient();
@@ -27,6 +29,8 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
         }
 
         try {
+            if (pause > 0)
+                Thread.sleep(pause);
             HttpResponse response = httpclient.execute(new HttpGet(url));
             StatusLine statusLine = response.getStatusLine();
             int status = statusLine.getStatusCode();
@@ -38,7 +42,6 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
             String res = out.toString();
             return new JSONObject(res);
         } catch (Exception ex) {
-            ex.printStackTrace();
             error();
         }
         return null;
@@ -49,7 +52,6 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
         try{
             result(res);
         }catch (Exception ex){
-            ex.printStackTrace();
             error();
         }
     }

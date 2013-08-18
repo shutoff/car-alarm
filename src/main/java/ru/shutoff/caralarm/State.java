@@ -2,6 +2,12 @@ package ru.shutoff.caralarm;
 
 import android.app.PendingIntent;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Date;
+
 public class State {
 
     static String waitAnswer;
