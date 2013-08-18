@@ -11,6 +11,8 @@ public final class Names {
     static final String IDS = "n_id";
 
     static final String CCODE = "ccode";
+    static final String TRACK = "track";
+    static final String STATUS = "status";
 
     static final int ANSWER_OK = 4000;
 

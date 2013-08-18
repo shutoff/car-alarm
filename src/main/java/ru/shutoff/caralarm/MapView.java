@@ -88,10 +88,20 @@ public class MapView extends ActionBarActivity {
                                 mapView.loadUrl("javascript:setTrack()");
                             }
                         }
+
+                        @Override
+                        void error() {
+                            // ignore
+                        }
                     };
                     gpsTask.execute(GPS_URL,
                         preferences.getString(Names.KEY, ""),
                         begin, end);
+                }
+
+                @Override
+                void error() {
+                    // ignore
                 }
             };
             long lastTime = preferences.getLong(Names.EventTime, 0);

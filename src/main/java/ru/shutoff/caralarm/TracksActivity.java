@@ -1,6 +1,7 @@
 package ru.shutoff.caralarm;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -14,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.joda.time.DateTime;
@@ -34,6 +36,9 @@ public class TracksActivity extends ActionBarActivity {
     String api_key;
 
     TextView tvStatus;
+    ProgressBar prgFirst;
+    ProgressBar prgMain;
+    TextView tvLoading;
     ListView lvTracks;
 
     CaldroidFragment dialogCaldroidFragment;
@@ -41,7 +46,9 @@ public class TracksActivity extends ActionBarActivity {
     Vector<Track> tracks;
 
     int days;
+    int progress;
     int track_id;
+    int engine_time;
     static final int MAX_DAYS = 7;
 
     final static String TELEMETRY = "http://api.car-online.ru/v2?get=telemetry&skey=$1&begin=$2&end=$3&content=json";
@@ -59,16 +66,21 @@ public class TracksActivity extends ActionBarActivity {
         days = 0;
         track_id = 0;
 
-        tvStatus = (TextView) findViewById(R.id.status);
-        lvTracks = (ListView) findViewById(R.id.tracks);
+        tvStatus  = (TextView) findViewById(R.id.status);
+        lvTracks  = (ListView) findViewById(R.id.tracks);
+        prgFirst  = (ProgressBar) findViewById(R.id.first_progress);
+        prgMain   = (ProgressBar) findViewById(R.id.progress);
+        tvLoading = (TextView) findViewById(R.id.loading);
 
         lvTracks.setClickable(true);
         lvTracks.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 TracksAdapter adapter = (TracksAdapter)lvTracks.getAdapter();
-                if (adapter.selected == position)
+                if (adapter.selected == position){
+                    showTrack(position);
                     return;
+                }
                 adapter.selected = position;
                 adapter.notifyDataSetChanged();
             }
@@ -102,6 +114,12 @@ public class TracksActivity extends ActionBarActivity {
 
                     @Override
                     public void onSelectDate(Date date, View view) {
+                        tvStatus.setVisibility(View.GONE);
+                        lvTracks.setVisibility(View.GONE);
+                        tvLoading.setVisibility(View.VISIBLE);
+                        prgFirst.setVisibility(View.VISIBLE);
+                        prgMain.setVisibility(View.VISIBLE);
+                        prgMain.setProgress(0);
                         DataFetcher fetcher = new DataFetcher();
                         fetcher.update(new LocalDate(date));
                         dialogCaldroidFragment.dismiss();
@@ -113,6 +131,37 @@ public class TracksActivity extends ActionBarActivity {
             }
         }
         return false;
+    }
+
+    void showTrack(int index){
+        Intent intent = new Intent(this, TrackView.class);
+        Track track = tracks.get(index);
+        String track_data = null;
+        for (int i = 0; i < track.track.size(); i++){
+            Point p = track.track.get(i);
+            String part = p.latitude + "," + p.longitude + "," + p.speed + "," + p.time;
+            if (i > 0){
+                track_data += "|";
+                track_data += part;
+            }else{
+                track_data = part;
+            }
+        }
+        intent.putExtra(Names.TRACK, track_data);
+        intent.putExtra(Names.STATUS, String.format(getString(R.string.short_status), track.avg_speed, track.max_speed));
+        LocalDateTime begin = new LocalDateTime(track.begin);
+        LocalDateTime end = new LocalDateTime(track.end);
+        intent.putExtra(Names.TITLE, begin.toString("d MMMM HH:mm") + "-" + end.toString("HH:mm"));
+        startActivity(intent);
+    }
+
+    void showError(){
+        tvStatus.setText(getString(R.string.error_load));
+        tvStatus.setVisibility(View.VISIBLE);
+        lvTracks.setVisibility(View.GONE);
+        tvLoading.setVisibility(View.GONE);
+        prgFirst.setVisibility(View.GONE);
+        prgMain.setVisibility(View.GONE);
     }
 
     class DataFetcher extends HttpTask {
@@ -129,23 +178,34 @@ public class TracksActivity extends ActionBarActivity {
                 return;
             tracks = new Vector<Track>();
             int ways = data.getInt("waysCount");
-            if (ways == 0) {
-                if (noData())
-                    return;
-                setTitle(date.toString("d MMMM"));
+            if ((ways == 0) && noData())
+                return;
+            setTitle(date.toString("d MMMM"));
+            prgFirst.setVisibility(View.GONE);
+            tvStatus.setVisibility(View.VISIBLE);
+            if (ways == 0){
                 tvStatus.setText(getString(R.string.no_data));
+                prgMain.setVisibility(View.GONE);
+                tvLoading.setVisibility(View.GONE);
                 return;
             }
-            setTitle(date.toString("d MMMM"));
+            prgMain.setMax(ways * 3 + 2);
+            progress = 1;
+            prgMain.setProgress(1);
             double mileage = data.getDouble("mileage") / 1000;
             double avg_speed = data.getDouble("averageSpeed");
             double max_speed = data.getDouble("maxSpeed");
-            int minutes = data.getInt("engineTime") / 60000;
+            engine_time = data.getInt("engineTime") / 60000;
             String status = getString(R.string.status);
-            status = String.format(status, mileage, timeFormat(minutes), avg_speed, max_speed);
+            status = String.format(status, mileage, timeFormat(engine_time), avg_speed, max_speed);
             tvStatus.setText(status);
             TracksFetcher tracksFetcher = new TracksFetcher();
             tracksFetcher.update(date);
+        }
+
+        @Override
+        void error() {
+            showError();
         }
 
         void update(LocalDate d) {
@@ -193,13 +253,22 @@ public class TracksActivity extends ActionBarActivity {
                     continue;
                 JSONArray events = way.getJSONArray("events");
                 int last = events.length() - 1;
-                Track track = new Track();
-                track.begin = events.getJSONObject(0).getLong("eventTime");
-                track.end = events.getJSONObject(last).getLong("eventTime");
-                tracks.add(track);
+                long begin = events.getJSONObject(0).getLong("eventTime");
+                long end = events.getJSONObject(last).getLong("eventTime");
+                if (end > begin){
+                    Track track = new Track();
+                    track.begin = begin;
+                    track.end = end;
+                    tracks.add(track);
+                }
             }
             TrackFetcher fetcher = new TrackFetcher();
             fetcher.update(id, 0);
+        }
+
+        @Override
+        void error() {
+            showError();
         }
 
         void update(LocalDate date) {
@@ -224,21 +293,54 @@ public class TracksActivity extends ActionBarActivity {
                 return;
             Vector<Point> track = new Vector<Point>();
             JSONArray list = res.getJSONArray("gpslist");
+            boolean first = true;
             for (int i = 0; i < list.length(); i++) {
                 JSONObject p = list.getJSONObject(i);
                 if (!p.getBoolean("valid"))
                     continue;
                 Point point = new Point();
+                point.speed = p.getDouble("speed");
+                if (first){
+                    if (point.speed == 0)
+                        continue;
+                    first = false;
+                }
                 point.latitude = p.getDouble("latitude");
                 point.longitude = p.getDouble("longitude");
-                point.speed = p.getDouble("speed");
                 point.time = p.getLong("eventTime");
                 track.add(point);
             }
-            tracks.get(pos).track = track;
+            for (int i = track.size() - 1; i >= 0; i--){
+                Point p = track.get(i);
+                if (p.speed > 0)
+                    break;
+                track.remove(i);
+            }
+            if (track.size() > 2){
+                double distance = 0;
+                double max_speed = 0;
+                for (int i = 0; i < track.size() - 1; i++){
+                    Point p1 = track.get(i);
+                    Point p2 = track.get(i + 1);
+                    distance += calc_distance(p1.latitude, p1.longitude, p2.latitude, p2.longitude);
+                    if (p2.speed > max_speed)
+                        max_speed = p2.speed;
+                }
+                Track t = tracks.get(pos);
+                t.track   = track;
+                t.mileage = distance / 1000.;
+                t.max_speed = max_speed;
+                t.avg_speed = distance * 3600. / (t.end - t.begin);
+                t.end   = track.get(0).time;
+                t.begin = track.get(track.size() - 1).time;
+            }else{
+                tracks.remove(pos--);
+            }
+
+            prgMain.setProgress(++progress);
             if (++pos >= tracks.size()) {
                 // All tracks done
-                TrackInfoFetcher fetcher = new TrackInfoFetcher();
+                TrackStartPositionFetcher fetcher = new TrackStartPositionFetcher();
                 fetcher.update(id, 0);
                 return;
             }
@@ -246,43 +348,16 @@ public class TracksActivity extends ActionBarActivity {
             fetcher.update(id, pos);
         }
 
+        @Override
+        void error() {
+            showError();
+        }
+
         void update(int track_id, int track_pos) {
             id = track_id;
             pos = track_pos;
             Track track = tracks.get(pos);
             execute(GPSLIST, api_key, track.begin + "", track.end + "");
-        }
-    }
-
-    class TrackInfoFetcher extends HttpTask {
-        int id;
-        int pos;
-
-        @Override
-        void result(JSONObject data) throws JSONException {
-            if (id != track_id)
-                return;
-
-            Track track = tracks.get(pos);
-            track.mileage = data.getDouble("mileage") / 1000;
-            track.avg_speed = data.getDouble("averageSpeed");
-            track.max_speed = data.getDouble("maxSpeed");
-
-            if (++pos >= tracks.size()) {
-                // All tracks done
-                TrackStartPositionFetcher fetcher = new TrackStartPositionFetcher();
-                fetcher.update(id, 0);
-                return;
-            }
-            TrackInfoFetcher fetcher = new TrackInfoFetcher();
-            fetcher.update(id, pos);
-        }
-
-        void update(int track_id, int track_pos) {
-            id = track_id;
-            pos = track_pos;
-            Track track = tracks.get(pos);
-            execute(TELEMETRY, api_key, track.begin + "", track.end + "");
         }
     }
 
@@ -294,7 +369,7 @@ public class TracksActivity extends ActionBarActivity {
 
         abstract TrackPositionFetcher create();
 
-        abstract void process(Track track, String address);
+        abstract void process(String address);
 
         abstract void done();
 
@@ -304,7 +379,6 @@ public class TracksActivity extends ActionBarActivity {
                 return;
 
             String address = null;
-            Track track = tracks.get(pos);
             try {
 
                 JSONArray res = data.getJSONArray("results");
@@ -354,11 +428,13 @@ public class TracksActivity extends ActionBarActivity {
                     }
                 }
             } catch (Exception e) {
+                Track track = tracks.get(pos);
                 Point p = getPoint(track);
                 address = p.latitude + "," + p.longitude;
             }
 
-            process(track, address);
+            process(address);
+            prgMain.setProgress(++progress);
 
             if (++pos >= tracks.size()) {
                 // All tracks done
@@ -376,6 +452,11 @@ public class TracksActivity extends ActionBarActivity {
             Point p = getPoint(track);
             execute(ADDRESS_URL, p.latitude + "", p.longitude + "", Locale.getDefault().getLanguage());
         }
+
+        @Override
+        void error() {
+            showError();
+        }
     }
 
     class TrackStartPositionFetcher extends TrackPositionFetcher {
@@ -391,8 +472,8 @@ public class TracksActivity extends ActionBarActivity {
         }
 
         @Override
-        void process(Track track, String address) {
-            track.start = address;
+        void process(String address) {
+            tracks.get(pos).start = address;
         }
 
         @Override
@@ -415,7 +496,9 @@ public class TracksActivity extends ActionBarActivity {
         }
 
         @Override
-        void process(Track track, String address) {
+        void process(String address) {
+            Track track = tracks.get(pos);
+
             String[] start_parts = track.start.split(", ");
             String[] finish_parts = address.split(", ");
             int s = start_parts.length - 1;
@@ -445,6 +528,23 @@ public class TracksActivity extends ActionBarActivity {
 
         @Override
         void done() {
+            double mileage = 0;
+            double max_speed = 0;
+            long time = 0;
+            for (Track track: tracks){
+                time += (track.end - track.begin);
+                if (track.max_speed > max_speed)
+                    max_speed = track.max_speed;
+                mileage += track.mileage;
+            }
+            double avg_speed = mileage * 3600000. / time;
+            String status = getString(R.string.status);
+            status = String.format(status, mileage, timeFormat(engine_time), avg_speed, max_speed);
+            tvStatus.setText(status);
+
+            tvLoading.setVisibility(View.GONE);
+            prgMain.setVisibility(View.GONE);
+            lvTracks.setVisibility(View.VISIBLE);
             lvTracks.setAdapter(new TracksAdapter());
         }
     }
@@ -543,4 +643,34 @@ public class TracksActivity extends ActionBarActivity {
         String finish;
         Vector<Point> track;
     }
+
+    static final double D2R = 0.017453; // Константа для преобразования градусов в радианы
+    static final double a = 6378137.0; // Основные полуоси
+    static final double e2 = 0.006739496742337; // Квадрат эксцентричности эллипсоида
+
+    static double calc_distance(double lat1, double lon1, double lat2, double lon2){
+
+        if ((lat1 == lat2) && (lon1 == lon2))
+            return 0;
+
+        double fdLambda = (lon1 - lon2) * D2R;
+        double fdPhi = (lat1 - lat2) * D2R;
+        double fPhimean= ((lat1 + lat2) /2.0) * D2R;
+
+        double fTemp = 1 - e2 * (Math.pow(Math.sin(fPhimean), 2));
+        double fRho = (a * (1 - e2)) / Math.pow(fTemp, 1.5);
+        double fNu = a / (Math.sqrt(1 - e2 * (Math.sin(fPhimean) * Math.sin(fPhimean))));
+
+        double fz = Math.sqrt(Math.pow(Math.sin(fdPhi / 2.0), 2) +
+                Math.cos(lat2 * D2R) * Math.cos(lat1 * D2R) * Math.pow(Math.sin(fdLambda / 2.0), 2));
+        fz = 2 * Math.asin(fz);
+
+        double fAlpha = Math.cos(lat1 * D2R) * Math.sin(fdLambda) * 1 / Math.sin(fz);
+        fAlpha = Math.asin(fAlpha);
+
+        double fR = (fRho * fNu) / ((fRho * Math.pow(Math.sin(fAlpha), 2)) + (fNu * Math.pow(Math.cos(fAlpha), 2)));
+
+        return fz * fR;
+    }
+
 }

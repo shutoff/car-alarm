@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
 
     abstract void result(JSONObject res) throws JSONException;
+    abstract void error();
 
     @Override
     protected JSONObject doInBackground(String... params) {
@@ -36,8 +37,9 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
             out.close();
             String res = out.toString();
             return new JSONObject(res);
-        } catch (Exception error) {
-            // ignore
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            error();
         }
         return null;
     }
@@ -47,7 +49,8 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
         try{
             result(res);
         }catch (Exception ex){
-            // ignore
+            ex.printStackTrace();
+            error();
         }
     }
 

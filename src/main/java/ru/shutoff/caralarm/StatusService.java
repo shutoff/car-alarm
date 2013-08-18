@@ -96,73 +96,79 @@ public class StatusService extends Service {
             @Override
             void result(JSONObject res) throws JSONException {
                 statusRequest = null;
-                try {
-                    statusRequest = null;
-                    JSONObject event = res.getJSONObject("event");
-                    long eventId = event.getLong("eventId");
-                    if (eventId == preferences.getLong(Names.EventId, 0))
-                        return;
-                    long eventTime =  event.getLong("eventTime");
-                    SharedPreferences.Editor ed = preferences.edit();
-                    ed.putLong(Names.EventId, eventId);
-                    ed.putLong(Names.EventTime, eventTime);
+                JSONObject event = res.getJSONObject("event");
+                long eventId = event.getLong("eventId");
+                if (eventId == preferences.getLong(Names.EventId, 0))
+                    return;
+                long eventTime = event.getLong("eventTime");
+                SharedPreferences.Editor ed = preferences.edit();
+                ed.putLong(Names.EventId, eventId);
+                ed.putLong(Names.EventTime, eventTime);
 
-                    JSONObject voltage = res.getJSONObject("voltage");
-                    ed.putString(Names.VoltageMain, voltage.getString("main"));
-                    ed.putString(Names.VoltageReserved, voltage.getString("reserved"));
+                JSONObject voltage = res.getJSONObject("voltage");
+                ed.putString(Names.VoltageMain, voltage.getString("main"));
+                ed.putString(Names.VoltageReserved, voltage.getString("reserved"));
 
-                    JSONObject balance = res.getJSONObject("balance");
-                    Matcher m = balancePattern.matcher(balance.getString("source"));
-                    if (m.find())
-                        ed.putString(Names.Balance, m.group(0));
+                JSONObject balance = res.getJSONObject("balance");
+                Matcher m = balancePattern.matcher(balance.getString("source"));
+                if (m.find())
+                    ed.putString(Names.Balance, m.group(0));
 
-                    JSONObject gps = res.getJSONObject("gps");
-                    ed.putString(Names.Latitude, gps.getString("latitude"));
-                    ed.putString(Names.Longitude, gps.getString("longitude"));
-                    ed.putString(Names.Speed, gps.getString("speed"));
+                JSONObject gps = res.getJSONObject("gps");
+                ed.putString(Names.Latitude, gps.getString("latitude"));
+                ed.putString(Names.Longitude, gps.getString("longitude"));
+                ed.putString(Names.Speed, gps.getString("speed"));
 
-                    JSONObject contact = res.getJSONObject("contact");
-                    ed.putBoolean(Names.Guard, contact.getBoolean("stGuard"));
-                    ed.putBoolean(Names.Input1, contact.getBoolean("stInput1"));
-                    ed.putBoolean(Names.Input2, contact.getBoolean("stInput2"));
-                    ed.putBoolean(Names.Input3, contact.getBoolean("stInput3"));
-                    ed.putBoolean(Names.Input4, contact.getBoolean("stInput4"));
-                    ed.putBoolean(Names.ZoneDoor, contact.getBoolean("stZoneDoor"));
-                    ed.putBoolean(Names.ZoneHood, contact.getBoolean("stZoneHood"));
-                    ed.putBoolean(Names.ZoneTrunk, contact.getBoolean("stZoneTrunk"));
-                    ed.putBoolean(Names.ZoneAccessory, contact.getBoolean("stZoneAccessoryOn"));
-                    ed.putBoolean(Names.ZoneIgnition, contact.getBoolean("stZoneIgnitionOn"));
+                JSONObject contact = res.getJSONObject("contact");
+                ed.putBoolean(Names.Guard, contact.getBoolean("stGuard"));
+                ed.putBoolean(Names.Input1, contact.getBoolean("stInput1"));
+                ed.putBoolean(Names.Input2, contact.getBoolean("stInput2"));
+                ed.putBoolean(Names.Input3, contact.getBoolean("stInput3"));
+                ed.putBoolean(Names.Input4, contact.getBoolean("stInput4"));
+                ed.putBoolean(Names.ZoneDoor, contact.getBoolean("stZoneDoor"));
+                ed.putBoolean(Names.ZoneHood, contact.getBoolean("stZoneHood"));
+                ed.putBoolean(Names.ZoneTrunk, contact.getBoolean("stZoneTrunk"));
+                ed.putBoolean(Names.ZoneAccessory, contact.getBoolean("stZoneAccessoryOn"));
+                ed.putBoolean(Names.ZoneIgnition, contact.getBoolean("stZoneIgnitionOn"));
 
-                    ed.commit();
-                    sendUpdate();
+                ed.commit();
+                sendUpdate();
 
-                    if (temperatureRequest != null)
-                        return;
+                if (temperatureRequest != null)
+                    return;
 
-                    temperatureRequest = new HttpTask() {
-                        @Override
-                        void result(JSONObject res) throws JSONException {
-                            temperatureRequest = null;
-                            if (res == null)
-                                return;
-                            JSONArray arr = res.getJSONArray("temperatureList");
-                            JSONObject value = arr.getJSONObject(0);
-                            String temp = value.getString("value");
-                            if (temp.equals(preferences.getString(Names.Temperature, "")))
-                                return;
-                            SharedPreferences.Editor ed = preferences.edit();
-                            ed.putString(Names.Temperature, temp);
-                            ed.commit();
-                            sendUpdate();
-                        }
-                    };
-                    temperatureRequest.execute(TEMP_URL, api_key,
-                            (eventTime - 24 * 60 * 60 * 1000) + "",
-                            eventTime + "");
-                } catch (Exception e) {
-                    alarmMgr.setInexactRepeating(AlarmManager.RTC,
-                            System.currentTimeMillis() + REPEAT_AFTER_ERROR, REPEAT_AFTER_ERROR, pi);
-                }
+                temperatureRequest = new HttpTask() {
+                    @Override
+                    void result(JSONObject res) throws JSONException {
+                        temperatureRequest = null;
+                        if (res == null)
+                            return;
+                        JSONArray arr = res.getJSONArray("temperatureList");
+                        JSONObject value = arr.getJSONObject(0);
+                        String temp = value.getString("value");
+                        if (temp.equals(preferences.getString(Names.Temperature, "")))
+                            return;
+                        SharedPreferences.Editor ed = preferences.edit();
+                        ed.putString(Names.Temperature, temp);
+                        ed.commit();
+                        sendUpdate();
+                    }
+
+                    @Override
+                    void error() {
+                        // ignore
+                    }
+                };
+                temperatureRequest.execute(TEMP_URL, api_key,
+                        (eventTime - 24 * 60 * 60 * 1000) + "",
+                        eventTime + "");
+
+            }
+
+            @Override
+            void error() {
+                alarmMgr.setInexactRepeating(AlarmManager.RTC,
+                        System.currentTimeMillis() + REPEAT_AFTER_ERROR, REPEAT_AFTER_ERROR, pi);
             }
         };
 

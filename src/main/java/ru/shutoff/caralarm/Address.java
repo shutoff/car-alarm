@@ -98,6 +98,11 @@ public abstract class Address {
                 ed.commit();
                 onResult();
             }
+
+            @Override
+            void error() {
+                // ignore
+            }
         };
         httpTask.execute(URL, latitude, longitude, Locale.getDefault().getLanguage());
     }
