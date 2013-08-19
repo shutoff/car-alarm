@@ -1,6 +1,7 @@
 package ru.shutoff.caralarm;
 
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -11,10 +12,13 @@ import android.webkit.WebView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.joda.time.LocalDateTime;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.util.Date;
 
 public class TrackView  extends ActionBarActivity {
 
@@ -70,38 +74,61 @@ public class TrackView  extends ActionBarActivity {
 
     void saveTrack(double min_lat, double max_lat, double min_lon, double max_lon){
         try{
-            File path = getFilesDir();
+            File path = Environment.getExternalStorageDirectory();
+            if (path == null)
+                path = getFilesDir();
             path = new File(path, "Tracks");
             path.mkdirs();
-            File out = new File(path, getTitle() + ".kml");
+            String name = getTitle() + ".gpx";
+            name = name.replaceAll("[ \\-]", "_").replaceAll(":", ".");
+            File out = new File(path, name);
             out.createNewFile();
+
             FileOutputStream f = new FileOutputStream(out);
             OutputStreamWriter ow = new OutputStreamWriter(f);
             BufferedWriter writer = new BufferedWriter(ow);
 
             String[] points = track.split("\\|");
             writer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-            writer.append("<kml xmlns=\"http://www.opengis.net/kml/2.2\" xmlns:gx=\"http://www.google.com/kml/ext/2.2\" xmlns:kml=\"http://www.opengis.net/kml/2.2\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n");
-            writer.append("<Folder>\n");
+            writer.append("<gpx\n");
+            writer.append(" version=\"1.0\"\n");
+            writer.append(" creator=\"ExpertGPS 1.1 - http://www.topografix.com\"\n");
+            writer.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
+            writer.append(" xmlns=\"http://www.topografix.com/GPX/1/0\"\n");
+            writer.append(" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd\">\n");
+            writer.append("<time>");
+            LocalDateTime now = new LocalDateTime();
+            writer.append(now.toString("yyyy-MM-dd'T'HH:mm:ss'Z"));
+            writer.append("</time>\n");
+            writer.append("<trk>\n");
+
+            boolean trk = false;
             for (String point:points){
                 String[] data = point.split(",");
                 double lat = Double.parseDouble(data[0]);
                 double lon = Double.parseDouble(data[1]);
-                if ((lat < min_lat) || (lat > max_lat))
+                long time = Long.parseLong(data[3]);
+                if ((lat < min_lat) || (lat > max_lat) ||(lon < min_lon) || (lon > max_lon)){
+                    if (trk){
+                        trk = false;
+                        writer.append("</trkseg>\n");
+                    }
                     continue;
-                if ((lon < min_lon) || (lon > max_lon))
-                    continue;
-                writer.append("<Placemark>\n");
-                writer.append("<Point>\n");
-                writer.append("<coordinates>");
-                writer.append(lat + "," + lon + ",0");
-                writer.append("</coordinates>");
-                writer.append("</Point>");
-                writer.append("</Placemark>");
+                }
+                if (!trk){
+                    trk = true;
+                    writer.append("<trkseg>\n");
+                }
+                writer.append("<trkpt lat=\""+ lat + "\" lon=\"" + lon + "\">\n");
+                LocalDateTime t = new LocalDateTime(time);
+                writer.append("<time>" + t.toString("yyyy-MM-dd'T'HH:mm:ss'Z") + "</time>\n");
+                writer.append("</trkpt>\n");
             }
-            writer.append("</Folder>");
-            writer.append("</kml>");
-            f.close();
+            if (trk)
+                writer.append("</trkseg>");
+            writer.append("</trk>\n");
+            writer.append("</gpx>");
+            writer.close();
             Toast.makeText(this, getString(R.string.saved), Toast.LENGTH_SHORT);
         }catch (Exception ex){
             Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG);

@@ -26,6 +26,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.io.StringWriter;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Vector;
@@ -48,7 +55,11 @@ public class TracksActivity extends ActionBarActivity {
     int days;
     int progress;
     int track_id;
-    int engine_time;
+
+    boolean firstWay;
+    boolean lastWay;
+    boolean loaded;
+
     static final int MAX_DAYS = 7;
 
     final static String TELEMETRY = "http://api.car-online.ru/v2?get=telemetry&skey=$1&begin=$2&end=$3&content=json";
@@ -59,6 +70,21 @@ public class TracksActivity extends ActionBarActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        current = null;
+        loaded  = false;
+        if (savedInstanceState != null){
+            try{
+                current = new LocalDate(savedInstanceState.getLong(Names.TRACK_DATE));
+                byte[] data = savedInstanceState.getByteArray(Names.TRACK);
+                ByteArrayInputStream bais = new ByteArrayInputStream(data);
+                ObjectInputStream ois = new ObjectInputStream(bais);
+                tracks = (Vector<Track>)ois.readObject();
+                loaded = true;
+            }catch (Exception ex){
+                // ignore
+            }
+        }
+
         setContentView(R.layout.tracks);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -86,8 +112,35 @@ public class TracksActivity extends ActionBarActivity {
             }
         });
 
+        if (loaded){
+            all_done();
+            return;
+        }
+        if (current != null){
+            DataFetcher fetcher = new DataFetcher();
+            fetcher.update(current);
+            return;
+        }
         DataFetcher fetcher = new FirstDataFetcher();
         fetcher.update(new LocalDate());
+    }
+
+    @Override
+    protected void onSaveInstanceState (Bundle outState){
+        super.onSaveInstanceState(outState);
+        if (current != null)
+            outState.putLong(Names.TRACK_DATE, current.toDate().getTime());
+        if (!loaded)
+            return;
+        try{
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(tracks);
+            byte[] data = baos.toByteArray();
+            outState.putByteArray(Names.TRACK, data);
+        }catch (Exception ex){
+            // ignore
+        }
     }
 
     @Override
@@ -164,6 +217,47 @@ public class TracksActivity extends ActionBarActivity {
         prgMain.setVisibility(View.GONE);
     }
 
+    void all_done(){
+        prgFirst.setVisibility(View.GONE);
+        tvStatus.setVisibility(View.VISIBLE);
+        if (tracks.size() == 0){
+            tvStatus.setVisibility(View.VISIBLE);
+            tvStatus.setText(getString(R.string.no_data));
+            prgMain.setVisibility(View.GONE);
+            tvLoading.setVisibility(View.GONE);
+            return;
+        }
+        double mileage = 0;
+        double max_speed = 0;
+        long time = 0;
+        long start = current.toDateTime(new LocalTime(0, 0)).toDate().getTime();
+        LocalDate next = current.plusDays(1);
+        long finish = next.toDateTime(new LocalTime(0, 0)).toDate().getTime();
+        for (Track track: tracks){
+            long begin = track.begin;
+            if (begin < start)
+                begin = start;
+            long end = track.end;
+            if (end > finish)
+                end = finish;
+            time += (end - begin);
+            if (track.day_max_speed > max_speed)
+                max_speed = track.day_max_speed;
+            mileage += track.day_mileage;
+        }
+        double avg_speed = mileage * 3600000. / time;
+        String status = getString(R.string.status);
+        status = String.format(status, mileage, timeFormat((int)(time / 60000)), avg_speed, max_speed);
+        tvStatus.setText(status);
+
+        tvLoading.setVisibility(View.GONE);
+        prgMain.setVisibility(View.GONE);
+        lvTracks.setVisibility(View.VISIBLE);
+        lvTracks.setAdapter(new TracksAdapter());
+
+        loaded = true;
+    }
+
     class DataFetcher extends HttpTask {
 
         LocalDate date;
@@ -184,23 +278,21 @@ public class TracksActivity extends ActionBarActivity {
             prgFirst.setVisibility(View.GONE);
             tvStatus.setVisibility(View.VISIBLE);
             if (ways == 0){
-                tvStatus.setText(getString(R.string.no_data));
-                prgMain.setVisibility(View.GONE);
-                tvLoading.setVisibility(View.GONE);
+                all_done();
                 return;
             }
-            prgMain.setMax(ways * 3 + 2);
+            prgMain.setMax(ways * 3 + 4);
             progress = 1;
             prgMain.setProgress(1);
             double mileage = data.getDouble("mileage") / 1000;
             double avg_speed = data.getDouble("averageSpeed");
             double max_speed = data.getDouble("maxSpeed");
-            engine_time = data.getInt("engineTime") / 60000;
+            int engine_time = data.getInt("engineTime") / 60000;
             String status = getString(R.string.status);
             status = String.format(status, mileage, timeFormat(engine_time), avg_speed, max_speed);
             tvStatus.setText(status);
             TracksFetcher tracksFetcher = new TracksFetcher();
-            tracksFetcher.update(date);
+            tracksFetcher.update();
         }
 
         @Override
@@ -211,6 +303,7 @@ public class TracksActivity extends ActionBarActivity {
         void update(LocalDate d) {
             date = d;
             current = d;
+            loaded = false;
             lvTracks.setAdapter(new EmptyTracksAdapter());
             DateTime start = date.toDateTime(new LocalTime(0, 0));
             LocalDate next = date.plusDays(1);
@@ -247,7 +340,10 @@ public class TracksActivity extends ActionBarActivity {
             if (id != track_id)
                 return;
             JSONArray list = res.getJSONArray("waystandlist");
+            firstWay = false;
+            lastWay = false;
             for (int i = 0; i < list.length(); i++) {
+                lastWay = false;
                 JSONObject way = list.getJSONObject(i);
                 if (!way.getString("type").equals("WAY"))
                     continue;
@@ -260,7 +356,21 @@ public class TracksActivity extends ActionBarActivity {
                     track.begin = begin;
                     track.end = end;
                     tracks.add(track);
+                    if (i == 0)
+                        firstWay = true;
+                    lastWay = true;
                 }
+            }
+            prgMain.setProgress(++progress);
+            if (firstWay){
+                PrevTracksFetcher fetcher = new PrevTracksFetcher();
+                fetcher.update();
+                return;
+            }
+            if (lastWay){
+                NextTracksFetcher fetcher = new NextTracksFetcher();
+                fetcher.update();
+                return;
             }
             TrackFetcher fetcher = new TrackFetcher();
             fetcher.update(id, 0);
@@ -271,10 +381,10 @@ public class TracksActivity extends ActionBarActivity {
             showError();
         }
 
-        void update(LocalDate date) {
+        void update() {
             id = ++track_id;
-            DateTime start = date.toDateTime(new LocalTime(0, 0));
-            LocalDate next = date.plusDays(1);
+            DateTime start = current.toDateTime(new LocalTime(0, 0));
+            LocalDate next = current.plusDays(1);
             DateTime finish = next.toDateTime(new LocalTime(0, 0));
             execute(WAYSTANDS,
                     api_key,
@@ -283,6 +393,83 @@ public class TracksActivity extends ActionBarActivity {
         }
     }
 
+    class PrevTracksFetcher extends  HttpTask {
+        int id;
+
+        @Override
+        void result(JSONObject res) throws JSONException {
+            if (id != track_id)
+                return;
+            JSONArray list = res.getJSONArray("waystandlist");
+            JSONObject way = list.getJSONObject(list.length() - 1);
+            if (way.getString("type").equals("WAY")){
+                JSONArray events = way.getJSONArray("events");
+                long begin = events.getJSONObject(0).getLong("eventTime");
+                tracks.get(0).begin = begin;
+            }
+            prgMain.setProgress(++progress);
+            if (lastWay){
+                NextTracksFetcher fetcher = new NextTracksFetcher();
+                fetcher.update();
+                return;
+            }
+            TrackFetcher fetcher = new TrackFetcher();
+            fetcher.update(id, 0);
+        }
+
+        @Override
+        void error() {
+            showError();
+        }
+
+        void update() {
+            id = ++track_id;
+            DateTime finish = current.toDateTime(new LocalTime(0, 0));
+            LocalDate prev = current.minusDays(1);
+            DateTime start = prev.toDateTime(new LocalTime(0, 0));
+            execute(WAYSTANDS,
+                    api_key,
+                    start.toDate().getTime() + "",
+                    finish.toDate().getTime() + "");
+        }
+    }
+
+    class NextTracksFetcher extends  HttpTask {
+        int id;
+
+        @Override
+        void result(JSONObject res) throws JSONException {
+            if (id != track_id)
+                return;
+            JSONArray list = res.getJSONArray("waystandlist");
+            JSONObject way = list.getJSONObject(0);
+            if (way.getString("type").equals("WAY")){
+                JSONArray events = way.getJSONArray("events");
+                long begin = events.getJSONObject(0).getLong("eventTime");
+                tracks.get(tracks.size() - 1).end = begin;
+            }
+            prgMain.setProgress(++progress);
+            TrackFetcher fetcher = new TrackFetcher();
+            fetcher.update(id, 0);
+        }
+
+        @Override
+        void error() {
+            showError();
+        }
+
+        void update() {
+            id = ++track_id;
+            LocalDate next = current.plusDays(1);
+            DateTime start = next.toDateTime(new LocalTime(0, 0));
+            next = next.plusDays(1);
+            DateTime finish = next.toDateTime(new LocalTime(0, 0));
+            execute(WAYSTANDS,
+                    api_key,
+                    start.toDate().getTime() + "",
+                    finish.toDate().getTime() + "");
+        }
+    }
     class TrackFetcher extends HttpTask {
         int id;
         int pos;
@@ -318,21 +505,34 @@ public class TracksActivity extends ActionBarActivity {
             }
             if (track.size() > 2){
                 double distance = 0;
+                double day_distance = 0;
                 double max_speed = 0;
+                double day_max_speed = 0;
+                long start = current.toDateTime(new LocalTime(0, 0)).toDate().getTime();
+                LocalDate next = current.plusDays(1);
+                long finish = next.toDateTime(new LocalTime(0, 0)).toDate().getTime();
                 for (int i = 0; i < track.size() - 1; i++){
                     Point p1 = track.get(i);
                     Point p2 = track.get(i + 1);
-                    distance += calc_distance(p1.latitude, p1.longitude, p2.latitude, p2.longitude);
+                    double d = calc_distance(p1.latitude, p1.longitude, p2.latitude, p2.longitude);
+                    distance += d;
                     if (p2.speed > max_speed)
                         max_speed = p2.speed;
+                    if ((p1.time >= start) && (p2.time <= finish)){
+                        day_distance += d;
+                        if (p2.speed > day_max_speed)
+                            day_max_speed = p2.speed;
+                    }
                 }
                 Track t = tracks.get(pos);
                 t.track   = track;
                 t.mileage = distance / 1000.;
                 t.max_speed = max_speed;
-                t.avg_speed = distance * 3600. / (t.end - t.begin);
                 t.end   = track.get(0).time;
                 t.begin = track.get(track.size() - 1).time;
+                t.avg_speed = distance * 3600. / (t.end - t.begin);
+                t.day_mileage = day_distance / 1000.;
+                t.day_max_speed = day_max_speed;
             }else{
                 tracks.remove(pos--);
             }
@@ -539,24 +739,7 @@ public class TracksActivity extends ActionBarActivity {
 
         @Override
         void done() {
-            double mileage = 0;
-            double max_speed = 0;
-            long time = 0;
-            for (Track track: tracks){
-                time += (track.end - track.begin);
-                if (track.max_speed > max_speed)
-                    max_speed = track.max_speed;
-                mileage += track.mileage;
-            }
-            double avg_speed = mileage * 3600000. / time;
-            String status = getString(R.string.status);
-            status = String.format(status, mileage, timeFormat(engine_time), avg_speed, max_speed);
-            tvStatus.setText(status);
-
-            tvLoading.setVisibility(View.GONE);
-            prgMain.setVisibility(View.GONE);
-            lvTracks.setVisibility(View.VISIBLE);
-            lvTracks.setAdapter(new TracksAdapter());
+            all_done();
         }
     }
 
@@ -637,19 +820,21 @@ public class TracksActivity extends ActionBarActivity {
         return String.format(s, hours, minutes);
     }
 
-    class Point {
+    public static class Point implements Serializable {
         double latitude;
         double longitude;
         double speed;
         long time;
     }
 
-    class Track {
+    public static class Track implements Serializable {
         long begin;
         long end;
         double mileage;
+        double day_mileage;
         double avg_speed;
         double max_speed;
+        double day_max_speed;
         String start;
         String finish;
         Vector<Point> track;

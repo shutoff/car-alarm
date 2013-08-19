@@ -6,6 +6,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Date;
 
 public class State {
@@ -13,7 +15,6 @@ public class State {
     static String waitAnswer;
     static PendingIntent waitAnswerPI;
 
-/*
     static public void appendLog(String text) {
         File logFile = new File("/sdcard/car.log");
         if (!logFile.exists()) {
@@ -34,23 +35,20 @@ public class State {
         } catch (IOException e) {
         }
     }
-*/
 
     static public void setExceptionHandler() {
-/*
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 
             @Override
             public void uncaughtException(Thread thread, Throwable ex) {
-            ex.printStackTrace();
-            appendLog("Error: " + ex.toString());
-            StringWriter sw = new StringWriter();
-            ex.printStackTrace(new PrintWriter(sw));
-            String s = sw.toString();
-            appendLog(s);
+                ex.printStackTrace();
+                appendLog("Error: " + ex.toString());
+                StringWriter sw = new StringWriter();
+                ex.printStackTrace(new PrintWriter(sw));
+                String s = sw.toString();
+                appendLog(s);
             }
         });
-*/
     }
 
 }
