@@ -5,12 +5,16 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,6 +63,24 @@ public class TrackView  extends ActionBarActivity {
         WebSettings settings = mapView.getSettings();
         settings.setJavaScriptEnabled(true);
         mapView.addJavascriptInterface(new JsInterface(), "android");
+        WebChromeClient mChromeClient = new WebChromeClient(){
+            @Override
+            public void onConsoleMessage(String message, int lineNumber, String sourceID) {
+                // TODO Auto-generated method stub
+                Log.v("ChromeClient", "invoked: onConsoleMessage() - " + sourceID + ":"
+                        + lineNumber + " - " + message);
+                super.onConsoleMessage(message, lineNumber, sourceID);
+            }
+
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage cm) {
+                Log.v("ChromeClient", cm.message() + " -- From line "
+                        + cm.lineNumber() + " of "
+                        + cm.sourceId() );
+                return true;
+            }
+        };
+        mapView.setWebChromeClient(mChromeClient);
         mapView.loadUrl("file:///android_asset/html/track.html");
     }
 

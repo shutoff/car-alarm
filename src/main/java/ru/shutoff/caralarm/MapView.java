@@ -8,11 +8,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.TextView;
@@ -35,13 +38,13 @@ public class MapView extends ActionBarActivity {
 
     class JsInterface {
         @JavascriptInterface
-        public String getLatitude() {
-            return preferences.getString(Names.Latitude, "0");
+        public double getLatitude() {
+            return Double.parseDouble(preferences.getString(Names.Latitude, "0"));
         }
 
         @JavascriptInterface
-        public String getLongitude() {
-            return preferences.getString(Names.Longitude, "0");
+        public double getLongitude() {
+            return Double.parseDouble(preferences.getString(Names.Longitude, "0"));
         }
 
         @JavascriptInterface
@@ -123,6 +126,24 @@ public class MapView extends ActionBarActivity {
         WebSettings settings = mapView.getSettings();
         settings.setJavaScriptEnabled(true);
         mapView.addJavascriptInterface(new JsInterface(), "android");
+        WebChromeClient mChromeClient = new WebChromeClient(){
+            @Override
+            public void onConsoleMessage(String message, int lineNumber, String sourceID) {
+                // TODO Auto-generated method stub
+                Log.v("ChromeClient", "invoked: onConsoleMessage() - " + sourceID + ":"
+                        + lineNumber + " - " + message);
+                super.onConsoleMessage(message, lineNumber, sourceID);
+            }
+
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage cm) {
+                Log.v("ChromeClient", cm.message() + " -- From line "
+                        + cm.lineNumber() + " of "
+                        + cm.sourceId() );
+                return true;
+            }
+        };
+        mapView.setWebChromeClient(mChromeClient);
         mapView.loadUrl("file:///android_asset/html/maps.html");
         tvAddress.setOnClickListener(new View.OnClickListener() {
             @Override

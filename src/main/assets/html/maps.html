@@ -78,7 +78,7 @@ function setTrack() {
         track = null;
         return;
     }
-    var points = source.split('|');
+    var points = (source + "").split('|');
     for (var i = 0; i < points.length; i++){
         var point = points[i].split(',');
         points[i] = new google.maps.LatLng(point[0], point[1]);

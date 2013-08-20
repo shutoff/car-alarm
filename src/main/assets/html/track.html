@@ -37,7 +37,7 @@ function initialize() {
     var min_lon = 180;
     var max_lon = -180;
 
-    var points = track_data.split('|');
+    var points = (track_data+"").split('|');
     for (var i in points){
         var p = points[i].split(',');
         var lat = parseFloat(p[0]);
