@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 public class StatusService extends Service {
 
     final long REPEAT_AFTER_ERROR = 20 * 1000;
+    final long REPEAT_AFTER_500   = 3600 * 1000;
 
     BroadcastReceiver mReceiver;
     PendingIntent pi;
@@ -167,8 +168,9 @@ public class StatusService extends Service {
 
             @Override
             void error() {
+                long timeout = (status == 500 ) ? REPEAT_AFTER_500 : REPEAT_AFTER_ERROR;
                 alarmMgr.setInexactRepeating(AlarmManager.RTC,
-                        System.currentTimeMillis() + REPEAT_AFTER_ERROR, REPEAT_AFTER_ERROR, pi);
+                        System.currentTimeMillis() + timeout, timeout, pi);
             }
         };
 

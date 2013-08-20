@@ -1,5 +1,7 @@
 package ru.shutoff.caralarm;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
@@ -35,7 +37,12 @@ public class TrackView  extends ActionBarActivity {
 
         @JavascriptInterface
         public void save(double min_lat, double max_lat, double min_lon, double max_lon) {
-            saveTrack(min_lat, max_lat, min_lon, max_lon);
+            saveTrack(min_lat, max_lat, min_lon, max_lon, true);
+        }
+
+        @JavascriptInterface
+        public void share(double min_lat, double max_lat, double min_lon, double max_lon) {
+            shareTrack(min_lat, max_lat, min_lon, max_lon);
         }
 
     }
@@ -68,19 +75,40 @@ public class TrackView  extends ActionBarActivity {
                 mapView.loadUrl("javascript:saveTrack()");
                 break;
             }
+            case R.id.share: {
+                mapView.loadUrl("javascript:shareTrack()");
+                break;
+            }
         }
         return false;
     }
 
-    void saveTrack(double min_lat, double max_lat, double min_lon, double max_lon){
+    File saveTrack(double min_lat, double max_lat, double min_lon, double max_lon, boolean show_toast){
         try{
             File path = Environment.getExternalStorageDirectory();
             if (path == null)
                 path = getFilesDir();
             path = new File(path, "Tracks");
             path.mkdirs();
-            String name = getTitle() + ".gpx";
-            name = name.replaceAll("[ \\-]", "_").replaceAll(":", ".");
+
+            String[] points = track.split("\\|");
+            long begin = 0;
+            long end = 0;
+            for (String point:points){
+                String[] data = point.split(",");
+                double lat = Double.parseDouble(data[0]);
+                double lon = Double.parseDouble(data[1]);
+                long time = Long.parseLong(data[3]);
+                if ((lat < min_lat) || (lat > max_lat) ||(lon < min_lon) || (lon > max_lon))
+                    continue;
+                if (begin == 0)
+                    begin = time;
+                end = time;
+            }
+            LocalDateTime d2 = new LocalDateTime(begin);
+            LocalDateTime d1 = new LocalDateTime(end);
+
+            String name = d1.toString("dd.MM.yy_HH.mm-") + d2.toString("HH.mm") + ".gpx";
             File out = new File(path, name);
             out.createNewFile();
 
@@ -88,7 +116,6 @@ public class TrackView  extends ActionBarActivity {
             OutputStreamWriter ow = new OutputStreamWriter(f);
             BufferedWriter writer = new BufferedWriter(ow);
 
-            String[] points = track.split("\\|");
             writer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
             writer.append("<gpx\n");
             writer.append(" version=\"1.0\"\n");
@@ -129,9 +156,26 @@ public class TrackView  extends ActionBarActivity {
             writer.append("</trk>\n");
             writer.append("</gpx>");
             writer.close();
-            Toast.makeText(this, getString(R.string.saved), Toast.LENGTH_SHORT);
+            if (show_toast){
+                Toast toast = Toast.makeText(this, getString(R.string.saved) + " " + out.toString(), Toast.LENGTH_LONG);
+                toast.show();
+            }
+            return out;
         }catch (Exception ex){
-            Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG);
+            Toast toast = Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG);
+            toast.show();
         }
+        return null;
+    }
+
+    void shareTrack(double min_lat, double max_lat, double min_lon, double max_lon){
+        File out = saveTrack(min_lat, max_lat, min_lon, max_lon, false);
+        if (out == null)
+            return;
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(out));
+        shareIntent.setType("application/gpx+xml");
+        startActivity(Intent.createChooser(shareIntent, getResources().getText(R.string.share)));
     }
 }

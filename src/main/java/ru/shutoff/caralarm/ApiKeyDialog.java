@@ -1,6 +1,8 @@
 package ru.shutoff.caralarm;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -11,6 +13,10 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class ApiKeyDialog extends Activity {
 
@@ -18,6 +24,9 @@ public class ApiKeyDialog extends Activity {
     SharedPreferences preferences;
     Button btnSave;
     TextView tvMessage;
+    ProgressDialog dlgCheck;
+
+    final String TEST_URL = "http://api.car-online.ru/v2?get=profile&skey=$1&content=json";
 
     /**
      * Called when the activity is first created.
@@ -35,10 +44,29 @@ public class ApiKeyDialog extends Activity {
 
             @Override
             public void onClick(View v) {
-                SharedPreferences.Editor ed = preferences.edit();
-                ed.putString(Names.KEY, etKey.getText().toString());
-                ed.commit();
-                finish();
+                HttpTask checkCode = new HttpTask() {
+                    @Override
+                    void result(JSONObject res) throws JSONException {
+                        if (dlgCheck != null){
+                            dlgCheck.dismiss();
+                            dlgCheck = null;
+                        }
+                        if (res != null){
+                            res.getInt("id");
+                            saveKey();
+                            return;
+                        }
+                        showError(status);
+                    }
+
+                    @Override
+                    void error() {
+                        showError(status);
+                    }
+                };
+
+                checkCode.execute(TEST_URL, etKey.getText().toString());
+                showProgress();
             }
 
         });
@@ -71,6 +99,26 @@ public class ApiKeyDialog extends Activity {
                 etKey.setText(key);
         }
         setKeyState();
+    }
+
+    void saveKey(){
+        SharedPreferences.Editor ed = preferences.edit();
+        ed.putString(Names.KEY, etKey.getText().toString());
+        ed.commit();
+        finish();
+        Intent intent = new Intent(this, StatusService.class);
+        startService(intent);
+    }
+
+    void showError(int status){
+        Toast toast = Toast.makeText(this, getString((status == 500) ? R.string.invalid_key : R.string.key_error), Toast.LENGTH_LONG);
+        toast.show();
+    }
+
+    void showProgress(){
+        dlgCheck = new ProgressDialog(this);
+        dlgCheck.setMessage(getString(R.string.check_api));
+        dlgCheck.show();
     }
 
     void setKeyState() {

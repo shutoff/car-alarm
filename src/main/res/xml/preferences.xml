@@ -32,4 +32,9 @@
             android:summary="@string/sms_mode_summary"
             android:key="sms_mode"/>
 
+    <Preference
+            android:title="@string/about"
+            android:summary="@string/version"
+            android:key="about"/>
+
 </PreferenceScreen>

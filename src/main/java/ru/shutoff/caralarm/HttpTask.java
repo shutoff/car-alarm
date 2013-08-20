@@ -19,6 +19,7 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
     abstract void error();
 
     int pause = 0;
+    int status;
 
     @Override
     protected JSONObject doInBackground(String... params) {
@@ -33,7 +34,7 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
                 Thread.sleep(pause);
             HttpResponse response = httpclient.execute(new HttpGet(url));
             StatusLine statusLine = response.getStatusLine();
-            int status = statusLine.getStatusCode();
+            status = statusLine.getStatusCode();
             if (status != HttpStatus.SC_OK)
                 return null;
             ByteArrayOutputStream out = new ByteArrayOutputStream();

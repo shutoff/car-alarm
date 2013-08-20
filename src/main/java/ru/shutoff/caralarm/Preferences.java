@@ -4,6 +4,8 @@ import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -25,8 +27,11 @@ public class Preferences extends PreferenceActivity {
     Preference smsPref;
     Preference apiPref;
     Preference testPref;
+    Preference aboutPref;
+
     String alarmUri;
     String notifyUri;
+
     ProgressDialog smsProgress;
 
     private static final int GET_PHONE_NUMBER = 3007;
@@ -118,6 +123,23 @@ public class Preferences extends PreferenceActivity {
             public boolean onPreferenceClick(Preference preference) {
                 Intent intent = new Intent(getBaseContext(), Alarm.class);
                 intent.putExtra(Names.ALARM, getString(R.string.alarm_test));
+                startActivity(intent);
+                return true;
+            }
+        });
+
+
+        aboutPref = (Preference) findPreference("about");
+        try{
+            PackageManager pkgManager = getPackageManager();
+            PackageInfo info = pkgManager.getPackageInfo("ru.shutoff.caralarm", 0);
+            aboutPref.setSummary(aboutPref.getSummary() + " " + info.versionName);
+        }catch (Exception ex){
+            aboutPref.setSummary("");
+        }
+        aboutPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+            public boolean onPreferenceClick(Preference preference) {
+                Intent intent = new Intent(getBaseContext(), About.class);
                 startActivity(intent);
                 return true;
             }

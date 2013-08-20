@@ -53,4 +53,10 @@
     <string name="saved">Track saved</string>
     <string name="loading">Loading data...</string>
     <string name="error_load">Data loading error</string>
+    <string name="about">About</string>
+    <string name="version">Version: </string>
+    <string name="share">Share</string>
+    <string name="invalid_key">Invalid API key</string>
+    <string name="key_error">Check API key error</string>
+    <string name="check_api">Check API key</string>
 </resources>

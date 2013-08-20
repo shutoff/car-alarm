@@ -53,4 +53,10 @@
     <string name="saved">Трек сохранен</string>
     <string name="loading">Загрузка данных...</string>
     <string name="error_load">Ошибка загрузки данных</string>
+    <string name="about">О программе</string>
+    <string name="version">Версия: </string>
+    <string name="share">Поделиться</string>
+    <string name="invalid_key">Неверный ключ API</string>
+    <string name="key_error">Ошибка проверки API ключа</string>
+    <string name="check_api">Проверка ключа</string>
 </resources>

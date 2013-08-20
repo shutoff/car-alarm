@@ -15,6 +15,7 @@ public class State {
     static String waitAnswer;
     static PendingIntent waitAnswerPI;
 
+/*
     static public void appendLog(String text) {
         File logFile = new File("/sdcard/car.log");
         if (!logFile.exists()) {
@@ -35,6 +36,7 @@ public class State {
         } catch (IOException e) {
         }
     }
+ */
 
     static public void setExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -42,11 +44,13 @@ public class State {
             @Override
             public void uncaughtException(Thread thread, Throwable ex) {
                 ex.printStackTrace();
+/*
                 appendLog("Error: " + ex.toString());
                 StringWriter sw = new StringWriter();
                 ex.printStackTrace(new PrintWriter(sw));
                 String s = sw.toString();
                 appendLog(s);
+*/
             }
         });
     }

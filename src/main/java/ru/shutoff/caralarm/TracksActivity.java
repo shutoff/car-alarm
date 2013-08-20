@@ -1,5 +1,6 @@
 package ru.shutoff.caralarm;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -112,6 +113,9 @@ public class TracksActivity extends ActionBarActivity {
             }
         });
 
+        if (current != null)
+            setTitle(current.toString("d MMMM"));
+
         if (loaded){
             all_done();
             return;
@@ -154,36 +158,52 @@ public class TracksActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.day: {
-                dialogCaldroidFragment = new CaldroidFragment();
+                dialogCaldroidFragment = new CaldroidFragment() {
+
+                    @Override
+                    public void onAttach (Activity activity){
+                        super.onAttach(activity);
+                        CaldroidListener listener = new CaldroidListener() {
+
+                            @Override
+                            public void onSelectDate(Date date, View view) {
+                                changeDate(date);
+                            }
+                        };
+
+                        dialogCaldroidFragment = this;
+                        setCaldroidListener(listener);
+                    }
+
+                };
                 Bundle args = new Bundle();
                 args.putString(CaldroidFragment.DIALOG_TITLE, getString(R.string.day));
                 args.putInt(CaldroidFragment.MONTH, current.getMonthOfYear());
                 args.putInt(CaldroidFragment.YEAR, current.getYear());
                 args.putInt(CaldroidFragment.START_DAY_OF_WEEK, 1);
                 dialogCaldroidFragment.setArguments(args);
-                LocalDate now = new LocalDate();
+                LocalDateTime now = new LocalDateTime();
                 dialogCaldroidFragment.setMaxDate(now.toDate());
-                CaldroidListener listener = new CaldroidListener() {
-
-                    @Override
-                    public void onSelectDate(Date date, View view) {
-                        tvStatus.setVisibility(View.GONE);
-                        lvTracks.setVisibility(View.GONE);
-                        tvLoading.setVisibility(View.VISIBLE);
-                        prgFirst.setVisibility(View.VISIBLE);
-                        prgMain.setVisibility(View.VISIBLE);
-                        prgMain.setProgress(0);
-                        DataFetcher fetcher = new DataFetcher();
-                        fetcher.update(new LocalDate(date));
-                        dialogCaldroidFragment.dismiss();
-                    }
-                };
-                dialogCaldroidFragment.setCaldroidListener(listener);
                 dialogCaldroidFragment.show(getSupportFragmentManager(), "TAG");
                 break;
             }
         }
         return false;
+    }
+
+    void changeDate(Date date){
+        LocalDate d = new LocalDate(date);
+        setTitle(d.toString("d MMMM"));
+        tvStatus.setVisibility(View.GONE);
+        lvTracks.setVisibility(View.GONE);
+        tvLoading.setVisibility(View.VISIBLE);
+        prgFirst.setVisibility(View.VISIBLE);
+        prgMain.setVisibility(View.VISIBLE);
+        prgMain.setProgress(0);
+        DataFetcher fetcher = new DataFetcher();
+        fetcher.update(d);
+        dialogCaldroidFragment.dismiss();
+        dialogCaldroidFragment = null;
     }
 
     void showTrack(int index){
@@ -445,8 +465,8 @@ public class TracksActivity extends ActionBarActivity {
             JSONObject way = list.getJSONObject(0);
             if (way.getString("type").equals("WAY")){
                 JSONArray events = way.getJSONArray("events");
-                long begin = events.getJSONObject(0).getLong("eventTime");
-                tracks.get(tracks.size() - 1).end = begin;
+                long end = events.getJSONObject(events.length() - 1).getLong("eventTime");
+                tracks.get(tracks.size() - 1).end = end;
             }
             prgMain.setProgress(++progress);
             TrackFetcher fetcher = new TrackFetcher();

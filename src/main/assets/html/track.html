@@ -90,6 +90,13 @@ function saveTrack() {
     android.save(sw.lat(), ne.lat(), sw.lng(), ne.lng());
 }
 
+function shareTrack() {
+    var bounds = map.getBounds();
+    var ne = bounds.getNorthEast();
+    var sw = bounds.getSouthWest();
+    android.share(sw.lat(), ne.lat(), sw.lng(), ne.lng());
+}
+
 google.maps.event.addDomListener(window, 'load', initialize);
 
 
