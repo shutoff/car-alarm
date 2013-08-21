@@ -30,6 +30,7 @@ public class CarDrawable {
     Drawable dLock;
     Drawable dUnlock;
     Drawable dIgnition;
+    Drawable dValet;
 
     LayerDrawable drawable;
 
@@ -80,6 +81,9 @@ public class CarDrawable {
         dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(UNKNOWN)));
         dIgnition.setAlpha(0);
 
+        dValet = new BitmapDrawable(ctx.getResources(), BitmapFactory.decodeResource(ctx.getResources(), R.drawable.valet));
+        dValet.setAlpha(255);
+
         Drawable[] drawables =
                 {
                         dBg,
@@ -92,7 +96,8 @@ public class CarDrawable {
                         dTrunkOpen,
                         dLock,
                         dUnlock,
-                        dIgnition
+                        dIgnition,
+                        dValet
                 };
 
         drawable = new LayerDrawable(drawables);
