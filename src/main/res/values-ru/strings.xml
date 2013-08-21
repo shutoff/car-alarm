@@ -49,7 +49,7 @@
     <string name="day">Выберите день</string>
     <string name="no_data">Нет данных</string>
     <string name="mileage">%.2f км</string>
-    <string name="short_status" formatted="false">Средняя скорость: %.2f км/ч\nМаксимальная скорость: %.2f км/ч\n</string>
+    <string name="short_status" formatted="false">Время в пути: %s\nСредняя скорость: %.2f км/ч\nМаксимальная скорость: %.2f км/ч\n</string>
     <string name="saved">Трек сохранен</string>
     <string name="loading">Загрузка данных...</string>
     <string name="error_load">Ошибка загрузки данных</string>

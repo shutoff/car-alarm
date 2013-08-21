@@ -82,7 +82,7 @@ public class CarDrawable {
         dIgnition.setAlpha(0);
 
         dValet = new BitmapDrawable(ctx.getResources(), BitmapFactory.decodeResource(ctx.getResources(), R.drawable.valet));
-        dValet.setAlpha(255);
+        dValet.setAlpha(0);
 
         Drawable[] drawables =
                 {
@@ -195,6 +195,11 @@ public class CarDrawable {
             }
         } else {
             dIgnition.setAlpha(0);
+        }
+        if (preferences.getBoolean(Names.Valet, false)){
+            dValet.setAlpha(255);
+        }else{
+            dValet.setAlpha(0);
         }
     }
 

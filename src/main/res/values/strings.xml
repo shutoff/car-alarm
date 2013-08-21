@@ -49,7 +49,7 @@
     <string name="day">Select a day</string>
     <string name="no_data">No data</string>
     <string name="mileage">%.2f km</string>
-    <string name="short_status" formatted="false">Average speed: %.2f kmh\nMax speed: %.2f kmh\n</string>
+    <string name="short_status" formatted="false">Engine time: %s\nAverage speed: %.2f kmh\nMax speed: %.2f kmh\n</string>
     <string name="saved">Track saved</string>
     <string name="loading">Loading data...</string>
     <string name="error_load">Data loading error</string>

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
@@ -221,7 +222,11 @@ public class TracksActivity extends ActionBarActivity {
             }
         }
         intent.putExtra(Names.TRACK, track_data);
-        intent.putExtra(Names.STATUS, String.format(getString(R.string.short_status), track.avg_speed, track.max_speed));
+        intent.putExtra(Names.STATUS, String.format(getString(R.string.status),
+                track.mileage,
+                timeFormat((int)((track.end - track.begin) / 60000)),
+                track.avg_speed,
+                track.max_speed));
         LocalDateTime begin = new LocalDateTime(track.begin);
         LocalDateTime end = new LocalDateTime(track.end);
         intent.putExtra(Names.TITLE, begin.toString("d MMMM HH:mm") + "-" + end.toString("HH:mm"));
@@ -807,7 +812,15 @@ public class TracksActivity extends ActionBarActivity {
             TextView tvStatus = (TextView) v.findViewById(R.id.status);
             String text = "";
             if (position == selected){
-                text = String.format(getString(R.string.short_status), track.avg_speed, track.max_speed);
+                text = String.format(getString(R.string.short_status),
+                        timeFormat((int) ((track.end - track.begin) / 60000)),
+                        track.avg_speed,
+                        track.max_speed);
+                tvTitle.setTypeface(null, Typeface.BOLD);
+                tvMileage.setTypeface(null, Typeface.BOLD);
+            }else{
+                tvTitle.setTypeface(null, Typeface.NORMAL);
+                tvMileage.setTypeface(null, Typeface.NORMAL);
             }
             tvStatus.setText(text);
             return v;

@@ -36,7 +36,7 @@ public class StatusService extends Service {
 
     static final String ACTION_UPDATE = "ru.shutoff.caralarm.UPDATE";
 
-    static final Pattern balancePattern = Pattern.compile("^-?[0-9]+\\.[0-9][0-9]");
+    static final Pattern balancePattern = Pattern.compile("^-?[0-9]+[\\.,][0-9][0-9]");
 
     static final String STATUS_URL = "http://api.car-online.ru/v2?get=lastinfo&skey=$1&content=json";
     static final String TEMP_URL = "http://api.car-online.ru/v2?get=temperaturelist&skey=$1&begin=$2&end=$3&content=json";
@@ -113,7 +113,7 @@ public class StatusService extends Service {
                 JSONObject balance = res.getJSONObject("balance");
                 Matcher m = balancePattern.matcher(balance.getString("source"));
                 if (m.find())
-                    ed.putString(Names.Balance, m.group(0));
+                    ed.putString(Names.Balance, m.group(0).replaceAll(",", "."));
 
                 JSONObject gps = res.getJSONObject("gps");
                 ed.putString(Names.Latitude, gps.getString("latitude"));
@@ -121,6 +121,7 @@ public class StatusService extends Service {
                 ed.putString(Names.Speed, gps.getString("speed"));
 
                 JSONObject contact = res.getJSONObject("contact");
+                ed.putBoolean(Names.Valet, !contact.getBoolean("guardMode"));
                 ed.putBoolean(Names.Guard, contact.getBoolean("stGuard"));
                 ed.putBoolean(Names.Input1, contact.getBoolean("stInput1"));
                 ed.putBoolean(Names.Input2, contact.getBoolean("stInput2"));

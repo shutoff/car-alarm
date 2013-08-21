@@ -60,7 +60,7 @@ public class SmsMonitor extends BroadcastReceiver {
 
     static String[] notifications = {
             "Light shock",
-            "Low card battery",
+            "Low Card Battery",
             "Supply reserve",
             "Supply regular",
             "ERROR LAN-devices",
