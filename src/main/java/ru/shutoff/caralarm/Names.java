@@ -30,6 +30,7 @@ public final class Names {
     static final String Speed = "Speed";
 
     static final String Valet = "Valet";
+    static final String LastEvent = "LastEvent";
     static final String Guard = "Guard";
     static final String Input1 = "Input1";
     static final String Input2 = "Input2";
