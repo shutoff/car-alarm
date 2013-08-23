@@ -18,6 +18,9 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
     abstract void result(JSONObject res) throws JSONException;
     abstract void error();
 
+    void background(JSONObject res) throws JSONException{
+    }
+
     int pause = 0;
     int status;
 
@@ -41,7 +44,9 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
             response.getEntity().writeTo(out);
             out.close();
             String res = out.toString();
-            return new JSONObject(res);
+            JSONObject result = new JSONObject(res);
+            background(result);
+            return result;
         } catch (Exception ex) {
             error();
         }
