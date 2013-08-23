@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -232,7 +233,7 @@ public class MainActivity extends ActionBarActivity {
         tvVoltage.setText(preferences.getString(Names.VoltageMain, "?") + " V");
         tvReserve.setText(preferences.getString(Names.VoltageReserved, "?") + " V");
         tvBalance.setText(preferences.getString(Names.Balance, "?"));
-        tvTemperature.setText(preferences.getString(Names.Temperature, "?") + " °C");
+        tvTemperature.setText(preferences.getString(Names.Temperature, "?") + " \u00B0C");
 
         drawable.update(preferences);
         address.update();

@@ -104,10 +104,14 @@ public class StatusService extends Service {
         @Override
         void result(JSONObject res) throws JSONException {
             statusRequest = null;
+        }
+
+        @Override
+        void background(JSONObject res) throws JSONException {
             JSONObject event = res.getJSONObject("event");
             long eventId = event.getLong("eventId");
-            if (eventId == preferences.getLong(Names.EventId, 0))
-                return;
+ //           if (eventId == preferences.getLong(Names.EventId, 0))
+ //               return;
             long eventTime = event.getLong("eventTime");
             SharedPreferences.Editor ed = preferences.edit();
             ed.putLong(Names.EventId, eventId);
@@ -171,6 +175,10 @@ public class StatusService extends Service {
         @Override
         void result(JSONObject res) throws JSONException {
             eventsRequest = null;
+        }
+
+        @Override
+        void background(JSONObject res) throws JSONException {
             if (res == null)
                 return;
 
@@ -217,6 +225,10 @@ public class StatusService extends Service {
         @Override
         void result(JSONObject res) throws JSONException {
             temperatureRequest = null;
+        }
+
+        @Override
+        void background(JSONObject res) throws JSONException {
             if (res == null)
                 return;
             JSONArray arr = res.getJSONArray("temperatureList");
