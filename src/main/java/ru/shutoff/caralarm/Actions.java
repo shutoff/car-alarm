@@ -79,6 +79,14 @@ public class Actions extends PreferenceActivity {
             }
         });
 
+        pref = (Preference) findPreference("block");
+        pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+            public boolean onPreferenceClick(Preference preference) {
+                sendSMS("BLOCK MTR", "BLOCK MTR OK", getString(R.string.block));
+                return true;
+            }
+        });
+
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

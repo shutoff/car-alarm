@@ -86,7 +86,7 @@ public class CarWidget extends AppWidgetProvider {
 
         widgetView.setTextViewText(R.id.voltage, preferences.getString(Names.VoltageMain, "--") + " V");
         widgetView.setTextViewText(R.id.balance, preferences.getString(Names.Balance, "---.--"));
-        widgetView.setTextViewText(R.id.temperature, preferences.getString(Names.Temperature, "--") + " °C");
+        widgetView.setTextViewText(R.id.temperature, preferences.getString(Names.Temperature, "--") + " \u00B0C");
 
         if (drawable == null)
             drawable = new CarDrawable(context);

@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
@@ -32,6 +33,9 @@ public class MainActivity extends ActionBarActivity {
     TextView tvReserve;
     TextView tvBalance;
     TextView tvTemperature;
+    View vError;
+    ImageView imgRefresh;
+    ProgressBar prgUpdate;
 
     static final int REQUEST_ALARM = 4000;
     static final int UPDATE_INTERVAL = 1 * 60 * 1000;
@@ -77,6 +81,20 @@ public class MainActivity extends ActionBarActivity {
         tvReserve = (TextView) findViewById(R.id.reserve);
         tvBalance = (TextView) findViewById(R.id.balance);
         tvTemperature = (TextView) findViewById(R.id.temperature);
+        vError = findViewById(R.id.error);
+        vError.setVisibility(View.GONE);
+
+        imgRefresh = (ImageView) findViewById(R.id.refresh);
+        imgRefresh.setVisibility(View.GONE);
+        prgUpdate = (ProgressBar) findViewById(R.id.update);
+
+        View time = findViewById(R.id.time);
+        time.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startUpdate();
+            }
+        });
 
         drawable = new CarDrawable(this);
         imgCar.setImageDrawable(drawable.getDrawable());
@@ -85,12 +103,31 @@ public class MainActivity extends ActionBarActivity {
         br = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                update();
-                stopTimer();
-                startTimer(false);
+                if (intent == null)
+                    return;
+                if (intent.getAction().equals(StatusService.ACTION_UPDATE)){
+                    vError.setVisibility(View.GONE);
+                    imgRefresh.setVisibility(View.VISIBLE);
+                    prgUpdate.setVisibility(View.GONE);
+                    update();
+                    stopTimer();
+                    startTimer(false);
+                }
+                if (intent.getAction().equals(StatusService.ACTION_NOUPDATE)){
+                    vError.setVisibility(View.GONE);
+                    imgRefresh.setVisibility(View.VISIBLE);
+                    prgUpdate.setVisibility(View.GONE);
+                }
+                if (intent.getAction().equals(StatusService.ACTION_ERROR)){
+                    vError.setVisibility(View.VISIBLE);
+                    imgRefresh.setVisibility(View.VISIBLE);
+                    prgUpdate.setVisibility(View.GONE);
+                }
             }
         };
         IntentFilter intFilter = new IntentFilter(StatusService.ACTION_UPDATE);
+        intFilter.addAction(StatusService.ACTION_NOUPDATE);
+        intFilter.addAction(StatusService.ACTION_ERROR);
         registerReceiver(br, intFilter);
 
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -150,10 +187,8 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_ALARM) {
-            Intent intent = new Intent(this, StatusService.class);
-            startService(intent);
-        }
+        if (requestCode == REQUEST_ALARM)
+            startUpdate();
     }
 
     void startTimer(boolean now) {
@@ -232,10 +267,18 @@ public class MainActivity extends ActionBarActivity {
         tvVoltage.setText(preferences.getString(Names.VoltageMain, "?") + " V");
         tvReserve.setText(preferences.getString(Names.VoltageReserved, "?") + " V");
         tvBalance.setText(preferences.getString(Names.Balance, "?"));
-        tvTemperature.setText(preferences.getString(Names.Temperature, "?") + " °C");
+        tvTemperature.setText(preferences.getString(Names.Temperature, "?") + " \u00B0C");
 
         drawable.update(preferences);
         address.update();
+    }
+
+    void startUpdate(){
+        Intent intent = new Intent(this, StatusService.class);
+        startService(intent);
+        vError.setVisibility(View.GONE);
+        imgRefresh.setVisibility(View.GONE);
+        prgUpdate.setVisibility(View.VISIBLE);
     }
 
 }

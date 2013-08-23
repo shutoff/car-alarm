@@ -35,6 +35,8 @@ public class StatusService extends Service {
     AlarmManager alarmMgr;
 
     static final String ACTION_UPDATE = "ru.shutoff.caralarm.UPDATE";
+    static final String ACTION_NOUPDATE = "ru.shutoff.caralarm.NO_UPDATE";
+    static final String ACTION_ERROR = "ru.shutoff.caralarm.ERROR";
 
     static final Pattern balancePattern = Pattern.compile("^-?[0-9]+[\\.,][0-9][0-9]");
 
@@ -106,8 +108,10 @@ public class StatusService extends Service {
             statusRequest = null;
             JSONObject event = res.getJSONObject("event");
             long eventId = event.getLong("eventId");
-            if (eventId == preferences.getLong(Names.EventId, 0))
+            if (eventId == preferences.getLong(Names.EventId, 0)){
+                sendUpdate(ACTION_NOUPDATE);
                 return;
+            }
             long eventTime = event.getLong("eventTime");
             SharedPreferences.Editor ed = preferences.edit();
             ed.putLong(Names.EventId, eventId);
@@ -140,7 +144,7 @@ public class StatusService extends Service {
             ed.putBoolean(Names.ZoneIgnition, contact.getBoolean("stZoneIgnitionOn"));
 
             ed.commit();
-            sendUpdate();
+            sendUpdate(ACTION_UPDATE);
 
             if (eventsRequest != null)
                 return;
@@ -159,6 +163,7 @@ public class StatusService extends Service {
             long timeout = (status == 500) ? REPEAT_AFTER_500 : REPEAT_AFTER_ERROR;
             alarmMgr.setInexactRepeating(AlarmManager.RTC,
                     System.currentTimeMillis() + timeout, timeout, pi);
+            sendUpdate(ACTION_ERROR);
         }
     }
 
@@ -192,7 +197,7 @@ public class StatusService extends Service {
                     ed.putBoolean(Names.Valet, valet_state);
                 ed.commit();
                 if (valet_state != valet)
-                    sendUpdate();
+                    sendUpdate(ACTION_UPDATE);
             }
 
             if (temperatureRequest != null)
@@ -227,7 +232,7 @@ public class StatusService extends Service {
             SharedPreferences.Editor ed = preferences.edit();
             ed.putString(Names.Temperature, temp);
             ed.commit();
-            sendUpdate();
+            sendUpdate(ACTION_UPDATE);
         }
 
         @Override
@@ -236,9 +241,9 @@ public class StatusService extends Service {
         }
     }
 
-    void sendUpdate() {
+    void sendUpdate(String action) {
         try {
-            Intent intent = new Intent(ACTION_UPDATE);
+            Intent intent = new Intent(action);
             sendBroadcast(intent);
         } catch (Exception e) {
             // ignore

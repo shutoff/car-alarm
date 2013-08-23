@@ -59,4 +59,7 @@
     <string name="invalid_key">Неверный ключ API</string>
     <string name="key_error">Ошибка проверки API ключа</string>
     <string name="check_api">Проверка ключа</string>
+    <string name="data_error">Ошибка обновления данных</string>
+    <string name="block">Дистанционная блокировка</string>
+    <string name="block_sum">Включить дистанционную блокировку автомобиля</string>
 </resources>

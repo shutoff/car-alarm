@@ -59,4 +59,7 @@
     <string name="invalid_key">Invalid API key</string>
     <string name="key_error">Check API key error</string>
     <string name="check_api">Check API key</string>
+    <string name="data_error">Data update error</string>
+    <string name="block">Remote clocking</string>
+    <string name="block_sum">Remote blocking of the car</string>
 </resources>

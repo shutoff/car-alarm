@@ -2,6 +2,10 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
                   android:key="root">
     <Preference
+            android:key="block"
+            android:summary="@string/block_sum"
+            android:title="@string/block"/>
+    <Preference
             android:key="motor_on"
             android:summary="@string/motor_on_sum"
             android:title="@string/motor_on"/>
