@@ -62,4 +62,18 @@
     <string name="data_error">Ошибка обновления данных</string>
     <string name="block">Дистанционная блокировка</string>
     <string name="block_sum">Включить дистанционную блокировку автомобиля</string>
+    <string name="autostart">Автозапуск</string>
+    <string name="autostart_summary">Отображать действия для дистанционного запуска</string>
+    <string name="rele1">Предпусковой подогреватель</string>
+    <string name="rele1_summary">Отображать действия для предпускового подогревателя</string>
+    <string name="rele1_action">Отправить импульс на РЕЛЕ1</string>
+    <string name="password">Установить пароль</string>
+    <string name="password_summary">Установить пароль для выполнения действий</string>
+    <string name="password_old">Старый пароль:</string>
+    <string name="password_text">Пароль:</string>
+    <string name="password_confirm">Подтверждение:</string>
+    <string name="password_set">Установить</string>
+    <string name="invalid_password">Неверный пароль</string>
+    <string name="invalid_confirm">Пароли не совпадают</string>
+    <string name="input_password">Введите пароль</string>
 </resources>

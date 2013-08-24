@@ -17,6 +17,10 @@ public final class Names {
 
     static final int ANSWER_OK = 4000;
 
+    static final String PASSWORD = "Password";
+    static final String TEXT = "Text";
+    static final String ANSWER = "Answer";
+
     static final String EventId = "EventId";
     static final String EventTime = "EventTime";
 

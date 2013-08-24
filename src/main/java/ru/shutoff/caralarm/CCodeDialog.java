@@ -22,9 +22,7 @@ public class CCodeDialog extends Activity {
         setContentView(R.layout.ccode);
         btnAction = (Button) findViewById(R.id.action);
         etCode = (EditText) findViewById(R.id.ccode);
-        Bundle bundle = getIntent().getExtras();
-        if (bundle != null)
-            btnAction.setText(bundle.getString(Names.TITLE));
+        btnAction.setText(getIntent().getStringExtra(Names.TITLE));
 
         btnAction.setOnClickListener(new OnClickListener() {
 

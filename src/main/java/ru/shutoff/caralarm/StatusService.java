@@ -37,6 +37,8 @@ public class StatusService extends Service {
     static final String ACTION_UPDATE = "ru.shutoff.caralarm.UPDATE";
     static final String ACTION_NOUPDATE = "ru.shutoff.caralarm.NO_UPDATE";
     static final String ACTION_ERROR = "ru.shutoff.caralarm.ERROR";
+    static final String ACTION_START = "ru.shutoff.caralarm.START";
+    static final String ACTION_START_UPDATE = "ru.shutoff.caralarm.START_UPDATE";
 
     static final Pattern balancePattern = Pattern.compile("^-?[0-9]+[\\.,][0-9][0-9]");
 
@@ -97,6 +99,7 @@ public class StatusService extends Service {
         }
         alarmMgr.cancel(pi);
 
+        sendUpdate(ACTION_START);
         statusRequest = new StatusRequest();
         statusRequest.execute(STATUS_URL, api_key);
     }
@@ -106,9 +109,13 @@ public class StatusService extends Service {
         @Override
         void result(JSONObject res) throws JSONException {
             statusRequest = null;
+        }
+
+        @Override
+        void background(JSONObject res) throws JSONException {
             JSONObject event = res.getJSONObject("event");
             long eventId = event.getLong("eventId");
-            if (eventId == preferences.getLong(Names.EventId, 0)){
+            if (eventId == preferences.getLong(Names.EventId, 0)) {
                 sendUpdate(ACTION_NOUPDATE);
                 return;
             }
@@ -176,6 +183,10 @@ public class StatusService extends Service {
         @Override
         void result(JSONObject res) throws JSONException {
             eventsRequest = null;
+        }
+
+        @Override
+        void background(JSONObject res) throws JSONException {
             if (res == null)
                 return;
 
@@ -222,6 +233,10 @@ public class StatusService extends Service {
         @Override
         void result(JSONObject res) throws JSONException {
             temperatureRequest = null;
+        }
+
+        @Override
+        void background(JSONObject res) throws JSONException {
             if (res == null)
                 return;
             JSONArray arr = res.getJSONArray("temperatureList");

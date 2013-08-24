@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="ru.shutoff.caralarm"
           android:versionCode="5"
-          android:versionName="1.0.3">
+          android:versionName="1.0.4">
 
     <uses-sdk
             android:minSdkVersion="7"
@@ -82,6 +82,18 @@
         </activity>
 
         <activity
+                android:name="SetPasswordDialog"
+                android:theme="@android:style/Theme.Dialog"
+                android:label="@string/password">
+        </activity>
+
+        <activity
+                android:name="PasswordDialog"
+                android:theme="@android:style/Theme.Dialog"
+                android:label="@string/input_password">
+        </activity>
+
+        <activity
                 android:name="Actions">
         </activity>
 
@@ -103,6 +115,10 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
                 <action android:name="ru.shutoff.caralarm.UPDATE"/>
+                <action android:name="ru.shutoff.caralarm.NO_UPDATE"/>
+                <action android:name="ru.shutoff.caralarm.ERROR"/>
+                <action android:name="ru.shutoff.caralarm.START"/>
+                <action android:name="ru.shutoff.caralarm.START_UPDATE"/>
             </intent-filter>
             <meta-data
                     android:name="android.appwidget.provider"

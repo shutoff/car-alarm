@@ -11,7 +11,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -106,7 +105,7 @@ public class MainActivity extends ActionBarActivity {
             public void onReceive(Context context, Intent intent) {
                 if (intent == null)
                     return;
-                if (intent.getAction().equals(StatusService.ACTION_UPDATE)){
+                if (intent.getAction().equals(StatusService.ACTION_UPDATE)) {
                     vError.setVisibility(View.GONE);
                     imgRefresh.setVisibility(View.VISIBLE);
                     prgUpdate.setVisibility(View.GONE);
@@ -114,12 +113,12 @@ public class MainActivity extends ActionBarActivity {
                     stopTimer();
                     startTimer(false);
                 }
-                if (intent.getAction().equals(StatusService.ACTION_NOUPDATE)){
+                if (intent.getAction().equals(StatusService.ACTION_NOUPDATE)) {
                     vError.setVisibility(View.GONE);
                     imgRefresh.setVisibility(View.VISIBLE);
                     prgUpdate.setVisibility(View.GONE);
                 }
-                if (intent.getAction().equals(StatusService.ACTION_ERROR)){
+                if (intent.getAction().equals(StatusService.ACTION_ERROR)) {
                     vError.setVisibility(View.VISIBLE);
                     imgRefresh.setVisibility(View.VISIBLE);
                     prgUpdate.setVisibility(View.GONE);
@@ -156,9 +155,9 @@ public class MainActivity extends ActionBarActivity {
             @Override
             void onResult() {
                 tvAddress.setText(
-                    preferences.getString(Names.Latitude, "") + " " +
-                    preferences.getString(Names.Longitude, "") + "\n" +
-                    preferences.getString(Names.Address, ""));
+                        preferences.getString(Names.Latitude, "") + " " +
+                                preferences.getString(Names.Longitude, "") + "\n" +
+                                preferences.getString(Names.Address, ""));
             }
         };
         address.update();
@@ -274,7 +273,7 @@ public class MainActivity extends ActionBarActivity {
         address.update();
     }
 
-    void startUpdate(){
+    void startUpdate() {
         Intent intent = new Intent(this, StatusService.class);
         startService(intent);
         vError.setVisibility(View.GONE);

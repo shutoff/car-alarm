@@ -16,9 +16,10 @@ import java.io.ByteArrayOutputStream;
 public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
 
     abstract void result(JSONObject res) throws JSONException;
+
     abstract void error();
 
-    void background(JSONObject res) throws JSONException{
+    void background(JSONObject res) throws JSONException {
     }
 
     int pause = 0;
@@ -55,9 +56,9 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
 
     @Override
     protected void onPostExecute(JSONObject res) {
-        try{
+        try {
             result(res);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             error();
         }
     }

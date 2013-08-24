@@ -28,6 +28,7 @@ public class Preferences extends PreferenceActivity {
     Preference apiPref;
     Preference testPref;
     Preference aboutPref;
+    Preference pswdPref;
 
     String alarmUri;
     String notifyUri;
@@ -38,6 +39,7 @@ public class Preferences extends PreferenceActivity {
     private static final int GET_ALARM_SOUND = 3008;
     private static final int GET_NOTIFY_SOUND = 3009;
     private static final int SMS_SENT_RESULT = 3010;
+    private static final int SMS_SENT_PASSWD = 3011;
 
     @SuppressWarnings("deprecation")
     @Override
@@ -144,6 +146,15 @@ public class Preferences extends PreferenceActivity {
                 return true;
             }
         });
+
+        pswdPref = (Preference) findPreference("password");
+        pswdPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+            public boolean onPreferenceClick(Preference preference) {
+                Intent intent = new Intent(getBaseContext(), SetPasswordDialog.class);
+                startActivity(intent);
+                return true;
+            }
+        });
     }
 
     @Override
@@ -164,6 +175,10 @@ public class Preferences extends PreferenceActivity {
             return;
 
         switch (requestCode) {
+            case SMS_SENT_PASSWD:
+                real_smsMode();
+                return;
+
             case GET_PHONE_NUMBER: {
                 String phoneNumber = (String) data.getExtras().get(
                         ContactsPickerActivity.KEY_PHONE_NUMBER);
@@ -237,6 +252,16 @@ public class Preferences extends PreferenceActivity {
     }
 
     void smsMode() {
+        if (sPref.getString(Names.PASSWORD, "").equals("")) {
+            real_smsMode();
+            return;
+        }
+        Intent intent = new Intent(this, PasswordDialog.class);
+        intent.putExtra(Names.TITLE, getString(R.string.sms_mode));
+        startActivityForResult(intent, SMS_SENT_PASSWD);
+    }
+
+    void real_smsMode() {
         smsProgress = new ProgressDialog(this) {
             protected void onStop() {
                 smsProgress = null;
