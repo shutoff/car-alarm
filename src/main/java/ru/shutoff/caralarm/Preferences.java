@@ -10,6 +10,7 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
@@ -29,6 +30,7 @@ public class Preferences extends PreferenceActivity {
     Preference testPref;
     Preference aboutPref;
     Preference pswdPref;
+    ListPreference mapPref;
 
     String alarmUri;
     String notifyUri;
@@ -130,13 +132,29 @@ public class Preferences extends PreferenceActivity {
             }
         });
 
+        mapPref = (ListPreference) findPreference("map_type");
+        String type = sPref.getString(Names.MAP_TYPE, "");
+        if (type.equals("")) {
+            SharedPreferences.Editor ed = sPref.edit();
+            type = "Google";
+            ed.putString(Names.MAP_TYPE, type);
+            ed.commit();
+        }
+        mapPref.setSummary(type);
+        mapPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                preference.setSummary(newValue.toString());
+                return true;
+            }
+        });
 
         aboutPref = (Preference) findPreference("about");
-        try{
+        try {
             PackageManager pkgManager = getPackageManager();
             PackageInfo info = pkgManager.getPackageInfo("ru.shutoff.caralarm", 0);
             aboutPref.setSummary(aboutPref.getSummary() + " " + info.versionName);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             aboutPref.setSummary("");
         }
         aboutPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {

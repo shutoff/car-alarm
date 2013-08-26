@@ -32,9 +32,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.io.Serializable;
-import java.io.StringWriter;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Vector;
@@ -367,6 +365,7 @@ public class TracksActivity extends ActionBarActivity {
             JSONArray list = res.getJSONArray("waystandlist");
             firstWay = false;
             lastWay = false;
+            long last_end = 0;
             for (int i = 0; i < list.length(); i++) {
                 lastWay = false;
                 JSONObject way = list.getJSONObject(i);
@@ -377,13 +376,19 @@ public class TracksActivity extends ActionBarActivity {
                 long begin = events.getJSONObject(0).getLong("eventTime");
                 long end = events.getJSONObject(last).getLong("eventTime");
                 if (end > begin){
-                    Track track = new Track();
-                    track.begin = begin;
-                    track.end = end;
-                    tracks.add(track);
+                    if ((last_end > 0) && (begin - last_end <= 90000)) {
+                        Track track = tracks.get(tracks.size() - 1);
+                        track.end = end;
+                    } else {
+                        Track track = new Track();
+                        track.begin = begin;
+                        track.end = end;
+                        tracks.add(track);
+                    }
                     if (i == 0)
                         firstWay = true;
                     lastWay = true;
+                    last_end = end;
                 }
             }
             prgMain.setProgress(++progress);
@@ -506,6 +511,7 @@ public class TracksActivity extends ActionBarActivity {
             Vector<Point> track = new Vector<Point>();
             JSONArray list = res.getJSONArray("gpslist");
             boolean first = true;
+            long last_time = 0;
             for (int i = 0; i < list.length(); i++) {
                 JSONObject p = list.getJSONObject(i);
                 if (!p.getBoolean("valid"))
@@ -520,7 +526,10 @@ public class TracksActivity extends ActionBarActivity {
                 point.latitude = p.getDouble("latitude");
                 point.longitude = p.getDouble("longitude");
                 point.time = p.getLong("eventTime");
+                if ((last_time > 0) && (point.time >= last_time))
+                    continue;
                 track.add(point);
+                last_time = point.time;
             }
             for (int i = track.size() - 1; i >= 0; i--){
                 Point p = track.get(i);

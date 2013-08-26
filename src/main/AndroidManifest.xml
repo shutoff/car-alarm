@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="ru.shutoff.caralarm"
-          android:versionCode="5"
+          android:versionCode="6"
           android:versionName="1.0.4">
 
     <uses-sdk
@@ -114,6 +114,7 @@
         <receiver android:name="CarWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED"/>
                 <action android:name="ru.shutoff.caralarm.UPDATE"/>
                 <action android:name="ru.shutoff.caralarm.NO_UPDATE"/>
                 <action android:name="ru.shutoff.caralarm.ERROR"/>

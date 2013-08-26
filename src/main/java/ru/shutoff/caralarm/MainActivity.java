@@ -20,6 +20,8 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import org.joda.time.DateTimeZone;
+
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,6 +35,7 @@ public class MainActivity extends ActionBarActivity {
     TextView tvReserve;
     TextView tvBalance;
     TextView tvTemperature;
+    TextView tvError;
     View vError;
     ImageView imgRefresh;
     ProgressBar prgUpdate;
@@ -81,6 +84,7 @@ public class MainActivity extends ActionBarActivity {
         tvReserve = (TextView) findViewById(R.id.reserve);
         tvBalance = (TextView) findViewById(R.id.balance);
         tvTemperature = (TextView) findViewById(R.id.temperature);
+        tvError = (TextView) findViewById(R.id.error_text);
         vError = findViewById(R.id.error);
         vError.setVisibility(View.GONE);
 
@@ -119,15 +123,25 @@ public class MainActivity extends ActionBarActivity {
                     prgUpdate.setVisibility(View.GONE);
                 }
                 if (intent.getAction().equals(StatusService.ACTION_ERROR)) {
+                    String error_text = intent.getStringExtra(Names.ERROR);
+                    if (error_text == null)
+                        error_text = getString(R.string.data_error);
+                    tvError.setText(error_text);
                     vError.setVisibility(View.VISIBLE);
                     imgRefresh.setVisibility(View.VISIBLE);
                     prgUpdate.setVisibility(View.GONE);
+                }
+                if (intent.getAction().equals(Intent.ACTION_TIMEZONE_CHANGED)) {
+                    DateTimeZone tz = DateTimeZone.getDefault();
+                    DateTimeZone.setDefault(tz);
+                    update();
                 }
             }
         };
         IntentFilter intFilter = new IntentFilter(StatusService.ACTION_UPDATE);
         intFilter.addAction(StatusService.ACTION_NOUPDATE);
         intFilter.addAction(StatusService.ACTION_ERROR);
+        intFilter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
         registerReceiver(br, intFilter);
 
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);

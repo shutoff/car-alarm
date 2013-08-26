@@ -12,6 +12,7 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.RemoteViews;
 
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 
 import java.util.Date;
@@ -95,13 +96,18 @@ public class CarWidget extends AppWidgetProvider {
                         updateWidgets(context);
                     }
                 }
-                if (action.equalsIgnoreCase(StatusService.ACTION_START)) {
+                if (action.equalsIgnoreCase(StatusService.ACTION_START_UPDATE)) {
                     if (state != STATE_UPDATE) {
                         state = STATE_UPDATE;
                         updateWidgets(context);
                         Intent i = new Intent(context, StatusService.class);
                         context.startService(i);
                     }
+                }
+                if (action.equalsIgnoreCase(Intent.ACTION_TIMEZONE_CHANGED)) {
+                    DateTimeZone tz = DateTimeZone.getDefault();
+                    DateTimeZone.setDefault(tz);
+                    updateWidgets(context);
                 }
             }
         }

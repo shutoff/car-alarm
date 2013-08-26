@@ -47,6 +47,12 @@
             android:summary="@string/rele1_summary"
             android:key="rele1"/>
 
+    <ListPreference
+            android:title="@string/map_type"
+            android:entries="@array/maps_types"
+            android:entryValues="@array/maps_types"
+            android:key="map_type"/>
+
     <Preference
             android:title="@string/about"
             android:summary="@string/version"

@@ -1,9 +1,11 @@
 package ru.shutoff.caralarm;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -14,7 +16,6 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,7 +25,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import java.util.Date;
 
 public class TrackView  extends ActionBarActivity {
 
@@ -81,7 +81,14 @@ public class TrackView  extends ActionBarActivity {
             }
         };
         mapView.setWebChromeClient(mChromeClient);
-        mapView.loadUrl("file:///android_asset/html/track.html");
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String map_type = preferences.getString(Names.MAP_TYPE, "");
+        if (map_type.equals("Yandex")) {
+            mapView.loadUrl("file:///android_asset/html/ytrack.html");
+        } else {
+            mapView.loadUrl("file:///android_asset/html/track.html");
+        }
     }
 
     @Override

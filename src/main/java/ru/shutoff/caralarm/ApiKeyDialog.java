@@ -47,21 +47,22 @@ public class ApiKeyDialog extends Activity {
                 HttpTask checkCode = new HttpTask() {
                     @Override
                     void result(JSONObject res) throws JSONException {
-                        if (dlgCheck != null){
+                        if (dlgCheck != null) {
                             dlgCheck.dismiss();
                             dlgCheck = null;
                         }
-                        if (res != null){
+                        if (res != null) {
                             res.getInt("id");
                             saveKey();
                             return;
                         }
-                        showError(status);
+                        showError(error_text);
                     }
 
                     @Override
                     void error() {
-                        showError(status);
+
+                        showError(error_text);
                     }
                 };
 
@@ -101,7 +102,7 @@ public class ApiKeyDialog extends Activity {
         setKeyState();
     }
 
-    void saveKey(){
+    void saveKey() {
         SharedPreferences.Editor ed = preferences.edit();
         ed.putString(Names.KEY, etKey.getText().toString());
         ed.commit();
@@ -110,12 +111,20 @@ public class ApiKeyDialog extends Activity {
         startService(intent);
     }
 
-    void showError(int status){
-        Toast toast = Toast.makeText(this, getString((status == 500) ? R.string.invalid_key : R.string.key_error), Toast.LENGTH_LONG);
+    void showError(String text) {
+        String message = getString(R.string.key_error);
+        if (text != null) {
+            if (text.equals("Security Service Error")) {
+                message = getString(R.string.invalid_key);
+            } else {
+                message += " " + text;
+            }
+        }
+        Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
         toast.show();
     }
 
-    void showProgress(){
+    void showProgress() {
         dlgCheck = new ProgressDialog(this);
         dlgCheck.setMessage(getString(R.string.check_api));
         dlgCheck.show();

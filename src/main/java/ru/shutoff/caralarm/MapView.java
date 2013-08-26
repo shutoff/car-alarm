@@ -144,7 +144,12 @@ public class MapView extends ActionBarActivity {
             }
         };
         mapView.setWebChromeClient(mChromeClient);
-        mapView.loadUrl("file:///android_asset/html/maps.html");
+        String map_type = preferences.getString(Names.MAP_TYPE, "");
+        if (map_type.equals("Yandex")) {
+            mapView.loadUrl("file:///android_asset/html/ymaps.html");
+        } else {
+            mapView.loadUrl("file:///android_asset/html/maps.html");
+        }
         tvAddress.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
