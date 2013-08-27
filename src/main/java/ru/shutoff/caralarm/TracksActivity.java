@@ -8,6 +8,8 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Html;
+import android.text.SpannedString;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -206,27 +208,34 @@ public class TracksActivity extends ActionBarActivity {
     void showTrack(int index){
         Intent intent = new Intent(this, TrackView.class);
         Track track = tracks.get(index);
-        String track_data = null;
-        for (int i = 0; i < track.track.size(); i++){
-            Point p = track.track.get(i);
+
+        LocalDateTime begin = new LocalDateTime(track.begin);
+        LocalDateTime end = new LocalDateTime(track.end);
+
+        Point p = track.track.get(track.track.size() - 1);
+        String track_data = p.latitude + "," + p.longitude + "," + infoMark(begin, track.start);
+        for (int i = track.track.size() - 1; i >= 0; i--){
+            p = track.track.get(i);
             String part = p.latitude + "," + p.longitude + "," + p.speed + "," + p.time;
-            if (i > 0){
-                track_data += "|";
-                track_data += part;
-            }else{
-                track_data = part;
-            }
+            track_data += "|";
+            track_data += part;
         }
+        p = track.track.get(0);
+        track_data += "|" + p.latitude + "," + p.longitude + "," +   infoMark(end, track.finish);
         intent.putExtra(Names.TRACK, track_data);
         intent.putExtra(Names.STATUS, String.format(getString(R.string.status),
                 track.mileage,
-                timeFormat((int)((track.end - track.begin) / 60000)),
+                timeFormat((int) ((track.end - track.begin) / 60000)),
                 track.avg_speed,
                 track.max_speed));
-        LocalDateTime begin = new LocalDateTime(track.begin);
-        LocalDateTime end = new LocalDateTime(track.end);
         intent.putExtra(Names.TITLE, begin.toString("d MMMM HH:mm") + "-" + end.toString("HH:mm"));
         startActivity(intent);
+    }
+
+    static String infoMark(LocalDateTime t, String address){
+        return "<b>" + t.toString("HH:mm") + "</b><br/>" + Html.toHtml(new SpannedString(address))
+                .replaceAll(",", "&#x2C;")
+                .replaceAll("\\|", "&#x7C;");
     }
 
     void showError(){
