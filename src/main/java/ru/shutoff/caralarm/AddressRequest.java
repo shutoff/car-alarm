@@ -44,8 +44,6 @@ abstract public class AddressRequest {
 
         @Override
         void result(JSONObject data) throws JSONException {
-            if (data == null)
-                return;
 
             JSONArray res = data.getJSONArray("results");
             if (res.length() == 0) {
@@ -140,7 +138,7 @@ abstract public class AddressRequest {
                 YandexRequest r = new YandexRequest();
                 r.second = true;
                 request = r;
-                execute(YANDEX_URL, latitude, longitude, Locale.getDefault().getLanguage());
+                request.execute(YANDEX_URL, latitude, longitude, Locale.getDefault().getLanguage());
                 return;
             }
             res = results.getJSONObject(0);

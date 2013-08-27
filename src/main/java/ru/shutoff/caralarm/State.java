@@ -2,6 +2,16 @@ package ru.shutoff.caralarm;
 
 import android.app.PendingIntent;
 
+/*
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Date;
+*/
+
 public class State {
 
     static String waitAnswer;
@@ -28,7 +38,7 @@ public class State {
         } catch (IOException e) {
         }
     }
- */
+*/
 
     static public void setExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {

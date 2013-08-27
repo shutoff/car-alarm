@@ -32,7 +32,6 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
         for (int i = 1; i < params.length; i++) {
             url = url.replace("$" + i, params[i]);
         }
-
         try {
             if (pause > 0)
                 Thread.sleep(pause);
@@ -48,6 +47,7 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
             if (status != HttpStatus.SC_OK) {
                 error_text = result.getString("error");
                 error();
+                return null;
             }
             background(result);
             return result;
@@ -59,11 +59,15 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
 
     @Override
     protected void onPostExecute(JSONObject res) {
-        try {
-            result(res);
-        } catch (Exception ex) {
-            error();
+        if (res != null) {
+            try {
+                result(res);
+                return;
+            } catch (Exception ex) {
+                // ignore
+            }
         }
+        error();
     }
 
 }
