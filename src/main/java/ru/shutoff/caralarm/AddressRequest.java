@@ -118,12 +118,13 @@ abstract public class AddressRequest {
 
         String latitude;
         String longitude;
+        boolean second;
 
         @Override
         void exec(String lat, String lng) {
             latitude = lat;
             longitude = lng;
-            execute(YANDEX_URL, latitude, longitude, Locale.getDefault().getLanguage());
+            execute(YANDEX_URL + "&kind=house", latitude, longitude, Locale.getDefault().getLanguage());
         }
 
         @Override
@@ -132,7 +133,14 @@ abstract public class AddressRequest {
             res = res.getJSONObject("GeoObjectCollection");
             JSONArray results = res.getJSONArray("featureMember");
             if (results.length() == 0) {
-                addressResult(null);
+                if (second){
+                    addressResult(null);
+                    return;
+                }
+                YandexRequest r = new YandexRequest();
+                r.second = true;
+                request = r;
+                execute(YANDEX_URL, latitude, longitude, Locale.getDefault().getLanguage());
                 return;
             }
             res = results.getJSONObject(0);
