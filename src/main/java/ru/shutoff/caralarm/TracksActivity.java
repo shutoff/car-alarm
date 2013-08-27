@@ -476,7 +476,7 @@ public class TracksActivity extends ActionBarActivity {
             JSONObject way = list.getJSONObject(0);
             if (way.getString("type").equals("WAY")){
                 JSONArray events = way.getJSONArray("events");
-                tracks.get(tracks.size() - 1).end = events.getJSONObject(events.length() - 1).getLong("eventTime";
+                tracks.get(tracks.size() - 1).end = events.getJSONObject(events.length() - 1).getLong("eventTime");
             }
             prgMain.setProgress(++progress);
             TrackFetcher fetcher = new TrackFetcher();
