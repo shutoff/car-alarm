@@ -48,18 +48,22 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
             background(result);
             return result;
         } catch (Exception ex) {
-            error();
+            ex.printStackTrace();
+            // ignore
         }
         return null;
     }
 
     @Override
     protected void onPostExecute(JSONObject res) {
-        try{
-            result(res);
-        }catch (Exception ex){
-            error();
+        if (res != null){
+            try{
+                result(res);
+                return;
+            }catch (Exception ex){
+                // ignore
+            }
         }
+        error();
     }
-
 }
