@@ -11,14 +11,16 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import org.joda.time.DateTimeZone;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
@@ -33,6 +35,10 @@ public class MainActivity extends ActionBarActivity {
     TextView tvReserve;
     TextView tvBalance;
     TextView tvTemperature;
+    TextView tvError;
+    View vError;
+    ImageView imgRefresh;
+    ProgressBar prgUpdate;
 
     static final int REQUEST_ALARM = 4000;
     static final int UPDATE_INTERVAL = 1 * 60 * 1000;
@@ -78,6 +84,21 @@ public class MainActivity extends ActionBarActivity {
         tvReserve = (TextView) findViewById(R.id.reserve);
         tvBalance = (TextView) findViewById(R.id.balance);
         tvTemperature = (TextView) findViewById(R.id.temperature);
+        tvError = (TextView) findViewById(R.id.error_text);
+        vError = findViewById(R.id.error);
+        vError.setVisibility(View.GONE);
+
+        imgRefresh = (ImageView) findViewById(R.id.refresh);
+        imgRefresh.setVisibility(View.GONE);
+        prgUpdate = (ProgressBar) findViewById(R.id.update);
+
+        View time = findViewById(R.id.time);
+        time.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startUpdate();
+            }
+        });
 
         drawable = new CarDrawable(this);
         imgCar.setImageDrawable(drawable.getDrawable());
@@ -86,12 +107,41 @@ public class MainActivity extends ActionBarActivity {
         br = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                update();
-                stopTimer();
-                startTimer(false);
+                if (intent == null)
+                    return;
+                if (intent.getAction().equals(StatusService.ACTION_UPDATE)) {
+                    vError.setVisibility(View.GONE);
+                    imgRefresh.setVisibility(View.VISIBLE);
+                    prgUpdate.setVisibility(View.GONE);
+                    update();
+                    stopTimer();
+                    startTimer(false);
+                }
+                if (intent.getAction().equals(StatusService.ACTION_NOUPDATE)) {
+                    vError.setVisibility(View.GONE);
+                    imgRefresh.setVisibility(View.VISIBLE);
+                    prgUpdate.setVisibility(View.GONE);
+                }
+                if (intent.getAction().equals(StatusService.ACTION_ERROR)) {
+                    String error_text = intent.getStringExtra(Names.ERROR);
+                    if (error_text == null)
+                        error_text = getString(R.string.data_error);
+                    tvError.setText(error_text);
+                    vError.setVisibility(View.VISIBLE);
+                    imgRefresh.setVisibility(View.VISIBLE);
+                    prgUpdate.setVisibility(View.GONE);
+                }
+                if (intent.getAction().equals(Intent.ACTION_TIMEZONE_CHANGED)) {
+                    DateTimeZone tz = DateTimeZone.getDefault();
+                    DateTimeZone.setDefault(tz);
+                    update();
+                }
             }
         };
         IntentFilter intFilter = new IntentFilter(StatusService.ACTION_UPDATE);
+        intFilter.addAction(StatusService.ACTION_NOUPDATE);
+        intFilter.addAction(StatusService.ACTION_ERROR);
+        intFilter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
         registerReceiver(br, intFilter);
 
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -119,9 +169,9 @@ public class MainActivity extends ActionBarActivity {
             @Override
             void onResult() {
                 tvAddress.setText(
-                    preferences.getString(Names.Latitude, "") + " " +
-                    preferences.getString(Names.Longitude, "") + "\n" +
-                    preferences.getString(Names.Address, ""));
+                        preferences.getString(Names.Latitude, "") + " " +
+                                preferences.getString(Names.Longitude, "") + "\n" +
+                                preferences.getString(Names.Address, ""));
             }
         };
         address.update();
@@ -151,10 +201,8 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_ALARM) {
-            Intent intent = new Intent(this, StatusService.class);
-            startService(intent);
-        }
+        if (requestCode == REQUEST_ALARM)
+            startUpdate();
     }
 
     void startTimer(boolean now) {
@@ -237,6 +285,14 @@ public class MainActivity extends ActionBarActivity {
 
         drawable.update(preferences);
         address.update();
+    }
+
+    void startUpdate() {
+        Intent intent = new Intent(this, StatusService.class);
+        startService(intent);
+        vError.setVisibility(View.GONE);
+        imgRefresh.setVisibility(View.GONE);
+        prgUpdate.setVisibility(View.VISIBLE);
     }
 
 }

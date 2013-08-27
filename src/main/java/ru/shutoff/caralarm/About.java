@@ -2,20 +2,13 @@ package ru.shutoff.caralarm;
 
 import android.content.Intent;
 import android.net.MailTo;
-import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-public class About extends ActionBarActivity {
-
-    WebView webView;
+public class About extends WebViewActivity {
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.about);
-        webView = (WebView) findViewById(R.id.webview);
+    String loadURL() {
         WebViewClient mWebClient = new WebViewClient(){
 
             @Override
@@ -31,7 +24,7 @@ public class About extends ActionBarActivity {
             }
         };
         webView.setWebViewClient(mWebClient);
-        webView.loadUrl("file:///android_asset/html/about.html");
+        return "file:///android_asset/html/about.html";
     }
 
     public static Intent newEmailIntent(String address, String subject, String body, String cc) {

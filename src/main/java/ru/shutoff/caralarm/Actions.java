@@ -9,17 +9,20 @@ import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 import android.telephony.SmsManager;
 import android.widget.Toast;
 
 public class Actions extends PreferenceActivity {
 
     static final int SMS_SENT_RESULT = 3012;
+    static final int SMS_SENT_PASSWD = 3013;
 
     static final int VALET_ON = 4000;
     static final int VALET_OFF = 4001;
 
     ProgressDialog smsProgress;
+    SharedPreferences sPref;
 
     /**
      * Called when the activity is first created.
@@ -30,6 +33,9 @@ public class Actions extends PreferenceActivity {
         super.onCreate(savedInstanceState);
 
         addPreferencesFromResource(R.xml.actions);
+
+        PreferenceScreen screen = getPreferenceScreen();
+        sPref = PreferenceManager.getDefaultSharedPreferences(this);
 
         Preference pref = (Preference) findPreference("internet_on");
         pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
@@ -47,21 +53,41 @@ public class Actions extends PreferenceActivity {
             }
         });
 
+        pref = (Preference) findPreference("rele1");
+        if (sPref.getBoolean("rele1", false)) {
+            pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+                public boolean onPreferenceClick(Preference preference) {
+                    sendSMS("REL1 IMPULS", "REL1 IMPULS OK", getString(R.string.rele1));
+                    return true;
+                }
+            });
+        } else {
+            screen.removePreference(pref);
+        }
+
         pref = (Preference) findPreference("motor_on");
-        pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
-            public boolean onPreferenceClick(Preference preference) {
-                sendSMS("MOTOR ON", "MOTOR ON OK", getString(R.string.motor_on));
-                return true;
-            }
-        });
+        if (sPref.getBoolean("autostart", false)) {
+            pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+                public boolean onPreferenceClick(Preference preference) {
+                    sendSMS("MOTOR ON", "MOTOR ON OK", getString(R.string.motor_on));
+                    return true;
+                }
+            });
+        } else {
+            screen.removePreference(pref);
+        }
 
         pref = (Preference) findPreference("motor_off");
-        pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
-            public boolean onPreferenceClick(Preference preference) {
-                sendSMS("MOTOR OFF", "MOTOR OFF OK", getString(R.string.motor_off));
-                return true;
-            }
-        });
+        if (sPref.getBoolean("autostart", false)) {
+            pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+                public boolean onPreferenceClick(Preference preference) {
+                    sendSMS("MOTOR OFF", "MOTOR OFF OK", getString(R.string.motor_off));
+                    return true;
+                }
+            });
+        } else {
+            screen.removePreference(pref);
+        }
 
         pref = (Preference) findPreference("valet_on");
         pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
@@ -78,6 +104,15 @@ public class Actions extends PreferenceActivity {
                 return true;
             }
         });
+
+        pref = (Preference) findPreference("block");
+        pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+            public boolean onPreferenceClick(Preference preference) {
+                sendSMS("BLOCK MTR", "BLOCK MTR OK", getString(R.string.block));
+                return true;
+            }
+        });
+
 
     }
 
@@ -96,13 +131,21 @@ public class Actions extends PreferenceActivity {
         if (data == null)
             return;
 
+        if (requestCode == SMS_SENT_PASSWD) {
+            String title = data.getStringExtra(Names.TITLE);
+            String text = data.getStringExtra(Names.TEXT);
+            String answer = data.getStringExtra(Names.ANSWER);
+            real_sendSMS(text, answer, title);
+            return;
+        }
+
         String cCode = data.getStringExtra(Names.CCODE);
         if ((cCode == null) || (cCode.length() == 0))
             return;
         if (requestCode == VALET_ON)
-            sendSMS(cCode + " VALET", "Valet OK", getString(R.string.valet_on));
+            real_sendSMS(cCode + " VALET", "Valet OK", getString(R.string.valet_on));
         if (requestCode == VALET_OFF)
-            sendSMS(cCode + " INIT", "Main user OK", getString(R.string.valet_off));
+            real_sendSMS(cCode + " INIT", "Main user OK", getString(R.string.valet_off));
     }
 
     void getCCode(String title, int id) {
@@ -112,6 +155,19 @@ public class Actions extends PreferenceActivity {
     }
 
     void sendSMS(String text, String answer, String title) {
+        String password = sPref.getString(Names.PASSWORD, "");
+        if (password.equals("")) {
+            real_sendSMS(text, answer, title);
+            return;
+        }
+        Intent intent = new Intent(this, PasswordDialog.class);
+        intent.putExtra(Names.TITLE, title);
+        intent.putExtra(Names.TEXT, text);
+        intent.putExtra(Names.ANSWER, answer);
+        startActivityForResult(intent, SMS_SENT_PASSWD);
+    }
+
+    void real_sendSMS(String text, String answer, String title) {
         smsProgress = new ProgressDialog(this) {
             protected void onStop() {
                 smsProgress = null;

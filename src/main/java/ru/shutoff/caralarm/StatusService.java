@@ -35,8 +35,12 @@ public class StatusService extends Service {
     AlarmManager alarmMgr;
 
     static final String ACTION_UPDATE = "ru.shutoff.caralarm.UPDATE";
+    static final String ACTION_NOUPDATE = "ru.shutoff.caralarm.NO_UPDATE";
+    static final String ACTION_ERROR = "ru.shutoff.caralarm.ERROR";
+    static final String ACTION_START = "ru.shutoff.caralarm.START";
+    static final String ACTION_START_UPDATE = "ru.shutoff.caralarm.START_UPDATE";
 
-    static final Pattern balancePattern = Pattern.compile("^-?[0-9]+[\\.,][0-9][0-9]");
+    static final Pattern balancePattern = Pattern.compile("-?[0-9]+[\\.,][0-9][0-9]");
 
     static final String STATUS_URL = "http://api.car-online.ru/v2?get=lastinfo&skey=$1&content=json";
     static final String EVENTS_URL = "http://api.car-online.ru/v2?get=events&skey=$1&begin=$2&end=$3&content=json";
@@ -95,6 +99,7 @@ public class StatusService extends Service {
         }
         alarmMgr.cancel(pi);
 
+        sendUpdate(ACTION_START);
         statusRequest = new StatusRequest();
         statusRequest.execute(STATUS_URL, api_key);
     }
@@ -110,8 +115,10 @@ public class StatusService extends Service {
         void background(JSONObject res) throws JSONException {
             JSONObject event = res.getJSONObject("event");
             long eventId = event.getLong("eventId");
- //           if (eventId == preferences.getLong(Names.EventId, 0))
- //               return;
+            if (eventId == preferences.getLong(Names.EventId, 0)) {
+                sendUpdate(ACTION_NOUPDATE);
+                return;
+            }
             long eventTime = event.getLong("eventTime");
             SharedPreferences.Editor ed = preferences.edit();
             ed.putLong(Names.EventId, eventId);
@@ -144,7 +151,7 @@ public class StatusService extends Service {
             ed.putBoolean(Names.ZoneIgnition, contact.getBoolean("stZoneIgnitionOn"));
 
             ed.commit();
-            sendUpdate();
+            sendUpdate(ACTION_UPDATE);
 
             if (eventsRequest != null)
                 return;
@@ -160,9 +167,10 @@ public class StatusService extends Service {
 
         @Override
         void error() {
-            long timeout = (status == 500) ? REPEAT_AFTER_500 : REPEAT_AFTER_ERROR;
+            long timeout = (error_text != null) ? REPEAT_AFTER_500 : REPEAT_AFTER_ERROR;
             alarmMgr.setInexactRepeating(AlarmManager.RTC,
                     System.currentTimeMillis() + timeout, timeout, pi);
+            sendError(ACTION_ERROR, error_text);
         }
     }
 
@@ -200,7 +208,7 @@ public class StatusService extends Service {
                     ed.putBoolean(Names.Valet, valet_state);
                 ed.commit();
                 if (valet_state != valet)
-                    sendUpdate();
+                    sendUpdate(ACTION_UPDATE);
             }
 
             if (temperatureRequest != null)
@@ -239,7 +247,7 @@ public class StatusService extends Service {
             SharedPreferences.Editor ed = preferences.edit();
             ed.putString(Names.Temperature, temp);
             ed.commit();
-            sendUpdate();
+            sendUpdate(ACTION_UPDATE);
         }
 
         @Override
@@ -248,13 +256,23 @@ public class StatusService extends Service {
         }
     }
 
-    void sendUpdate() {
+    void sendUpdate(String action) {
         try {
-            Intent intent = new Intent(ACTION_UPDATE);
+            Intent intent = new Intent(action);
             sendBroadcast(intent);
         } catch (Exception e) {
             // ignore
         }
     }
 
+
+    void sendError(String action, String error) {
+        try {
+            Intent intent = new Intent(action);
+            intent.putExtra(Names.ERROR, error);
+            sendBroadcast(intent);
+        } catch (Exception e) {
+            // ignore
+        }
+    }
 }

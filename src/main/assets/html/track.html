@@ -20,29 +20,26 @@
         padding: 5px;
         border: 1px solid #999;
         }
-        img[src*="gstatic.com/"], img[src*="googleapis.com/"] {
-        max-width: none;
-        }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
     <script>
 
 var map;
+var start;
+var finish;
+var track;
 
 function initialize() {
-    var track_data =
+    var track_data =  android.getTrack();
 
     var min_lat = 180;
     var max_lat = -180;
     var min_lon = 180;
     var max_lon = -180;
 
-    var parts = (track_data+"").split('|');
-    var points = [];
-    var markers = [];
-
-    for (var i in parts){
-        var p = parts[i].split(',');
+    var points = (track_data+"").split('|');
+    for (var i in points){
+        var p = points[i].split(',');
         var lat = parseFloat(p[0]);
         var lon = parseFloat(p[1]);
         if (lat < min_lat)
@@ -53,11 +50,7 @@ function initialize() {
             min_lon = lon;
         if (lon > max_lon)
             max_lon = lon;
-        if (p.length == 4){
-            points.push(new google.maps.LatLng(lat, lon));
-        }else{
-            markers.push(p);
-        }
+        points[i] = new google.maps.LatLng(lat, lon);
     }
 
     var lat = (min_lat + max_lat) / 2;
@@ -70,28 +63,17 @@ function initialize() {
         streetViewControl: false,
         mapTypeControl: false
     };
-
     map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
     var bounds = new google.maps.LatLngBounds(new google.maps.LatLng(min_lat, min_lon), new google.maps.LatLng(max_lat, max_lon));
     map.fitBounds(bounds);
-
-    for (var i in markers){
-        (function(i){
-            var p = markers[i];
-            var lat = parseFloat(p[0]);
-            var lon = parseFloat(p[1]);
-            var mark = new google.maps.Marker({
-                position: new google.maps.LatLng(lat, lon),
-                map: map
-            });
-            google.maps.event.addListener(mark, 'click', function(){
-                var info = new google.maps.InfoWindow({
-                    content: p[2]
-                });
-                info.open(map, mark);
-            });
-        })(i);
-    }
+    start = new google.maps.Marker({
+      position: points[0],
+      map: map
+    });
+    finish = new google.maps.Marker({
+      position: points[points.length - 1],
+      map: map
+    });
     track = new google.maps.Polyline({
         path: points,
         strokeColor: '#000080',

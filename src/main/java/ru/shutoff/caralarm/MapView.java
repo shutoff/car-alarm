@@ -7,29 +7,18 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MapView extends ActionBarActivity {
+public class MapView extends WebViewActivity {
 
-    WebView mapView;
-    TextView tvAddress;
     SharedPreferences preferences;
-    Address address;
     String track;
     BroadcastReceiver br;
 
@@ -88,7 +77,7 @@ public class MapView extends ActionBarActivity {
                                 track += gps.getString("latitude") + "," + gps.getString("longitude");
                             }
                             if (track != null){
-                                mapView.loadUrl("javascript:setTrack()");
+                                webView.loadUrl("javascript:setTrack()");
                             }
                         }
 
@@ -117,57 +106,24 @@ public class MapView extends ActionBarActivity {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.maps);
-        preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mapView = (WebView) findViewById(R.id.webview);
-        tvAddress = (TextView) findViewById(R.id.address);
-        WebSettings settings = mapView.getSettings();
-        settings.setJavaScriptEnabled(true);
-        mapView.addJavascriptInterface(new JsInterface(), "android");
-        WebChromeClient mChromeClient = new WebChromeClient(){
-            @Override
-            public void onConsoleMessage(String message, int lineNumber, String sourceID) {
-                // TODO Auto-generated method stub
-                Log.v("ChromeClient", "invoked: onConsoleMessage() - " + sourceID + ":"
-                        + lineNumber + " - " + message);
-                super.onConsoleMessage(message, lineNumber, sourceID);
-            }
+    String loadURL() {
+        webView.addJavascriptInterface(new JsInterface(), "android");
+        String map_type = preferences.getString(Names.MAP_TYPE, "");
+        if (map_type.equals("Yandex"))
+            return "file:///android_asset/html/ymaps.html";
+        return "file:///android_asset/html/maps.html";
+    }
 
-            @Override
-            public boolean onConsoleMessage(ConsoleMessage cm) {
-                Log.v("ChromeClient", cm.message() + " -- From line "
-                        + cm.lineNumber() + " of "
-                        + cm.sourceId() );
-                return true;
-            }
-        };
-        mapView.setWebChromeClient(mChromeClient);
-        mapView.loadUrl("file:///android_asset/html/maps.html");
-        tvAddress.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mapView.loadUrl("javascript:center()");
-            }
-        });
-        address = new Address(preferences) {
-            @Override
-            void onResult() {
-                tvAddress.setText(
-                    preferences.getString(Names.Latitude, "") + " " +
-                    preferences.getString(Names.Longitude, "") + "\n" +
-                    preferences.getString(Names.Address, ""));
-            }
-        };
-        address.update();
-        address.onResult();
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        super.onCreate(savedInstanceState);
 
         br = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                address.update();
-                mapView.loadUrl("javascript:update()");
+                webView.loadUrl("javascript:update()");
             }
         };
         registerReceiver(br, new IntentFilter(StatusService.ACTION_UPDATE));
@@ -189,7 +145,7 @@ public class MapView extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.map: {
-                mapView.loadUrl("javascript:center()");
+                webView.loadUrl("javascript:center()");
                 break;
             }
         }

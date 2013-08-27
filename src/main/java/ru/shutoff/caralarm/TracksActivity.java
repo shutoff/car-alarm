@@ -8,8 +8,6 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.text.Html;
-import android.text.SpannedString;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -36,7 +34,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Vector;
 
 public class TracksActivity extends ActionBarActivity {
@@ -67,7 +64,6 @@ public class TracksActivity extends ActionBarActivity {
     final static String TELEMETRY = "http://api.car-online.ru/v2?get=telemetry&skey=$1&begin=$2&end=$3&content=json";
     final static String WAYSTANDS = "http://api.car-online.ru/v2?get=waystands&skey=$1&begin=$2&end=$3&content=json";
     final static String GPSLIST = "http://api.car-online.ru/v2?get=gpslist&skey=$1&begin=$2&end=$3&content=json";
-    static final String ADDRESS_URL = "http://maps.googleapis.com/maps/api/geocode/json?latlng=$1,$2&sensor=false&language=$3";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -210,34 +206,27 @@ public class TracksActivity extends ActionBarActivity {
     void showTrack(int index){
         Intent intent = new Intent(this, TrackView.class);
         Track track = tracks.get(index);
-
-        LocalDateTime begin = new LocalDateTime(track.begin);
-        LocalDateTime end = new LocalDateTime(track.end);
-
-        Point p = track.track.get(track.track.size() - 1);
-        String track_data = p.latitude + "," + p.longitude + "," + infoMark(begin, track.start);
-        for (int i = track.track.size() - 1; i >= 0; i--){
-            p = track.track.get(i);
+        String track_data = null;
+        for (int i = 0; i < track.track.size(); i++){
+            Point p = track.track.get(i);
             String part = p.latitude + "," + p.longitude + "," + p.speed + "," + p.time;
-            track_data += "|";
-            track_data += part;
+            if (i > 0){
+                track_data += "|";
+                track_data += part;
+            }else{
+                track_data = part;
+            }
         }
-        p = track.track.get(0);
-        track_data += "|" + p.latitude + "," + p.longitude + "," +   infoMark(end, track.finish);
         intent.putExtra(Names.TRACK, track_data);
         intent.putExtra(Names.STATUS, String.format(getString(R.string.status),
                 track.mileage,
                 timeFormat((int)((track.end - track.begin) / 60000)),
                 track.avg_speed,
                 track.max_speed));
+        LocalDateTime begin = new LocalDateTime(track.begin);
+        LocalDateTime end = new LocalDateTime(track.end);
         intent.putExtra(Names.TITLE, begin.toString("d MMMM HH:mm") + "-" + end.toString("HH:mm"));
         startActivity(intent);
-    }
-
-    static String infoMark(LocalDateTime t, String address){
-        return "<b>" + t.toString("HH:mm") + "</b><br/>" + Html.toHtml(new SpannedString(address))
-                .replaceAll(",", "&#x2C;")
-                .replaceAll("\\|", "&#x7C;");
     }
 
     void showError(){
@@ -374,6 +363,7 @@ public class TracksActivity extends ActionBarActivity {
             JSONArray list = res.getJSONArray("waystandlist");
             firstWay = false;
             lastWay = false;
+            long last_end = 0;
             for (int i = 0; i < list.length(); i++) {
                 lastWay = false;
                 JSONObject way = list.getJSONObject(i);
@@ -384,13 +374,19 @@ public class TracksActivity extends ActionBarActivity {
                 long begin = events.getJSONObject(0).getLong("eventTime");
                 long end = events.getJSONObject(last).getLong("eventTime");
                 if (end > begin){
-                    Track track = new Track();
-                    track.begin = begin;
-                    track.end = end;
-                    tracks.add(track);
+                    if ((last_end > 0) && (begin - last_end <= 90000)) {
+                        Track track = tracks.get(tracks.size() - 1);
+                        track.end = end;
+                    } else {
+                        Track track = new Track();
+                        track.begin = begin;
+                        track.end = end;
+                        tracks.add(track);
+                    }
                     if (i == 0)
                         firstWay = true;
                     lastWay = true;
+                    last_end = end;
                 }
             }
             prgMain.setProgress(++progress);
@@ -511,6 +507,7 @@ public class TracksActivity extends ActionBarActivity {
             Vector<Point> track = new Vector<Point>();
             JSONArray list = res.getJSONArray("gpslist");
             boolean first = true;
+            long last_time = 0;
             for (int i = 0; i < list.length(); i++) {
                 JSONObject p = list.getJSONObject(i);
                 if (!p.getBoolean("valid"))
@@ -525,7 +522,10 @@ public class TracksActivity extends ActionBarActivity {
                 point.latitude = p.getDouble("latitude");
                 point.longitude = p.getDouble("longitude");
                 point.time = p.getLong("eventTime");
+                if ((last_time > 0) && (point.time >= last_time))
+                    continue;
                 track.add(point);
+                last_time = point.time;
             }
             for (int i = track.size() - 1; i >= 0; i--){
                 Point p = track.get(i);
@@ -591,7 +591,8 @@ public class TracksActivity extends ActionBarActivity {
         }
     }
 
-    abstract class TrackPositionFetcher extends HttpTask {
+    abstract class TrackPositionFetcher extends AddressRequest {
+
         int id;
         int pos;
 
@@ -599,79 +600,17 @@ public class TracksActivity extends ActionBarActivity {
 
         abstract TrackPositionFetcher create();
 
-        abstract void process(String address);
+        abstract void process(String[] address);
 
         abstract void done();
 
         @Override
-        void result(JSONObject data) throws JSONException {
+        void addressResult(String[] address) {
             if (id != track_id)
                 return;
-
-            String address;
-            try {
-                JSONArray res = data.getJSONArray("results");
-                if (res.length() == 0){
-                    String status = data.getString("status");
-                    if ((status != null) && status.equals("OVER_QUERY_LIMIT")){
-                        TrackPositionFetcher fetcher = create();
-                        fetcher.pause = 1000;
-                        fetcher.update(id, pos);
-                        return;
-                    }
-                }
-
-                int i;
-                for (i = 0; i < res.length(); i++) {
-                    JSONObject addr = res.getJSONObject(i);
-                    JSONArray types = addr.getJSONArray("types");
-                    int n;
-                    for (n = 0; n < types.length(); n++) {
-                        if (types.getString(n).equals("street_address"))
-                            break;
-                    }
-                    if (n < types.length())
-                        break;
-                }
-                if (i >= res.length())
-                    i = 0;
-
-                JSONObject addr = res.getJSONObject(i);
-                address = addr.getString("formatted_address");
-                String[] parts = address.split(", ");
-                JSONArray components = addr.getJSONArray("address_components");
-                for (i = 0; i < components.length(); i++) {
-                    JSONObject component = components.getJSONObject(i);
-                    JSONArray types = component.getJSONArray("types");
-                    int n;
-                    for (n = 0; n < types.length(); n++) {
-                        if (types.getString(n).equals("postal_code"))
-                            break;
-                    }
-                    if (n >= types.length())
-                        continue;
-                    String name = component.getString("long_name");
-                    for (n = 0; n < parts.length; n++) {
-                        if (name.equals(parts[n]))
-                            parts[n] = null;
-                    }
-                }
-
-                address = null;
-                for (i = 0; i < parts.length; i++) {
-                    if (parts[i] == null)
-                        continue;
-                    if (address == null) {
-                        address = parts[i];
-                    } else {
-                        address += ", ";
-                        address += parts[i];
-                    }
-                }
-            } catch (Exception ex) {
-                Track track = tracks.get(pos);
-                Point p = getPoint(track);
-                address = p.latitude + "," + p.longitude;
+            if (address == null) {
+                showError();
+                return;
             }
 
             process(address);
@@ -691,13 +630,9 @@ public class TracksActivity extends ActionBarActivity {
             pos = track_pos;
             Track track = tracks.get(pos);
             Point p = getPoint(track);
-            execute(ADDRESS_URL, p.latitude + "", p.longitude + "", Locale.getDefault().getLanguage());
+            getAddress(preferences, p.latitude + "", p.longitude + "");
         }
 
-        @Override
-        void error() {
-            showError();
-        }
     }
 
     class TrackStartPositionFetcher extends TrackPositionFetcher {
@@ -713,7 +648,10 @@ public class TracksActivity extends ActionBarActivity {
         }
 
         @Override
-        void process(String address) {
+        void process(String[] parts) {
+            String address = parts[0];
+            for (int i = 1; i < parts.length; i++)
+                address += ", " + parts[i];
             tracks.get(pos).start = address;
         }
 
@@ -737,11 +675,11 @@ public class TracksActivity extends ActionBarActivity {
         }
 
         @Override
-        void process(String address) {
+        void process(String[] finish_parts) {
             Track track = tracks.get(pos);
 
             String[] start_parts = track.start.split(", ");
-            String[] finish_parts = address.split(", ");
+
             int s = start_parts.length - 1;
             int f = finish_parts.length - 1;
 
@@ -751,18 +689,16 @@ public class TracksActivity extends ActionBarActivity {
                 s--;
                 f--;
             }
-            address = "";
-            for (int i = 0; i < s; i++) {
-                if (i > 0)
-                    address += ", ";
-                address += start_parts[i];
+
+            String address = start_parts[0];
+            for (int i = 1; i < s; i++) {
+                address += ", " + start_parts[i];
             }
             track.start = address;
-            address = "";
-            for (int i = 0; i < f; i++) {
-                if (i > 0)
-                    address += ", ";
-                address += finish_parts[i];
+
+            address = finish_parts[0];
+            for (int i = 1; i < f; i++) {
+                address += ", " + finish_parts[i];
             }
             track.finish = address;
         }

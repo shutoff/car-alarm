@@ -33,6 +33,28 @@
             android:key="sms_mode"/>
 
     <Preference
+            android:title="@string/password"
+            android:summary="@string/password_summary"
+            android:key="password"/>
+
+    <SwitchPreference
+            android:title="@string/autostart"
+            android:summary="@string/autostart_summary"
+            android:key="autostart"/>
+
+    <SwitchPreference
+            android:title="@string/rele1"
+            android:summary="@string/rele1_summary"
+            android:key="rele1"/>
+
+    <ListPreference
+            android:title="@string/map_type"
+            android:entries="@array/maps_types"
+            android:entryValues="@array/maps_types"
+            android:defaultValue="Google"
+            android:key="map_type"/>
+
+    <Preference
             android:title="@string/about"
             android:summary="@string/version"
             android:key="about"/>

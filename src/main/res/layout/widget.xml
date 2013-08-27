@@ -17,15 +17,13 @@
 
     <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical">
 
         <TextView
-                android:id="@+id/last"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/unknown"
-                android:textSize="10sp"/>
+                android:layout_height="0dp"
+                android:layout_width="wrap_content"
+                android:layout_weight="1"/>
 
         <LinearLayout
                 android:layout_width="wrap_content"
@@ -39,6 +37,27 @@
 
             <TextView
                     android:id="@+id/voltage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/empty_voltage"
+                    android:textStyle="bold"
+                    android:textAppearance="?android:attr/textAppearanceSmall"/>
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/reserve_block"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+            <ImageView
+                    android:src="@drawable/battery"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+            <TextView
+                    android:id="@+id/reserve"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/empty_voltage"
@@ -83,5 +102,47 @@
                     android:textStyle="bold"
                     android:textAppearance="?android:attr/textAppearanceSmall"/>
         </LinearLayout>
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+
+        <LinearLayout
+                android:id="@+id/update_block"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="bottom"
+                android:orientation="horizontal">
+
+            <ProgressBar
+                    android:id="@+id/update"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:visibility="gone"/>
+
+            <ImageView
+                    android:id="@+id/refresh"
+                    android:src="@android:drawable/stat_notify_sync"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"/>
+
+            <ImageView
+                    android:id="@+id/error"
+                    android:src="@android:drawable/stat_notify_error"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:visibility="gone"/>
+
+            <TextView
+                    android:id="@+id/last"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="10dp"
+                    android:text="\??:??"
+                    android:gravity="bottom"
+                    android:textSize="12sp"/>
+        </LinearLayout>
+
     </LinearLayout>
 </LinearLayout>

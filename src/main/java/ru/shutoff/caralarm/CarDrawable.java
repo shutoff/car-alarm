@@ -11,6 +11,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 
+import java.util.Date;
+
 public class CarDrawable {
 
     static final int UNKNOWN = 0x888888;
@@ -119,76 +121,83 @@ public class CarDrawable {
         int color = UNKNOWN;
         int alarm = UNKNOWN;
 
-        if (!preferences.contains(Names.Guard)){
+        long last = preferences.getLong(Names.EventTime, 0);
+        Date now = new Date();
+        if (last > now.getTime() - 24 * 60 * 60 * 1000) {
+            if (!preferences.contains(Names.Guard)) {
+                dLock.setAlpha(0);
+                dUnlock.setAlpha(0);
+            } else if (preferences.getBoolean(Names.Guard, false)) {
+                dLock.setAlpha(255);
+                dUnlock.setAlpha(0);
+                color = GUARD;
+                alarm = ALARM;
+            } else {
+                dLock.setAlpha(0);
+                dUnlock.setAlpha(255);
+                color = NORMAL;
+                alarm = NORMAL;
+            }
+        } else {
             dLock.setAlpha(0);
             dUnlock.setAlpha(0);
-        }else if (preferences.getBoolean(Names.Guard, false)){
-            dLock.setAlpha(255);
-            dUnlock.setAlpha(0);
-            color = GUARD;
-            alarm = ALARM;
-        }else{
-            dLock.setAlpha(0);
-            dUnlock.setAlpha(255);
-            color = NORMAL;
-            alarm = NORMAL;
         }
 
-        if (preferences.getBoolean(Names.ZoneAccessory, false)){
+        if (preferences.getBoolean(Names.ZoneAccessory, false)) {
             dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
         Drawable d;
-        if (preferences.getBoolean(Names.Input1, false)){
+        if (preferences.getBoolean(Names.Input1, false)) {
             dDoors.setAlpha(0);
             dDoorsOpen.setAlpha(255);
             d = dDoorsOpen;
-        }else{
+        } else {
             dDoorsOpen.setAlpha(0);
             dDoors.setAlpha(255);
             d = dDoors;
         }
-        if (preferences.getBoolean(Names.ZoneDoor, false)){
+        if (preferences.getBoolean(Names.ZoneDoor, false)) {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
-        if (preferences.getBoolean(Names.Input4, false)){
+        if (preferences.getBoolean(Names.Input4, false)) {
             dHood.setAlpha(0);
             dHoodOpen.setAlpha(255);
             d = dHoodOpen;
-        }else{
+        } else {
             dHoodOpen.setAlpha(0);
             dHood.setAlpha(255);
             d = dHood;
         }
-        if (preferences.getBoolean(Names.ZoneHood, false)){
+        if (preferences.getBoolean(Names.ZoneHood, false)) {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
-        if (preferences.getBoolean(Names.Input2, false)){
+        if (preferences.getBoolean(Names.Input2, false)) {
             dTrunk.setAlpha(0);
             dTrunkOpen.setAlpha(255);
             d = dTrunkOpen;
-        }else{
+        } else {
             dTrunkOpen.setAlpha(0);
             dTrunk.setAlpha(255);
             d = dTrunk;
         }
-        if (preferences.getBoolean(Names.ZoneTrunk, false)){
+        if (preferences.getBoolean(Names.ZoneTrunk, false)) {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
-        if (preferences.getBoolean(Names.Input3, false)){
+        if (preferences.getBoolean(Names.Input3, false)) {
             dIgnition.setAlpha(255);
-            if (preferences.getBoolean(Names.ZoneIgnition, false)){
+            if (preferences.getBoolean(Names.ZoneIgnition, false)) {
                 dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
             } else {
                 dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
@@ -196,9 +205,9 @@ public class CarDrawable {
         } else {
             dIgnition.setAlpha(0);
         }
-        if (preferences.getBoolean(Names.Valet, false)){
+        if (preferences.getBoolean(Names.Valet, false)) {
             dValet.setAlpha(255);
-        }else{
+        } else {
             dValet.setAlpha(0);
         }
     }

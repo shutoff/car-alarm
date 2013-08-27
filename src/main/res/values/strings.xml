@@ -34,7 +34,6 @@
     <string name="motor_off">Motor Off</string>
     <string name="motor_on_sum">Start engine</string>
     <string name="motor_off_sum">Stop engine</string>
-    <string name="unknown">unknown</string>
     <string name="widget_name">Car alarm</string>
     <string name="empty_voltage">-- V</string>
     <string name="empty_balance">---.--</string>
@@ -43,20 +42,46 @@
     <string name="alarm_test_sum">Click for test alarm</string>
     <string name="map">Map</string>
     <string name="tracks">Tracks</string>
-    <string name="status" formatted="false">Mileage: %.2f km\nEngine time: %s\nAverage speed: %.2f kmh\nMax speed: %.2f kmh</string>
+    <string name="status" formatted="false">Mileage: %.2f km\nEngine time: %s\nAverage speed: %.2f
+        kmh\nMax speed: %.2f kmh
+    </string>
     <string name="m_format" formatted="false">%d min</string>
     <string name="hm_format" formatted="false">%d h %02d min</string>
     <string name="day">Select a day</string>
     <string name="no_data">No data</string>
     <string name="mileage">%.2f km</string>
-    <string name="short_status" formatted="false">Engine time: %s\nAverage speed: %.2f kmh\nMax speed: %.2f kmh\n</string>
+    <string name="short_status" formatted="false">Engine time: %s\nAverage speed: %.2f kmh\nMax
+        speed: %.2f kmh\n
+    </string>
     <string name="saved">Track saved</string>
     <string name="loading">Loading data...</string>
     <string name="error_load">Data loading error</string>
     <string name="about">About</string>
-    <string name="version">Version: </string>
+    <string name="version">Version:</string>
     <string name="share">Share</string>
     <string name="invalid_key">Invalid API key</string>
     <string name="key_error">Check API key error</string>
     <string name="check_api">Check API key</string>
+    <string name="data_error">Data update error</string>
+    <string name="block">Remote clocking</string>
+    <string name="block_sum">Remote blocking of the car</string>
+    <string name="autostart">Autostart</string>
+    <string name="autostart_summary">Show autoastart actions</string>
+    <string name="rele1">prestarting heater</string>
+    <string name="rele1_summary">Show prestarting heater action</string>
+    <string name="rele1_action">Send RELE1 impulse</string>
+    <string name="password">Set password</string>
+    <string name="password_summary">Set password for actions</string>
+    <string name="password_old">Old password:</string>
+    <string name="password_text">Password:</string>
+    <string name="password_confirm">Confirm:</string>
+    <string name="password_set">Set password</string>
+    <string name="invalid_password">Invalid password</string>
+    <string name="invalid_confirm">Invalid confirm</string>
+    <string name="input_password">Input password</string>
+    <string name="map_type">Maps type</string>
+    <string-array name="maps_types">
+        <item>Google</item>
+        <item>Yandex</item>
+    </string-array>
 </resources>
