@@ -6,17 +6,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import org.joda.time.LocalDateTime;
@@ -26,11 +19,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 
-public class TrackView  extends ActionBarActivity {
+public class TrackView extends WebViewActivity {
 
     String track;
-    WebView mapView;
-    TextView tvStatus;
 
     class JsInterface {
 
@@ -52,43 +43,20 @@ public class TrackView  extends ActionBarActivity {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        track = getIntent().getStringExtra(Names.TRACK);
-        setContentView(R.layout.maps);
-        mapView = (WebView) findViewById(R.id.webview);
-        tvStatus = (TextView) findViewById(R.id.address);
-        tvStatus.setText(getIntent().getStringExtra(Names.STATUS));
-        setTitle(getIntent().getStringExtra(Names.TITLE));
-        WebSettings settings = mapView.getSettings();
-        settings.setJavaScriptEnabled(true);
-        mapView.addJavascriptInterface(new JsInterface(), "android");
-        WebChromeClient mChromeClient = new WebChromeClient(){
-            @Override
-            public void onConsoleMessage(String message, int lineNumber, String sourceID) {
-                // TODO Auto-generated method stub
-                Log.v("ChromeClient", "invoked: onConsoleMessage() - " + sourceID + ":"
-                        + lineNumber + " - " + message);
-                super.onConsoleMessage(message, lineNumber, sourceID);
-            }
-
-            @Override
-            public boolean onConsoleMessage(ConsoleMessage cm) {
-                Log.v("ChromeClient", cm.message() + " -- From line "
-                        + cm.lineNumber() + " of "
-                        + cm.sourceId() );
-                return true;
-            }
-        };
-        mapView.setWebChromeClient(mChromeClient);
-
+    String loadURL() {
+        webView.addJavascriptInterface(new JsInterface(), "android");
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String map_type = preferences.getString(Names.MAP_TYPE, "");
-        if (map_type.equals("Yandex")) {
-            mapView.loadUrl("file:///android_asset/html/ytrack.html");
-        } else {
-            mapView.loadUrl("file:///android_asset/html/track.html");
-        }
+        if (map_type.equals("Yandex"))
+            return "file:///android_asset/html/ytrack.html";
+        return "file:///android_asset/html/track.html";
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setTitle(getIntent().getStringExtra(Names.TITLE));
+        track = getIntent().getStringExtra(Names.TRACK);
     }
 
     @Override
@@ -101,11 +69,11 @@ public class TrackView  extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.save: {
-                mapView.loadUrl("javascript:saveTrack()");
+                webView.loadUrl("javascript:saveTrack()");
                 break;
             }
             case R.id.share: {
-                mapView.loadUrl("javascript:shareTrack()");
+                webView.loadUrl("javascript:shareTrack()");
                 break;
             }
         }
