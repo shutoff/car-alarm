@@ -193,21 +193,41 @@ public class StatusService extends Service {
             JSONArray events = res.getJSONArray("events");
             if (events.length() > 0) {
                 boolean valet_state = preferences.getBoolean(Names.Valet, false);
+                boolean engine_state = preferences.getBoolean(Names.Engine, false);
                 for (int i = events.length() - 1; i >= 0; i--) {
                     JSONObject event = events.getJSONObject(i);
                     int type = event.getInt("eventType");
-                    if (type == 120)
-                        valet_state = true;
-                    if (type == 110)
-                        valet_state = false;
+                    switch (type) {
+                        case 120:
+                            valet_state = true;
+                            engine_state = false;
+                            break;
+                        case 110:
+                        case 24:
+                        case 25:
+                            valet_state = false;
+                            engine_state = false;
+                            break;
+                        case 45:
+                        case 46:
+                            engine_state = true;
+                            break;
+                        case 47:
+                        case 48:
+                            engine_state = false;
+                            break;
+                    }
                 }
                 boolean valet = preferences.getBoolean(Names.Valet, false);
+                boolean engine = preferences.getBoolean(Names.Engine, false);
                 SharedPreferences.Editor ed = preferences.edit();
                 ed.putLong(Names.LastEvent, eventTime);
                 if (valet_state != valet)
                     ed.putBoolean(Names.Valet, valet_state);
+                if (engine_state != engine)
+                    ed.putBoolean(Names.Engine, engine_state);
                 ed.commit();
-                if (valet_state != valet)
+                if ((valet_state != valet) || (engine_state != engine))
                     sendUpdate(ACTION_UPDATE);
             }
 

@@ -79,9 +79,4 @@
     <string name="invalid_password">Invalid password</string>
     <string name="invalid_confirm">Invalid confirm</string>
     <string name="input_password">Input password</string>
-    <string name="map_type">Maps type</string>
-    <string-array name="maps_types">
-        <item>Google</item>
-        <item>Yandex</item>
-    </string-array>
 </resources>

@@ -65,18 +65,18 @@ public class MapView extends WebViewActivity {
                                 return;
                             track = null;
                             JSONArray list = res.getJSONArray("gpslist");
-                            for (int i = 0; i < list.length(); i++){
+                            for (int i = 0; i < list.length(); i++) {
                                 JSONObject gps = list.getJSONObject(i);
                                 if (!gps.getBoolean("valid"))
                                     return;
-                                if (track != null){
+                                if (track != null) {
                                     track += "|";
-                                }else{
+                                } else {
                                     track = "";
                                 }
                                 track += gps.getString("latitude") + "," + gps.getString("longitude");
                             }
-                            if (track != null){
+                            if (track != null) {
                                 webView.loadUrl("javascript:setTrack()");
                             }
                         }
@@ -87,8 +87,8 @@ public class MapView extends WebViewActivity {
                         }
                     };
                     gpsTask.execute(GPS_URL,
-                        preferences.getString(Names.KEY, ""),
-                        begin, end);
+                            preferences.getString(Names.KEY, ""),
+                            begin, end);
                 }
 
                 @Override
@@ -98,9 +98,9 @@ public class MapView extends WebViewActivity {
             };
             long lastTime = preferences.getLong(Names.EventTime, 0);
             httpTask.execute(WAYS_URL,
-                preferences.getString(Names.KEY, ""),
-                (lastTime - 24 * 60 * 60 * 1000) + "",
-                lastTime + "");
+                    preferences.getString(Names.KEY, ""),
+                    (lastTime - 24 * 60 * 60 * 1000) + "",
+                    lastTime + "");
         }
 
     }
@@ -108,9 +108,6 @@ public class MapView extends WebViewActivity {
     @Override
     String loadURL() {
         webView.addJavascriptInterface(new JsInterface(), "android");
-        String map_type = preferences.getString(Names.MAP_TYPE, "");
-        if (map_type.equals("Yandex"))
-            return "file:///android_asset/html/ymaps.html";
         return "file:///android_asset/html/maps.html";
     }
 

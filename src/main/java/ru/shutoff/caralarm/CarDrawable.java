@@ -195,7 +195,8 @@ public class CarDrawable {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
-        if (preferences.getBoolean(Names.Input3, false)) {
+        if (preferences.getBoolean(Names.Input3, false) ||
+                preferences.getBoolean(Names.Engine, false)) {
             dIgnition.setAlpha(255);
             if (preferences.getBoolean(Names.ZoneIgnition, false)) {
                 dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));

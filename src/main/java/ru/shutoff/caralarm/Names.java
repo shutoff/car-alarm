@@ -22,8 +22,6 @@ public final class Names {
     static final String TEXT = "Text";
     static final String ANSWER = "Answer";
 
-    static final String MAP_TYPE = "map_type";
-
     static final String EventId = "EventId";
     static final String EventTime = "EventTime";
 
@@ -37,6 +35,7 @@ public final class Names {
     static final String Speed = "Speed";
 
     static final String Valet = "Valet";
+    static final String Engine = "Engine";
     static final String LastEvent = "LastEvent";
     static final String Guard = "Guard";
     static final String Input1 = "Input1";

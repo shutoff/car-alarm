@@ -10,7 +10,6 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
@@ -30,7 +29,6 @@ public class Preferences extends PreferenceActivity {
     Preference testPref;
     Preference aboutPref;
     Preference pswdPref;
-    ListPreference mapPref;
 
     String alarmUri;
     String notifyUri;
@@ -128,23 +126,6 @@ public class Preferences extends PreferenceActivity {
                 Intent intent = new Intent(getBaseContext(), Alarm.class);
                 intent.putExtra(Names.ALARM, getString(R.string.alarm_test));
                 startActivity(intent);
-                return true;
-            }
-        });
-
-        mapPref = (ListPreference) findPreference("map_type");
-        String type = sPref.getString(Names.MAP_TYPE, "");
-        if (type.equals("")) {
-            SharedPreferences.Editor ed = sPref.edit();
-            type = "Google";
-            ed.putString(Names.MAP_TYPE, type);
-            ed.commit();
-        }
-        mapPref.setSummary(type);
-        mapPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                preference.setSummary(newValue.toString());
                 return true;
             }
         });

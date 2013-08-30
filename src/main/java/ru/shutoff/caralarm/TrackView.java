@@ -46,17 +46,14 @@ public class TrackView extends WebViewActivity {
     String loadURL() {
         webView.addJavascriptInterface(new JsInterface(), "android");
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String map_type = preferences.getString(Names.MAP_TYPE, "");
-        if (map_type.equals("Yandex"))
-            return "file:///android_asset/html/ytrack.html";
         return "file:///android_asset/html/track.html";
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        track = getIntent().getStringExtra(Names.TRACK);
         super.onCreate(savedInstanceState);
         setTitle(getIntent().getStringExtra(Names.TITLE));
-        track = getIntent().getStringExtra(Names.TRACK);
     }
 
     @Override
@@ -80,8 +77,8 @@ public class TrackView extends WebViewActivity {
         return false;
     }
 
-    File saveTrack(double min_lat, double max_lat, double min_lon, double max_lon, boolean show_toast){
-        try{
+    File saveTrack(double min_lat, double max_lat, double min_lon, double max_lon, boolean show_toast) {
+        try {
             File path = Environment.getExternalStorageDirectory();
             if (path == null)
                 path = getFilesDir();
@@ -91,12 +88,12 @@ public class TrackView extends WebViewActivity {
             String[] points = track.split("\\|");
             long begin = 0;
             long end = 0;
-            for (String point:points){
+            for (String point : points) {
                 String[] data = point.split(",");
                 double lat = Double.parseDouble(data[0]);
                 double lon = Double.parseDouble(data[1]);
                 long time = Long.parseLong(data[3]);
-                if ((lat < min_lat) || (lat > max_lat) ||(lon < min_lon) || (lon > max_lon))
+                if ((lat < min_lat) || (lat > max_lat) || (lon < min_lon) || (lon > max_lon))
                     continue;
                 if (begin == 0)
                     begin = time;
@@ -127,23 +124,23 @@ public class TrackView extends WebViewActivity {
             writer.append("<trk>\n");
 
             boolean trk = false;
-            for (String point:points){
+            for (String point : points) {
                 String[] data = point.split(",");
                 double lat = Double.parseDouble(data[0]);
                 double lon = Double.parseDouble(data[1]);
                 long time = Long.parseLong(data[3]);
-                if ((lat < min_lat) || (lat > max_lat) ||(lon < min_lon) || (lon > max_lon)){
-                    if (trk){
+                if ((lat < min_lat) || (lat > max_lat) || (lon < min_lon) || (lon > max_lon)) {
+                    if (trk) {
                         trk = false;
                         writer.append("</trkseg>\n");
                     }
                     continue;
                 }
-                if (!trk){
+                if (!trk) {
                     trk = true;
                     writer.append("<trkseg>\n");
                 }
-                writer.append("<trkpt lat=\""+ lat + "\" lon=\"" + lon + "\">\n");
+                writer.append("<trkpt lat=\"" + lat + "\" lon=\"" + lon + "\">\n");
                 LocalDateTime t = new LocalDateTime(time);
                 writer.append("<time>" + t.toString("yyyy-MM-dd'T'HH:mm:ss'Z") + "</time>\n");
                 writer.append("</trkpt>\n");
@@ -153,19 +150,19 @@ public class TrackView extends WebViewActivity {
             writer.append("</trk>\n");
             writer.append("</gpx>");
             writer.close();
-            if (show_toast){
+            if (show_toast) {
                 Toast toast = Toast.makeText(this, getString(R.string.saved) + " " + out.toString(), Toast.LENGTH_LONG);
                 toast.show();
             }
             return out;
-        }catch (Exception ex){
+        } catch (Exception ex) {
             Toast toast = Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG);
             toast.show();
         }
         return null;
     }
 
-    void shareTrack(double min_lat, double max_lat, double min_lon, double max_lon){
+    void shareTrack(double min_lat, double max_lat, double min_lon, double max_lon) {
         File out = saveTrack(min_lat, max_lat, min_lon, max_lon, false);
         if (out == null)
             return;
