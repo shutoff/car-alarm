@@ -11,11 +11,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -74,7 +77,17 @@ public class MainActivity extends ActionBarActivity {
             // Ignore
         }
 
-        setContentView(R.layout.main);
+        Display display = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+        switch (display.getRotation()){
+            case Surface.ROTATION_0:
+            case Surface.ROTATION_180:
+                setContentView(R.layout.main_p);
+                break;
+            case Surface.ROTATION_90:
+            case Surface.ROTATION_270:
+                setContentView(R.layout.main_l);
+                break;
+        }
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         imgCar = (ImageView) findViewById(R.id.car);
