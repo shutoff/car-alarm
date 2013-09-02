@@ -42,6 +42,18 @@ public class MapView extends WebViewActivity {
         }
 
         @JavascriptInterface
+        public String getAddress() {
+            String address = preferences.getString(Names.Address, "");
+            String[] parts = address.split(", ");
+            if (parts.length < 3)
+                return address;
+            address = parts[0] + ", " + parts[1];
+            for (int i = 2; i < parts.length; i++)
+                address += "<br/>" + parts[i];
+            return address;
+        }
+
+        @JavascriptInterface
         public void ready() {
             HttpTask httpTask = new HttpTask() {
                 @Override

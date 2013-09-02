@@ -167,6 +167,7 @@ public class StatusService extends Service {
 
         @Override
         void error() {
+            statusRequest = null;
             long timeout = (error_text != null) ? REPEAT_AFTER_500 : REPEAT_AFTER_ERROR;
             alarmMgr.setInexactRepeating(AlarmManager.RTC,
                     System.currentTimeMillis() + timeout, timeout, pi);
@@ -243,7 +244,7 @@ public class StatusService extends Service {
 
         @Override
         void error() {
-            // ignore
+            eventsRequest = null;
         }
 
         long eventTime;
@@ -272,7 +273,7 @@ public class StatusService extends Service {
 
         @Override
         void error() {
-            // ignore
+            temperatureRequest = null;
         }
     }
 

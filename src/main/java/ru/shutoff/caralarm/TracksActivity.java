@@ -98,6 +98,15 @@ public class TracksActivity extends ActionBarActivity {
         prgMain   = (ProgressBar) findViewById(R.id.progress);
         tvLoading = (TextView) findViewById(R.id.loading);
 
+        tvStatus.setClickable(true);
+        tvStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (loaded)
+                    showDay();
+            }
+        });
+
         lvTracks.setClickable(true);
         lvTracks.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -213,16 +222,31 @@ public class TracksActivity extends ActionBarActivity {
         LocalDateTime end = new LocalDateTime(track.end);
 
         Point p = track.track.get(track.track.size() - 1);
-        String track_data = p.latitude + "," + p.longitude + "," + infoMark(begin, track.start);
+        StringBuilder track_data = new StringBuilder();
+        track_data.append(p.latitude);
+        track_data.append(",");
+        track_data.append(p.longitude);
+        track_data.append(",");
+        track_data.append(infoMark(begin, track.start));
         for (int i = track.track.size() - 1; i >= 0; i--){
             p = track.track.get(i);
-            String part = p.latitude + "," + p.longitude + "," + p.speed + "," + p.time;
-            track_data += "|";
-            track_data += part;
+            track_data.append("|");
+            track_data.append(p.latitude);
+            track_data.append(",");
+            track_data.append(p.longitude);
+            track_data.append(",");
+            track_data.append(p.speed);
+            track_data.append(",");
+            track_data.append(p.time);
         }
         p = track.track.get(0);
-        track_data += "|" + p.latitude + "," + p.longitude + "," +   infoMark(end, track.finish);
-        intent.putExtra(Names.TRACK, track_data);
+        track_data.append("|");
+        track_data.append(p.latitude);
+        track_data.append(",");
+        track_data.append(p.longitude);
+        track_data.append(",");
+        track_data.append(infoMark(end, track.finish));
+        intent.putExtra(Names.TRACK, track_data.toString());
         intent.putExtra(Names.STATUS, String.format(getString(R.string.status),
                 track.mileage,
                 timeFormat((int) ((track.end - track.begin) / 60000)),
@@ -232,8 +256,81 @@ public class TracksActivity extends ActionBarActivity {
         startActivity(intent);
     }
 
+    void showDay() {
+        Intent intent = new Intent(this, TrackView.class);
+        Track track = tracks.get(0);
+
+        LocalDateTime begin = new LocalDateTime(track.begin);
+
+        Point p = track.track.get(track.track.size() - 1);
+        StringBuilder track_data = new StringBuilder();
+        track_data.append(p.latitude);
+        track_data.append(",");
+        track_data.append(p.longitude);
+        track_data.append(",");
+        track_data.append(infoMark(begin, track.start));
+        for (int i = track.track.size() - 1; i >= 0; i--) {
+            p = track.track.get(i);
+            track_data.append("|");
+            track_data.append(p.latitude);
+            track_data.append(",");
+            track_data.append(p.longitude);
+            track_data.append(",");
+            track_data.append(p.speed);
+            track_data.append(",");
+            track_data.append(p.time);
+        }
+
+        for (int i = 1; i < tracks.size(); i++) {
+            Track prev = tracks.get(i - 1);
+            track = tracks.get(i);
+
+            begin = new LocalDateTime(track.begin);
+            LocalDateTime end = new LocalDateTime(prev.end);
+
+            p = track.track.get(track.track.size() - 1);
+            track_data.append("|");
+            track_data.append(p.latitude);
+            track_data.append(",");
+            track_data.append(p.longitude);
+            track_data.append(",");
+            track_data.append(infoMark(end, begin, track.start));
+            for (int n = track.track.size() - 1; n >= 0; n--) {
+                p = track.track.get(n);
+                track_data.append("|");
+                track_data.append(p.latitude);
+                track_data.append(",");
+                track_data.append(p.longitude);
+                track_data.append(",");
+                track_data.append(p.speed);
+                track_data.append(",");
+                track_data.append(p.time);
+            }
+        }
+
+        track = tracks.get(tracks.size() - 1);
+        LocalDateTime end = new LocalDateTime(track.end);
+        p = track.track.get(0);
+        track_data.append("|");
+        track_data.append(p.latitude);
+        track_data.append(",");
+        track_data.append(p.longitude);
+        track_data.append(",");
+        track_data.append(infoMark(end, track.finish));
+
+        intent.putExtra(Names.TRACK, track_data.toString());
+        intent.putExtra(Names.TITLE, getTitle());
+        startActivity(intent);
+    }
+
     static String infoMark(LocalDateTime t, String address){
         return "<b>" + t.toString("HH:mm") + "</b><br/>" + Html.toHtml(new SpannedString(address))
+                .replaceAll(",", "&#x2C;")
+                .replaceAll("\\|", "&#x7C;");
+    }
+
+    static String infoMark(LocalDateTime begin, LocalDateTime end, String address) {
+        return "<b>" + begin.toString("HH:mm") + "-" + end.toString("HH:mm") + "</b><br/>" + Html.toHtml(new SpannedString(address))
                 .replaceAll(",", "&#x2C;")
                 .replaceAll("\\|", "&#x7C;");
     }
