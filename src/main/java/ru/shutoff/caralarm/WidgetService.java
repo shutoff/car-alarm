@@ -31,7 +31,6 @@ public class WidgetService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        State.setExceptionHandler();
         powerMgr = (PowerManager) getSystemService(Context.POWER_SERVICE);
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         pi = PendingIntent.getService(this, 0, new Intent(this, WidgetService.class), 0);

@@ -38,7 +38,6 @@ public class State {
         } catch (IOException e) {
         }
     }
-*/
 
     static public void setExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -46,15 +45,14 @@ public class State {
             @Override
             public void uncaughtException(Thread thread, Throwable ex) {
                 ex.printStackTrace();
-/*
                 appendLog("Error: " + ex.toString());
                 StringWriter sw = new StringWriter();
                 ex.printStackTrace(new PrintWriter(sw));
                 String s = sw.toString();
                 appendLog(s);
-*/
             }
         });
     }
+*/
 
 }

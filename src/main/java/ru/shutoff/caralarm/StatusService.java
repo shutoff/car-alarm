@@ -60,7 +60,6 @@ public class StatusService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        State.setExceptionHandler();
         preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         powerMgr = (PowerManager) getSystemService(Context.POWER_SERVICE);
