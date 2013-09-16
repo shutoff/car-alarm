@@ -90,6 +90,8 @@ public class TrackView extends WebViewActivity {
             long end = 0;
             for (String point : points) {
                 String[] data = point.split(",");
+                if (data.length != 4)
+                    continue;
                 double lat = Double.parseDouble(data[0]);
                 double lon = Double.parseDouble(data[1]);
                 long time = Long.parseLong(data[3]);
@@ -126,6 +128,8 @@ public class TrackView extends WebViewActivity {
             boolean trk = false;
             for (String point : points) {
                 String[] data = point.split(",");
+                if (data.length != 4)
+                    continue;
                 double lat = Double.parseDouble(data[0]);
                 double lon = Double.parseDouble(data[1]);
                 long time = Long.parseLong(data[3]);

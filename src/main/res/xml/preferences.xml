@@ -37,12 +37,12 @@
         android:summary="@string/password_summary"
         android:key="password" />
 
-    <SwitchPreference
+    <CheckBoxPreference
         android:title="@string/autostart"
         android:summary="@string/autostart_summary"
         android:key="autostart" />
 
-    <SwitchPreference
+    <CheckBoxPreference
         android:title="@string/rele1"
         android:summary="@string/rele1_summary"
         android:key="rele1" />
