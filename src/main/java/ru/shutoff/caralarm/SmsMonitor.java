@@ -59,7 +59,7 @@ public class SmsMonitor extends BroadcastReceiver {
     }
 
     static String[] notifications = {
-            "Light shock",
+            "ALARM Light shock",
             "Low Card Battery",
             "Supply reserve",
             "Supply regular",
@@ -69,13 +69,13 @@ public class SmsMonitor extends BroadcastReceiver {
     };
 
     static String[] alarms = {
-            "Heavy shock",
-            "Trunk",
-            "Hood",
-            "Doors",
-            "Lock",
-            "MovTilt sensor",
-            "Rogue"
+            "ALARM Heavy shock",
+            "ALARM Trunk",
+            "ALARM Hood",
+            "ALARM Doors",
+            "ALARM Lock",
+            "ALARM MovTilt sensor",
+            "ALARM Rogue"
     };
 
     boolean processCarMessage(Context context, String body) {
@@ -88,16 +88,14 @@ public class SmsMonitor extends BroadcastReceiver {
             return true;
         }
         for (int i = 0; i < notifications.length; i++) {
-            String n = notifications[i];
-            if (body.matches(".*" + n + ".*")) {
+            if (body.equalsIgnoreCase(notifications[i])){
                 String[] msg = context.getString(R.string.notification).split("\\|");
                 showNotification(context, msg[i]);
                 return true;
             }
         }
         for (int i = 0; i < alarms.length; i++) {
-            String n = alarms[i];
-            if (body.matches("ALARM " + n + ".*")) {
+            if (body.equalsIgnoreCase(alarms[i])) {
                 String[] msg = context.getString(R.string.alarm).split("\\|");
                 showAlarm(context, msg[i]);
                 return true;
