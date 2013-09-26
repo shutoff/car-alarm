@@ -39,8 +39,8 @@ public class SmsMonitor extends BroadcastReceiver {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
             String phone_config = digitsOnly(preferences.getString(Names.PHONE, ""));
             if ((phone_config.length() > 0) && phone_config.equals(digitsOnly(sms_from))) {
-                if (processCarMessage(context, body))
-                    abortBroadcast();
+                processCarMessage(context, body);
+//                    abortBroadcast();
             }
 
             if (body.matches("[0-9A-Fa-f]{30}")) {
@@ -79,9 +79,11 @@ public class SmsMonitor extends BroadcastReceiver {
     };
 
     boolean processCarMessage(Context context, String body) {
+        State.appendLog("process car message " + body);
         if ((State.waitAnswer != null) && (body.substring(0, State.waitAnswer.length()).equalsIgnoreCase(State.waitAnswer))) {
             try {
                 State.waitAnswerPI.send(Names.ANSWER_OK);
+                State.appendLog("answer");
             } catch (CanceledException e) {
                 // ignore
             }
@@ -89,6 +91,7 @@ public class SmsMonitor extends BroadcastReceiver {
         }
         for (int i = 0; i < notifications.length; i++) {
             if (compare(body, notifications[i])){
+                State.appendLog("notify " + i);
                 String[] msg = context.getString(R.string.notification).split("\\|");
                 showNotification(context, msg[i]);
                 return true;
@@ -96,6 +99,7 @@ public class SmsMonitor extends BroadcastReceiver {
         }
         for (int i = 0; i < alarms.length; i++) {
             if (compare(body, alarms[i])) {
+                State.appendLog("alarm " + i);
                 String[] msg = context.getString(R.string.alarm).split("\\|");
                 showAlarm(context, msg[i]);
                 return true;
@@ -159,6 +163,7 @@ public class SmsMonitor extends BroadcastReceiver {
     }
 
     private void showAlarm(Context context, String text) {
+        State.appendLog("show alarm " + text);
         Intent alarmIntent = new Intent(context, Alarm.class);
         alarmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         alarmIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

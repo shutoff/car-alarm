@@ -1,8 +1,8 @@
 package ru.shutoff.caralarm;
 
 import android.app.PendingIntent;
+import android.os.Environment;
 
-/*
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -10,16 +10,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Date;
-*/
 
 public class State {
 
     static String waitAnswer;
     static PendingIntent waitAnswerPI;
 
-/*
     static public void appendLog(String text) {
-        File logFile = new File("/sdcard/car.log");
+        File logFile = Environment.getExternalStorageDirectory();
+        logFile = new File(logFile, "car.log");
         if (!logFile.exists()) {
             try {
                 logFile.createNewFile();
@@ -39,20 +38,14 @@ public class State {
         }
     }
 
-    static public void setExceptionHandler() {
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-
-            @Override
-            public void uncaughtException(Thread thread, Throwable ex) {
-                ex.printStackTrace();
-                appendLog("Error: " + ex.toString());
-                StringWriter sw = new StringWriter();
-                ex.printStackTrace(new PrintWriter(sw));
-                String s = sw.toString();
-                appendLog(s);
-            }
-        });
+    static public void print(Throwable ex) {
+        ex.printStackTrace();
+        appendLog("Error: " + ex.toString());
+        StringWriter sw = new StringWriter();
+        ex.printStackTrace(new PrintWriter(sw));
+        String s = sw.toString();
+        appendLog(s);
     }
-*/
+
 
 }

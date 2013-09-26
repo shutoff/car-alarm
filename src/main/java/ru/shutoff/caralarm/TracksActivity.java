@@ -336,12 +336,17 @@ public class TracksActivity extends ActionBarActivity {
     }
 
     void showError(){
-        tvStatus.setText(getString(R.string.error_load));
-        tvStatus.setVisibility(View.VISIBLE);
-        lvTracks.setVisibility(View.GONE);
-        tvLoading.setVisibility(View.GONE);
-        prgFirst.setVisibility(View.GONE);
-        prgMain.setVisibility(View.GONE);
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                tvStatus.setText(getString(R.string.error_load));
+                tvStatus.setVisibility(View.VISIBLE);
+                lvTracks.setVisibility(View.GONE);
+                tvLoading.setVisibility(View.GONE);
+                prgFirst.setVisibility(View.GONE);
+                prgMain.setVisibility(View.GONE);
+            }
+        });
     }
 
     void all_done(){

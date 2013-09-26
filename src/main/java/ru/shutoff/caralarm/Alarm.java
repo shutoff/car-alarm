@@ -61,22 +61,27 @@ public class Alarm extends Activity {
                 ContactsContract.PhoneLookup.DISPLAY_NAME}, null, null, null);
 
         try {
-            if (contactLookup != null && contactLookup.getCount() > 0) {
-                contactLookup.moveToNext();
-                String contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
-
-                Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(contactId));
-                Uri displayPhotoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
-                AssetFileDescriptor fd =
-                        getContentResolver().openAssetFileDescriptor(displayPhotoUri, "r");
-                InputStream inputStream = fd.createInputStream();
-                if (inputStream != null) {
-                    Bitmap photo = BitmapFactory.decodeStream(inputStream);
-                    imgPhoto.setImageBitmap(photo);
-                    inputStream.close();
+            if (contactLookup != null) {
+                State.appendLog("count " + contactLookup.getCount());
+                if (contactLookup.getCount() > 0){
+                    contactLookup.moveToNext();
+                    String contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
+                    Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(contactId));
+                    State.appendLog("uri " + contactUri);
+                    Uri displayPhotoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
+                    AssetFileDescriptor fd =
+                            getContentResolver().openAssetFileDescriptor(displayPhotoUri, "r");
+                    InputStream inputStream = fd.createInputStream();
+                    if (inputStream != null) {
+                        Bitmap photo = BitmapFactory.decodeStream(inputStream);
+                        State.appendLog("set bitmap");
+                        imgPhoto.setImageBitmap(photo);
+                        inputStream.close();
+                    }
                 }
             }
         } catch (Exception e) {
+            State.print(e);
             // ignore
         } finally {
             if (contactLookup != null) {
