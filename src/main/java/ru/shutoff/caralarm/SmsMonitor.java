@@ -40,7 +40,7 @@ public class SmsMonitor extends BroadcastReceiver {
             String phone_config = digitsOnly(preferences.getString(Names.PHONE, ""));
             if ((phone_config.length() > 0) && phone_config.equals(digitsOnly(sms_from))) {
                 processCarMessage(context, body);
-//                    abortBroadcast();
+                abortBroadcast();
             }
 
             if (body.matches("[0-9A-Fa-f]{30}")) {
@@ -90,7 +90,7 @@ public class SmsMonitor extends BroadcastReceiver {
             return true;
         }
         for (int i = 0; i < notifications.length; i++) {
-            if (compare(body, notifications[i])){
+            if (compare(body, notifications[i])) {
                 State.appendLog("notify " + i);
                 String[] msg = context.getString(R.string.notification).split("\\|");
                 showNotification(context, msg[i]);
@@ -108,7 +108,7 @@ public class SmsMonitor extends BroadcastReceiver {
         return false;
     }
 
-    static boolean compare(String body, String message){
+    static boolean compare(String body, String message) {
         if (body.length() < message.length())
             return false;
         return body.substring(0, message.length()).equalsIgnoreCase(message);

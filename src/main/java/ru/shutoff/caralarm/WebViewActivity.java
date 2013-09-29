@@ -2,7 +2,6 @@ package ru.shutoff.caralarm;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.ViewGroup;
 import android.webkit.ConsoleMessage;
 import android.webkit.WebChromeClient;
@@ -39,16 +38,13 @@ abstract public class WebViewActivity extends ActionBarActivity {
             WebChromeClient mChromeClient = new WebChromeClient() {
                 @Override
                 public void onConsoleMessage(String message, int lineNumber, String sourceID) {
-                    Log.v("ChromeClient", "invoked: onConsoleMessage() - " + sourceID + ":"
-                            + lineNumber + " - " + message);
+                    State.appendLog(sourceID + ":" + lineNumber + " - " + message);
                     super.onConsoleMessage(message, lineNumber, sourceID);
                 }
 
                 @Override
                 public boolean onConsoleMessage(ConsoleMessage cm) {
-                    Log.v("ChromeClient", cm.message() + " -- From line "
-                            + cm.lineNumber() + " of "
-                            + cm.sourceId());
+                    State.appendLog(cm.sourceId() + ":" + cm.lineNumber() + " - " + cm.message());
                     return true;
                 }
             };

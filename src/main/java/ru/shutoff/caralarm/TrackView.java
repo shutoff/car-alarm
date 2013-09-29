@@ -40,12 +40,19 @@ public class TrackView extends WebViewActivity {
             shareTrack(min_lat, max_lat, min_lon, max_lon);
         }
 
+        @JavascriptInterface
+        public void kmh() {
+            getString(R.string.kmh);
+        }
+
     }
 
     @Override
     String loadURL() {
         webView.addJavascriptInterface(new JsInterface(), "android");
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        if (preferences.getString("map_type", "").equals("OSM"))
+            return "file:///android_asset/html/otrack.html";
         return "file:///android_asset/html/track.html";
     }
 
@@ -104,7 +111,7 @@ public class TrackView extends WebViewActivity {
             LocalDateTime d2 = new LocalDateTime(begin);
             LocalDateTime d1 = new LocalDateTime(end);
 
-            String name = d1.toString("dd.MM.yy_HH.mm-") + d2.toString("HH.mm") + ".gpx";
+            String name = d2.toString("dd.MM.yy_HH.mm-") + d1.toString("HH.mm") + ".gpx";
             File out = new File(path, name);
             out.createNewFile();
 

@@ -80,4 +80,7 @@
     <string name="invalid_password">Неверный пароль</string>
     <string name="invalid_confirm">Пароли не совпадают</string>
     <string name="input_password">Введите пароль</string>
+    <string name="map_type">Использовать карты</string>
+    <string name="kmh">км/ч</string>
+    <string name="close">Завершить</string>
 </resources>

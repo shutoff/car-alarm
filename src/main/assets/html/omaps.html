@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"/>
+    <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+    <style>
+        html, body, #map-canvas {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        }
+    </style>
+    <script>
+
+var map;
+var marker;
+var info;
+
+function initialize() {
+    var latitude = android.getLatitude();
+    var longitude = android.getLongitude();
+
+    map = L.map('map', {
+        center: [latitude, longitude],
+        zoom: 15
+    });
+
+    L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
+	    maxZoom: 19
+	}).addTo(map);
+
+    var address = android.getAddress();
+
+    marker = L.marker([latitude, longitude]).addTo(map);
+    marker.on('click', function(){
+        info.addTo(map);
+    });
+
+    info = L.popup()
+        .setLatLng([latitude, longitude])
+        .setContent(address)
+        .addTo(map);
+
+}
+
+function update() {
+    if (map == null)
+        return;
+    var latitude = android.getLatitude();
+    var longitude = android.getLongitude();
+    marker.setLatLng([latitude, longitude]);
+}
+
+function center() {
+    if (map == null)
+        return;
+    var latitude  = android.getLatitude();
+    var longitude = android.getLongitude();
+    map.setView([ latitude, longitude ]);
+}
+
+
+    </script>
+</head>
+<body onload="initialize()">
+<div id="map" style="height: 100%"></div>
+</body>
+</html>

@@ -11,12 +11,18 @@ import java.util.Locale;
 abstract public class AddressRequest {
 
     static final String GOOGLE_URL = "http://maps.googleapis.com/maps/api/geocode/json?latlng=$1,$2&sensor=false&language=$3";
+    static final String OSM_URL = "http://nominatim.openstreetmap.org/reverse?lat=$1&lon=$2&osm_type=N&format=json&address_details=0&accept-language=$3";
 
     abstract void addressResult(String[] address);
 
     Request request;
 
     void getAddress(SharedPreferences preferences, String lat, String lng) {
+        if (preferences.getString("map_type", "").equals("OSM")) {
+            request = new OsmRequest();
+            request.exec(lat, lng);
+            return;
+        }
         request = new GoogleRequest();
         request.exec(lat, lng);
     }
@@ -106,4 +112,31 @@ abstract public class AddressRequest {
         }
     }
 
+    class OsmRequest extends Request {
+
+        @Override
+        void exec(String lat, String lon) {
+            execute(OSM_URL, lat, lon, Locale.getDefault().getLanguage());
+        }
+
+        @Override
+        void result(JSONObject res) throws JSONException {
+            String[] parts = res.getString("display_name").split(", ");
+            String[] result = new String[parts.length - 2];
+            int i = 0;
+            if (parts[0].substring(0, 1).matches("[1-9]")) {
+                result[0] = parts[1];
+                result[1] = parts[0];
+                i = 2;
+            }
+            for (; i < parts.length - 2; i++)
+                result[i] = parts[i];
+            addressResult(result);
+        }
+
+        @Override
+        void error() {
+            addressResult(null);
+        }
+    }
 }

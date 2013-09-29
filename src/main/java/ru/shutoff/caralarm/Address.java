@@ -12,7 +12,7 @@ public abstract class Address {
     String latitude;
     String longitude;
 
-    Address(SharedPreferences p){
+    Address(SharedPreferences p) {
         preferences = p;
     }
 
@@ -23,8 +23,8 @@ public abstract class Address {
             return;
         String addr_lat = preferences.getString(Names.AddrLatitude, "");
         String addr_lon = preferences.getString(Names.AddrLongitude, "");
-        if (addr_lat.equals(latitude) && addr_lon.equals(longitude))
-            return;
+//        if (addr_lat.equals(latitude) && addr_lon.equals(longitude))
+//            return;
         if (request != null)
             return;
         request = new AddressRequest() {

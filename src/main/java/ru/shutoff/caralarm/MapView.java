@@ -12,18 +12,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.webkit.JavascriptInterface;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 public class MapView extends WebViewActivity {
 
     SharedPreferences preferences;
-    String track;
     BroadcastReceiver br;
-
-    static final String WAYS_URL = "http://api.car-online.ru/v2?get=waystands&skey=$1&begin=$2&end=$3&content=json";
-    static final String GPS_URL = "http://api.car-online.ru/v2?get=gpslist&skey=$1&begin=$2&end=$3&content=json";
 
     class JsInterface {
         @JavascriptInterface
@@ -37,11 +29,6 @@ public class MapView extends WebViewActivity {
         }
 
         @JavascriptInterface
-        public String getTrack() {
-            return track;
-        }
-
-        @JavascriptInterface
         public String getAddress() {
             String address = preferences.getString(Names.Address, "");
             String[] parts = address.split(", ");
@@ -52,74 +39,14 @@ public class MapView extends WebViewActivity {
                 address += "<br/>" + parts[i];
             return address;
         }
-
-        @JavascriptInterface
-        public void ready() {
-            HttpTask httpTask = new HttpTask() {
-                @Override
-                void result(JSONObject res) throws JSONException {
-                    if (res == null)
-                        return;
-                    JSONArray list = res.getJSONArray("waystandlist");
-                    int last = list.length() - 1;
-                    JSONObject way = list.getJSONObject(last);
-                    String type = way.getString("type");
-                    if (!type.equals("WAY"))
-                        return;
-                    list = way.getJSONArray("events");
-                    last = list.length() - 1;
-                    String begin = list.getJSONObject(0).getString("eventTime");
-                    String end = list.getJSONObject(last).getString("eventTime");
-                    HttpTask gpsTask = new HttpTask() {
-                        @Override
-                        void result(JSONObject res) throws JSONException {
-                            if (res == null)
-                                return;
-                            track = null;
-                            JSONArray list = res.getJSONArray("gpslist");
-                            for (int i = 0; i < list.length(); i++) {
-                                JSONObject gps = list.getJSONObject(i);
-                                if (!gps.getBoolean("valid"))
-                                    return;
-                                if (track != null) {
-                                    track += "|";
-                                } else {
-                                    track = "";
-                                }
-                                track += gps.getString("latitude") + "," + gps.getString("longitude");
-                            }
-                            if (track != null) {
-                                webView.loadUrl("javascript:setTrack()");
-                            }
-                        }
-
-                        @Override
-                        void error() {
-                            // ignore
-                        }
-                    };
-                    gpsTask.execute(GPS_URL,
-                            preferences.getString(Names.KEY, ""),
-                            begin, end);
-                }
-
-                @Override
-                void error() {
-                    // ignore
-                }
-            };
-            long lastTime = preferences.getLong(Names.EventTime, 0);
-            httpTask.execute(WAYS_URL,
-                    preferences.getString(Names.KEY, ""),
-                    (lastTime - 24 * 60 * 60 * 1000) + "",
-                    lastTime + "");
-        }
-
     }
 
     @Override
     String loadURL() {
         webView.addJavascriptInterface(new JsInterface(), "android");
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        if (preferences.getString("map_type", "").equals("OSM"))
+            return "file:///android_asset/html/omaps.html";
         return "file:///android_asset/html/maps.html";
     }
 

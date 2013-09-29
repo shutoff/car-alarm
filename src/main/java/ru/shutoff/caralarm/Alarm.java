@@ -22,8 +22,11 @@ import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.support.v4.app.NotificationCompat;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -50,6 +53,26 @@ public class Alarm extends Activity {
         setContentView(R.layout.alarm);
         tvAlarm = (TextView) findViewById(R.id.text_alarm);
         imgPhoto = (ImageView) findViewById(R.id.photo);
+
+        Button btn = (Button) findViewById(R.id.alarm);
+        btn.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        v.setBackgroundResource(R.drawable.pressed);
+                        break;
+                    case MotionEvent.ACTION_UP: {
+                        showMain();
+                        break;
+                    }
+                    case MotionEvent.ACTION_CANCEL:
+                        v.setBackgroundResource(R.drawable.button);
+                        break;
+                }
+                return true;
+            }
+        });
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         String number = preferences.getString(Names.PHONE, "");
@@ -89,6 +112,12 @@ public class Alarm extends Activity {
             }
         }
         process(getIntent());
+    }
+
+    void showMain() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     @Override
