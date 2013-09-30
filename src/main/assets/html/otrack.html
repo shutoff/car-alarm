@@ -108,20 +108,32 @@ function initialize() {
             });
         })(i);
     }
+}
+
+var point_info = null;
+var tracks;
+
+function showTrack() {
+    if (tracks){
+        for (var i in tracks){
+            map.removeLayer(tracks[i]);
+        }
+    }
+    tracks = [];
+    var traffic = android.traffic();
     for (var i in points){
         var p = points[i];
         var line = L.polyline(p.points,
             {
-                color: colors[p.index][1],
+                color: traffic ? colors[p.index][1] : '#000080',
                 weight: 4,
                 opacity: 1
             })
             .addTo(map);
+        tracks.push(line);
         line.on('click', showPointInfo);
     }
 }
-
-var point_info = null;
 
 function showPointInfo(event) {
     var delta = 1000;

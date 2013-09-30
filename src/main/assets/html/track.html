@@ -29,6 +29,8 @@
 
 var map;
 var parts;
+var points;
+var tracks;
 
 var colors =
 [
@@ -51,7 +53,7 @@ function initialize() {
     var max_lon = -180;
 
     parts = (track_data+"").split('|');
-    var points = [];
+    points = [];
     var markers = [];
 
     for (var i in parts){
@@ -123,21 +125,34 @@ function initialize() {
             });
         })(i);
     }
+    showTrack();
+}
+
+var point_info = null;
+
+function showTrack() {
+    if (tracks != null){
+        for (var i in tracks){
+            tracks[i].setMap(null);
+        }
+    }
+    tracks = [];
+
+    var traffic = android.traffic();
     for (var i in points){
         var p = points[i];
         var track = new google.maps.Polyline({
             path: p.points,
-            strokeColor: colors[p.index][1],
+            strokeColor: traffic ? colors[p.index][1] : '#000080',
             strokeOpacity: 1.0,
             strokeWeight: 3,
             geodesic: true
         });
         track.setMap(map);
+        tracks.push(track);
         google.maps.event.addListener(track, 'click', showPointInfo);
     }
 }
-
-var point_info = null;
 
 function showPointInfo(event) {
     if (point_info != null){

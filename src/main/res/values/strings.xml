@@ -86,4 +86,5 @@
     </array>
     <string name="kmh">kmh</string>
     <string name="close">Close</string>
+    <string name="traffic">Show speed</string>
 </resources>

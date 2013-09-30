@@ -22,6 +22,7 @@ import java.io.OutputStreamWriter;
 public class TrackView extends WebViewActivity {
 
     String track;
+    SharedPreferences preferences;
 
     class JsInterface {
 
@@ -41,16 +42,20 @@ public class TrackView extends WebViewActivity {
         }
 
         @JavascriptInterface
-        public void kmh() {
-            getString(R.string.kmh);
+        public String kmh() {
+            return getString(R.string.kmh);
         }
 
+        @JavascriptInterface
+        public boolean traffic() {
+            return preferences.getBoolean("traffic", true);
+        }
     }
 
     @Override
     String loadURL() {
         webView.addJavascriptInterface(new JsInterface(), "android");
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
         if (preferences.getString("map_type", "").equals("OSM"))
             return "file:///android_asset/html/otrack.html";
         return "file:///android_asset/html/track.html";
@@ -77,6 +82,14 @@ public class TrackView extends WebViewActivity {
                 break;
             }
             case R.id.share: {
+                webView.loadUrl("javascript:shareTrack()");
+                break;
+            }
+            case R.id.traffic: {
+                boolean traffic = !preferences.getBoolean("traffic", true);
+                SharedPreferences.Editor ed = preferences.edit();
+                ed.putBoolean("traffic", traffic);
+                ed.commit();
                 webView.loadUrl("javascript:shareTrack()");
                 break;
             }
