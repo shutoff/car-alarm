@@ -1,130 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="ru.shutoff.caralarm"
+    package="ru.shutoff.caralarm"
     android:versionCode="12"
     android:versionName="1.0.9">
 
-<uses-sdk
-            android:minSdkVersion="7"
-            android:targetSdkVersion="16"/>
+    <uses-sdk
+        android:minSdkVersion="7"
+        android:targetSdkVersion="16" />
 
-    <uses-permission android:name="android.permission.READ_CONTACTS"/>
-    <uses-permission android:name="android.permission.RECEIVE_SMS"/>
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.SEND_SMS"/>
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
-            android:allowBackup="true"
-            android:icon="@drawable/ic_launcher"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme">
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
 
         <activity
-                android:name="MainActivity"
-                android:theme="@style/Theme.AppCompat"
-                android:label="@string/app_name">
+            android:name="MainActivity"
+            android:theme="@style/Theme.AppCompat"
+            android:label="@string/app_name">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
-                android:name="TracksActivity"
-                android:theme="@style/Theme.AppCompat"
-                android:label="@string/app_name">
-        </activity>
+            android:name="TracksActivity"
+            android:theme="@style/Theme.AppCompat"
+            android:label="@string/app_name"></activity>
 
         <activity
-                android:name="Preferences"
-                android:label="@string/app_name">
-        </activity>
+            android:name="EventsActivity"
+            android:theme="@style/Theme.AppCompat"
+            android:label="@string/app_name"></activity>
 
         <activity
-                android:name="MapView"
-                android:theme="@style/Theme.AppCompat"
-                android:label="@string/app_name">
-        </activity>
+            android:name="Preferences"
+            android:label="@string/app_name"></activity>
 
         <activity
-                android:name="TrackView"
-                android:theme="@style/Theme.AppCompat"
-                android:label="@string/app_name">
-        </activity>
+            android:name="MapView"
+            android:theme="@style/Theme.AppCompat"
+            android:label="@string/app_name"></activity>
 
         <activity
-                android:name="About"
-                android:theme="@style/Theme.AppCompat"
-                android:label="@string/app_name">
-        </activity>
+            android:name="TrackView"
+            android:theme="@style/Theme.AppCompat"
+            android:label="@string/app_name"></activity>
 
         <activity
-                android:name="Alarm"
-                android:configChanges="keyboard|keyboardHidden|orientation"
-                android:launchMode="singleTop">
-        </activity>
+            android:name="About"
+            android:theme="@style/Theme.AppCompat"
+            android:label="@string/app_name"></activity>
 
         <activity
-                android:name="ApiKeyDialog"
-                android:theme="@android:style/Theme.Dialog"
-                android:label="@string/api_key">
-        </activity>
+            android:name="Alarm"
+            android:configChanges="keyboard|keyboardHidden|orientation"
+            android:launchMode="singleTop"></activity>
 
         <activity
-                android:name="CCodeDialog"
-                android:theme="@android:style/Theme.Dialog"
-                android:label="@string/ccode">
-        </activity>
+            android:name="ApiKeyDialog"
+            android:theme="@android:style/Theme.Dialog"
+            android:label="@string/api_key"></activity>
 
         <activity
-                android:name="SetPasswordDialog"
-                android:theme="@android:style/Theme.Dialog"
-                android:label="@string/password">
-        </activity>
+            android:name="CCodeDialog"
+            android:theme="@android:style/Theme.Dialog"
+            android:label="@string/ccode"></activity>
 
         <activity
-                android:name="PasswordDialog"
-                android:theme="@android:style/Theme.Dialog"
-                android:label="@string/input_password">
-        </activity>
+            android:name="SetPasswordDialog"
+            android:theme="@android:style/Theme.Dialog"
+            android:label="@string/password"></activity>
 
         <activity
-                android:name="Actions">
-        </activity>
+            android:name="PasswordDialog"
+            android:theme="@android:style/Theme.Dialog"
+            android:label="@string/input_password"></activity>
+
+        <activity android:name="Actions"></activity>
 
         <activity
-                android:label="@string/app_name"
-                android:name="ContactsPickerActivity">
-        </activity>
+            android:label="@string/app_name"
+            android:name="ContactsPickerActivity"></activity>
 
         <receiver android:name="SmsMonitor">
             <intent-filter android:priority="6000">
-                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
 
-        <service android:name="StatusService"/>
-        <service android:name="WidgetService"/>
+        <service android:name="StatusService" />
+        <service android:name="WidgetService" />
 
         <receiver android:name="CarWidget">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-                <action android:name="android.intent.action.TIMEZONE_CHANGED"/>
-                <action android:name="ru.shutoff.caralarm.UPDATE"/>
-                <action android:name="ru.shutoff.caralarm.NO_UPDATE"/>
-                <action android:name="ru.shutoff.caralarm.ERROR"/>
-                <action android:name="ru.shutoff.caralarm.START"/>
-                <action android:name="ru.shutoff.caralarm.START_UPDATE"/>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="ru.shutoff.caralarm.UPDATE" />
+                <action android:name="ru.shutoff.caralarm.NO_UPDATE" />
+                <action android:name="ru.shutoff.caralarm.ERROR" />
+                <action android:name="ru.shutoff.caralarm.START" />
+                <action android:name="ru.shutoff.caralarm.START_UPDATE" />
             </intent-filter>
             <meta-data
-                    android:name="android.appwidget.provider"
-                    android:resource="@xml/widget_metadata">
-            </meta-data>
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_metadata"></meta-data>
         </receiver>
 
     </application>

@@ -54,9 +54,6 @@ public class MainActivity extends ActionBarActivity {
 
     boolean active;
 
-    /**
-     * Called when the activity is first created.
-     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -259,6 +256,11 @@ public class MainActivity extends ActionBarActivity {
             }
             case R.id.tracks: {
                 Intent intent = new Intent(this, TracksActivity.class);
+                startActivity(intent);
+                break;
+            }
+            case R.id.events: {
+                Intent intent = new Intent(this, EventsActivity.class);
                 startActivity(intent);
                 break;
             }
