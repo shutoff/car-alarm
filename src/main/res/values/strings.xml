@@ -87,4 +87,5 @@
     <string name="kmh">kmh</string>
     <string name="close">Close</string>
     <string name="traffic">Show speed</string>
+    <string name="traffic_summary">Show speed as color track</string>
 </resources>

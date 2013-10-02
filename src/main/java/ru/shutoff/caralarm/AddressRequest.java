@@ -121,16 +121,24 @@ abstract public class AddressRequest {
 
         @Override
         void result(JSONObject res) throws JSONException {
+            JSONObject address = res.getJSONObject("address");
             String[] parts = res.getString("display_name").split(", ");
             String[] result = new String[parts.length - 2];
-            int i = 0;
-            if (parts[0].substring(0, 1).matches("[1-9]")) {
-                result[0] = parts[1];
-                result[1] = parts[0];
-                i = 2;
-            }
-            for (; i < parts.length - 2; i++)
+            for (int i = 0; i < result.length; i++) {
                 result[i] = parts[i];
+            }
+            try {
+                String house_number = address.getString("house_number");
+                for (int i = 0; i < result.length - 1; i++) {
+                    if (result[i].equals(house_number)) {
+                        result[i] = result[i + 1];
+                        result[i + 1] = house_number;
+                        break;
+                    }
+                }
+            } catch (Exception ex) {
+                // ignore
+            }
             addressResult(result);
         }
 

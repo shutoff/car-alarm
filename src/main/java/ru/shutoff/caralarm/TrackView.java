@@ -47,8 +47,8 @@ public class TrackView extends WebViewActivity {
         }
 
         @JavascriptInterface
-        public boolean traffic() {
-            return preferences.getBoolean("traffic", true);
+        public String traffic() {
+            return preferences.getBoolean("traffic", true) ? "1" : "";
         }
     }
 
@@ -82,14 +82,6 @@ public class TrackView extends WebViewActivity {
                 break;
             }
             case R.id.share: {
-                webView.loadUrl("javascript:shareTrack()");
-                break;
-            }
-            case R.id.traffic: {
-                boolean traffic = !preferences.getBoolean("traffic", true);
-                SharedPreferences.Editor ed = preferences.edit();
-                ed.putBoolean("traffic", traffic);
-                ed.commit();
                 webView.loadUrl("javascript:shareTrack()");
                 break;
             }

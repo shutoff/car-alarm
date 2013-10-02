@@ -54,6 +54,11 @@
         android:entryValues="@array/map_types"
         android:defaultValue="Google" />
 
+    <CheckBoxPreference
+        android:title="@string/traffic"
+        android:summary="@string/traffic_summary"
+        android:key="traffic" />
+
     <Preference
         android:title="@string/about"
         android:summary="@string/version"
