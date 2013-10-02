@@ -235,7 +235,6 @@ public class EventsActivity extends ActionBarActivity {
 
     void changeDate(Date date) {
         LocalDate d = new LocalDate(date);
-        setTitle(d.toString("d MMMM"));
         dialogCaldroidFragment.dismiss();
         dialogCaldroidFragment = null;
         progress.setVisibility(View.VISIBLE);
@@ -289,6 +288,7 @@ public class EventsActivity extends ActionBarActivity {
         }
 
         void update(LocalDate d) {
+            setTitle(d.toString("d MMMM"));
             date = d;
             current = d;
             DateTime start = date.toDateTime(new LocalTime(0, 0));
