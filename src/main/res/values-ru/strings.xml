@@ -83,6 +83,5 @@
     <string name="map_type">Использовать карты</string>
     <string name="kmh">км/ч</string>
     <string name="close">Завершить</string>
-    <string name="traffic">Показывать скорости</string>
-    <string name="traffic_summary">Отображать скорость как цветной трек</string>
+    <string name="traffic">Показывть скорости</string>
 </resources>
