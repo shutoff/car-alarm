@@ -10,61 +10,88 @@
         padding: 0;
         height: 100%;
         }
-        #panel {
-        position: absolute;
-        top: 5px;
-        left: 50%;
-        margin-left: -180px;
-        z-index: 5;
-        background-color: #fff;
-        padding: 5px;
-        border: 1px solid #999;
-        }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
     <script>
 
 var map;
-var marker;
+var markers;
+var infos;
 
 function initialize() {
-    var latitude = android.getLatitude();
-    var longitude = android.getLongitude();
+    var data =  android.getData();
+    console.log(data);
+    var cars = data.split('|');
+    var car_data = cars[0].split(';');
+
     var mapOptions = {
         zoom: 15,
-        center: new google.maps.LatLng(latitude, longitude),
+        center: new google.maps.LatLng(car_data[1], car_data[2]),
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         streetViewControl: false,
         mapTypeControl: false
     };
     map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
-    marker = new google.maps.Marker({
-        position: new google.maps.LatLng(latitude, longitude),
-        map: map
-    });
-    var info = new google.maps.InfoWindow({
-        content: android.getAddress()
-    });
-    google.maps.event.addListener(marker, 'click', function(){
-        info.open(map, marker);
-    });
-    info.open(map, marker);
+
+    markers = [];
+    infos = [];
+
+    for (var i in cars){
+        (function(i){
+            var car_data = cars[i].split(';');
+            var lat = car_data[1];
+            var lng = car_data[2];
+            var text = createText(car_data);
+
+            var marker = new google.maps.Marker({
+                position: new google.maps.LatLng(lat, lng),
+                map: map
+            });
+            var info = new google.maps.InfoWindow({
+                content: text
+            });
+            google.maps.event.addListener(marker, 'click', function(){
+                info.open(map, marker);
+            });
+            if (i == 0)
+                info.open(map, marker);
+            markers[i] = marker;
+            infos[i] = info;
+        })(i);
+    }
 }
 
 function update() {
     if (map == null)
         return;
-    var latitude = android.getLatitude();
-    var longitude = android.getLongitude();
-    marker.setPosition(new google.maps.LatLng(latitude, longitude));
+
+    var data =  android.getData();
+    var cars = data.split('|');
+
+    for (var i in cars){
+        var car_data = cars[i].split(';');
+        var lat = car_data[1];
+        var lng = car_data[2];
+        var text = createText(car_data);
+        markers[i].setPosition(new google.maps.LatLng(lat, lng));
+        var info = infos[i];
+        info.setContent(text);
+    }
+}
+
+function createText(data) {
+    var res = data[3];
+    if (data[4])
+        res = '<b>' + data[4] + '</b> ' + res;
+    if (data[5])
+        res += '<br/>' + data[5];
+    return res;
 }
 
 function center() {
     if (map == null)
         return;
-    var latitude  = android.getLatitude();
-    var longitude = android.getLongitude();
-    map.setCenter(new google.maps.LatLng(latitude, longitude));
+    map.setCenter(markers[0].getPosition());
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);

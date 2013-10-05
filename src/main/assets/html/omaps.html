@@ -16,15 +16,16 @@
     <script>
 
 var map;
-var marker;
-var info;
+var markers;
+var infos;
 
 function initialize() {
-    var latitude = android.getLatitude();
-    var longitude = android.getLongitude();
+    var data =  android.getData();
+    var cars = data.split('|');
+    var car_data = cars[0].split(';');
 
     map = L.map('map', {
-        center: [latitude, longitude],
+        center: [car_data[1], car_data[2]],
         zoom: 15
     });
 
@@ -32,34 +33,61 @@ function initialize() {
 	    maxZoom: 19
 	}).addTo(map);
 
-    var address = android.getAddress();
+    markers = [];
+    infos = [];
 
-    marker = L.marker([latitude, longitude]).addTo(map);
-    marker.on('click', function(){
-        info.addTo(map);
-    });
+    for (var i in cars){
+        (function(i) {
+            var car_data = cars[i].split(';');
+            var lat = car_data[1];
+            var lng = car_data[2];
+            var text = createText(car_data);
 
-    info = L.popup()
-        .setLatLng([latitude, longitude])
-        .setContent(address)
-        .addTo(map);
+            var marker = L.marker([lat, lng]).addTo(map);
+            var info = L.popup()
+                .setLatLng([lat, lng])
+                .setContent(text);
+            marker.on('click', function(){
+                info.addTo(map);
+            });
+            if (i == 0)
+                info.addTo(map);
+            markers[i] = marker;
+            infos[i] = info;
+        })(i);
+    }
+}
 
+function createText(data) {
+    var res = data[3];
+    if (data[4])
+        res = '<b>' + data[4] + '</b> ' + res;
+    if (data[5])
+        res += '<br/>' + data[5];
+    return res;
 }
 
 function update() {
     if (map == null)
         return;
-    var latitude = android.getLatitude();
-    var longitude = android.getLongitude();
-    marker.setLatLng([latitude, longitude]);
+
+    var data =  android.getData();
+    var cars = data.split('|');
+    for (var i in cars){
+        var car_data = cars[i].split(';');
+        var lat = car_data[1];
+        var lng = car_data[2];
+        var text = createText(car_data);
+        markers[i].setLatLng([lat, lng]);
+        infos[i].setLatLng([lat, lng]).setContent(text);
+    }
 }
 
 function center() {
     if (map == null)
         return;
-    var latitude  = android.getLatitude();
-    var longitude = android.getLongitude();
-    map.setView([ latitude, longitude ]);
+    var pos = markers[0].getLatLng();
+    map.setView([ pos.lat, pos.lng ]);
 }
 
 

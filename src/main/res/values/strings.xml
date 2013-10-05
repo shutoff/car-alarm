@@ -172,4 +172,5 @@
     <string name="add">Add</string>
     <string name="cancel">Cancel</string>
     <string name="select_car">Select car</string>
+    <string name="speed">Speed: %.2f km/h</string>
 </resources>
