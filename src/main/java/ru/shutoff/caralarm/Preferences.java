@@ -215,4 +215,14 @@ public class Preferences extends PreferenceActivity {
         return car_id;
     }
 
+    static String getTemperature(SharedPreferences preferences, String car_id) {
+        try {
+            double v = Double.parseDouble(preferences.getString(Names.TEMPERATURE + car_id, ""));
+            v += preferences.getInt(Names.TEMP_SIFT + car_id, 0);
+            return v + " \u00B0C";
+        } catch (Exception ex) {
+            return "? \u00B0C";
+        }
+    }
+
 }

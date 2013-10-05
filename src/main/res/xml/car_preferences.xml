@@ -32,4 +32,10 @@
         android:summary="@string/rele1_summary"
         android:key="rele1" />
 
+    <ru.shutoff.caralarm.SeekBarPreference
+        android:title="@string/temp_correct"
+        android:key="tmp_shift"
+        android:max="10"
+        android:text=" °C" />
+
 </PreferenceScreen>

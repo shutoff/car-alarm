@@ -21,6 +21,7 @@ public class CarPreferences extends PreferenceActivity {
     Preference phonePref;
     Preference apiPref;
     EditTextPreference namePref;
+    SeekBarPreference shiftPref;
 
     ProgressDialog smsProgress;
 
@@ -49,6 +50,7 @@ public class CarPreferences extends PreferenceActivity {
         }
         setTitle(title);
         SharedPreferences.Editor ed = sPref.edit();
+        ed.putInt("tmp_shift", sPref.getInt(Names.TEMP_SIFT + car_id, 0));
         ed.putString("name_", name);
         ed.commit();
 
@@ -100,6 +102,21 @@ public class CarPreferences extends PreferenceActivity {
             }
         });
 
+        shiftPref = (SeekBarPreference) findPreference("tmp_shift");
+        shiftPref.setMin(-10);
+        shiftPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                if (newValue instanceof Integer) {
+                    int v = (Integer) newValue;
+                    SharedPreferences.Editor ed = sPref.edit();
+                    ed.putInt(Names.TEMP_SIFT + car_id, v);
+                    ed.commit();
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {

@@ -47,6 +47,7 @@ public class FetchService extends Service {
     static final String STATUS_URL = "http://api.car-online.ru/v2?get=lastinfo&skey=$1&content=json";
     static final String EVENTS_URL = "http://api.car-online.ru/v2?get=events&skey=$1&begin=$2&end=$3&content=json";
     static final String TEMP_URL = "http://api.car-online.ru/v2?get=temperaturelist&skey=$1&begin=$2&end=$3&content=json";
+    static final String BRK_URL = "http://api.car-online.ru/v2?get=brklist&skey=$1&begin=$2&end=$3&median=1&content=json";
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -263,6 +264,7 @@ public class FetchService extends Service {
             }
 
             new TemperatureRequest(car_id);
+            new BrkRequest(car_id);
         }
 
         @Override
@@ -305,6 +307,38 @@ public class FetchService extends Service {
             long eventTime = preferences.getLong(Names.LAST_EVENT + car_id, 0);
             execute(TEMP_URL, api_key,
                     (eventTime - 24 * 60 * 60 * 1000) + "",
+                    eventTime + "");
+        }
+    }
+
+
+    class BrkRequest extends ServerRequest {
+
+        BrkRequest(String id) {
+            super("B", id);
+        }
+
+        @Override
+        void background(JSONObject res) throws JSONException {
+            if (res == null)
+                return;
+            JSONArray list = res.getJSONArray("brklist");
+            for (int i = 0; i < list.length(); i++) {
+                JSONObject data = list.getJSONObject(i);
+                if (data.getInt("enterNumber") == 1) {
+                    SharedPreferences.Editor ed = preferences.edit();
+                    ed.putString(Names.FUEL + car_id, data.getString("valueData"));
+                    ed.commit();
+                    break;
+                }
+            }
+        }
+
+        @Override
+        void exec(String api_key) {
+            long eventTime = preferences.getLong(Names.LAST_EVENT + car_id, 0);
+            execute(BRK_URL, api_key,
+                    (eventTime - 2 * 60 * 60 * 1000) + "",
                     eventTime + "");
         }
     }
