@@ -21,8 +21,10 @@ public class State {
         logFile = new File(logFile, "car.log");
         if (!logFile.exists()) {
             try {
-                logFile.createNewFile();
+                if (!logFile.createNewFile())
+                    return;
             } catch (IOException e) {
+                // ignore
             }
         }
         try {
@@ -35,6 +37,7 @@ public class State {
             buf.newLine();
             buf.close();
         } catch (IOException e) {
+            // ignore
         }
     }
 
@@ -46,6 +49,5 @@ public class State {
         String s = sw.toString();
         appendLog(s);
     }
-
 
 }

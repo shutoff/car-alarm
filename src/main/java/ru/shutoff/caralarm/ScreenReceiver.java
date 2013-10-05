@@ -11,7 +11,7 @@ public class ScreenReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
-            Intent i = new Intent(context, StatusService.class);
+            Intent i = new Intent(context, FetchService.class);
             context.startService(i);
         }
         if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
@@ -20,7 +20,7 @@ public class ScreenReceiver extends BroadcastReceiver {
             NetworkInfo ni = (NetworkInfo) intent.getExtras().get(ConnectivityManager.EXTRA_NETWORK_INFO);
             if ((ni == null) || !ni.isConnected())
                 return;
-            Intent i = new Intent(context, StatusService.class);
+            Intent i = new Intent(context, FetchService.class);
             context.startService(i);
         }
     }

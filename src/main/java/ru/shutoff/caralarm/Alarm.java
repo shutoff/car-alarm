@@ -42,6 +42,8 @@ public class Alarm extends Activity {
     MediaPlayer player;
     VolumeTask volumeTask;
     Timer timer;
+    String car_id;
+    SharedPreferences preferences;
 
     /**
      * Called when the activity is first created.
@@ -62,10 +64,9 @@ public class Alarm extends Activity {
                     case MotionEvent.ACTION_DOWN:
                         v.setBackgroundResource(R.drawable.pressed);
                         break;
-                    case MotionEvent.ACTION_UP: {
+                    case MotionEvent.ACTION_UP:
                         showMain();
                         break;
-                    }
                     case MotionEvent.ACTION_CANCEL:
                         v.setBackgroundResource(R.drawable.button);
                         break;
@@ -74,48 +75,15 @@ public class Alarm extends Activity {
             }
         });
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        String number = preferences.getString(Names.PHONE, "");
+        preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        car_id = Preferences.getCar(preferences, getIntent().getStringExtra(Names.ID));
 
-        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
-
-        ContentResolver contentResolver = getContentResolver();
-        Cursor contactLookup = contentResolver.query(uri, new String[]{BaseColumns._ID,
-                ContactsContract.PhoneLookup.DISPLAY_NAME}, null, null, null);
-
-        try {
-            if (contactLookup != null) {
-                State.appendLog("count " + contactLookup.getCount());
-                if (contactLookup.getCount() > 0){
-                    contactLookup.moveToNext();
-                    String contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
-                    Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(contactId));
-                    State.appendLog("uri " + contactUri);
-                    Uri displayPhotoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
-                    AssetFileDescriptor fd =
-                            getContentResolver().openAssetFileDescriptor(displayPhotoUri, "r");
-                    InputStream inputStream = fd.createInputStream();
-                    if (inputStream != null) {
-                        Bitmap photo = BitmapFactory.decodeStream(inputStream);
-                        State.appendLog("set bitmap");
-                        imgPhoto.setImageBitmap(photo);
-                        inputStream.close();
-                    }
-                }
-            }
-        } catch (Exception e) {
-            State.print(e);
-            // ignore
-        } finally {
-            if (contactLookup != null) {
-                contactLookup.close();
-            }
-        }
         process(getIntent());
     }
 
     void showMain() {
         Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra(Names.ID, car_id);
         startActivity(intent);
         finish();
     }
@@ -188,11 +156,57 @@ public class Alarm extends Activity {
     }
 
     void process(Intent intent) {
+        car_id = Preferences.getCar(preferences, intent.getStringExtra(Names.ID));
+        String number = preferences.getString(Names.CAR_PHONE + car_id, "");
+        if (number.length() > 0) {
+
+            Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
+
+            Cursor contactLookup = null;
+            try {
+                ContentResolver contentResolver = getContentResolver();
+                contactLookup = contentResolver.query(uri, new String[]{BaseColumns._ID,
+                        ContactsContract.PhoneLookup.DISPLAY_NAME}, null, null, null);
+
+                if (contactLookup != null) {
+                    if (contactLookup.getCount() > 0) {
+                        contactLookup.moveToNext();
+                        String contactId = contactLookup.getString(contactLookup.getColumnIndex(BaseColumns._ID));
+                        Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(contactId));
+                        Uri displayPhotoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
+                        AssetFileDescriptor fd =
+                                getContentResolver().openAssetFileDescriptor(displayPhotoUri, "r");
+                        InputStream inputStream = fd.createInputStream();
+                        if (inputStream != null) {
+                            Bitmap photo = BitmapFactory.decodeStream(inputStream);
+                            imgPhoto.setImageBitmap(photo);
+                            inputStream.close();
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                // ignore
+            } finally {
+                if (contactLookup != null) {
+                    contactLookup.close();
+                }
+            }
+        }
+
         String alarm = intent.getStringExtra(Names.ALARM);
         if (alarm != null) {
-            SharedPreferences sPref = PreferenceManager.getDefaultSharedPreferences(this);
+            String[] cars = preferences.getString(Names.CARS, "").split(",");
+            if (cars.length > 1) {
+                String name = preferences.getString(Names.CAR_NAME, "");
+                if (name.length() == 0) {
+                    name = getString(R.string.car);
+                    if (car_id.length() > 0)
+                        name += " " + car_id;
+                }
+                alarm = name + "\n" + alarm;
+            }
             tvAlarm.setText(alarm);
-            String sound = sPref.getString(Names.ALARM, "");
+            String sound = preferences.getString(Names.ALARM, "");
             Uri uri = Uri.parse(sound);
             Ringtone ringtone = RingtoneManager.getRingtone(getBaseContext(), uri);
             if (ringtone == null)

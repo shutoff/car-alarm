@@ -3,12 +3,16 @@ package ru.shutoff.caralarm;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 
 public class WidgetService extends Service {
 
@@ -75,8 +79,18 @@ public class WidgetService extends Service {
                 }
             }
         }
-        Intent i = new Intent(this, StatusService.class);
-        startService(i);
+        ComponentName thisAppWidget = new ComponentName(getPackageName(), CarWidget.class.getName());
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
+        if (appWidgetManager != null) {
+            int ids[] = appWidgetManager.getAppWidgetIds(thisAppWidget);
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            for (int appWidgetID : ids) {
+                String car_id = preferences.getString(Names.WIDGET + appWidgetID, "");
+                Intent i = new Intent(this, FetchService.class);
+                i.putExtra(Names.ID, car_id);
+                startService(i);
+            }
+        }
         return START_STICKY;
     }
 

@@ -19,13 +19,13 @@ import android.telephony.SmsMessage;
 
 public class SmsMonitor extends BroadcastReceiver {
 
-    private static final String ACTION = "android.provider.Telephony.SMS_RECEIVED"; //$NON-NLS-1$
+    private static final String ACTION = "android.provider.Telephony.SMS_RECEIVED";
 
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent != null && intent.getAction() != null &&
                 ACTION.compareToIgnoreCase(intent.getAction()) == 0) {
-            Object[] pduArray = (Object[]) intent.getExtras().get("pdus"); //$NON-NLS-1$
+            Object[] pduArray = (Object[]) intent.getExtras().get("pdus");
             SmsMessage[] messages = new SmsMessage[pduArray.length];
             for (int i = 0; i < pduArray.length; i++) {
                 messages[i] = SmsMessage.createFromPdu((byte[]) pduArray[i]);
@@ -37,25 +37,28 @@ public class SmsMonitor extends BroadcastReceiver {
             }
             String body = bodyText.toString();
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-            String phone_config = digitsOnly(preferences.getString(Names.PHONE, ""));
-            if ((phone_config.length() > 0) && phone_config.equals(digitsOnly(sms_from))) {
-                processCarMessage(context, body);
-                abortBroadcast();
+            String[] cars = preferences.getString(Names.CARS, "").split(",");
+            for (String car : cars) {
+                String phone_config = digitsOnly(preferences.getString(Names.CAR_PHONE + car, ""));
+                if ((phone_config.length() > 0) && phone_config.equals(digitsOnly(sms_from))) {
+                    processCarMessage(context, body, car);
+                    abortBroadcast();
+                    return;
+                }
             }
 
             if (body.matches("[0-9A-Fa-f]{30}")) {
                 Intent keyIntent = new Intent(context, ApiKeyDialog.class);
                 keyIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                keyIntent.putExtra(Names.KEY, body); //$NON-NLS-1$
+                keyIntent.putExtra(Names.CAR_KEY, body);
                 context.startActivity(keyIntent);
                 abortBroadcast();
             }
         }
-
     }
 
     String digitsOnly(String phone) {
-        return phone.replaceAll("[^0-9]", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        return phone.replaceAll("[^0-9]", "");
     }
 
     static String[] notifications = {
@@ -78,12 +81,10 @@ public class SmsMonitor extends BroadcastReceiver {
             "ALARM Rogue"
     };
 
-    boolean processCarMessage(Context context, String body) {
-        State.appendLog("process car message " + body);
+    boolean processCarMessage(Context context, String body, String car_id) {
         if ((State.waitAnswer != null) && (body.substring(0, State.waitAnswer.length()).equalsIgnoreCase(State.waitAnswer))) {
             try {
                 State.waitAnswerPI.send(Names.ANSWER_OK);
-                State.appendLog("answer");
             } catch (CanceledException e) {
                 // ignore
             }
@@ -91,17 +92,15 @@ public class SmsMonitor extends BroadcastReceiver {
         }
         for (int i = 0; i < notifications.length; i++) {
             if (compare(body, notifications[i])) {
-                State.appendLog("notify " + i);
                 String[] msg = context.getString(R.string.notification).split("\\|");
-                showNotification(context, msg[i]);
+                showNotification(context, msg[i], car_id);
                 return true;
             }
         }
         for (int i = 0; i < alarms.length; i++) {
             if (compare(body, alarms[i])) {
-                State.appendLog("alarm " + i);
                 String[] msg = context.getString(R.string.alarm).split("\\|");
-                showAlarm(context, msg[i]);
+                showAlarm(context, msg[i], car_id);
                 return true;
             }
         }
@@ -114,11 +113,23 @@ public class SmsMonitor extends BroadcastReceiver {
         return body.substring(0, message.length()).equalsIgnoreCase(message);
     }
 
-    private void showNotification(Context context, String text) {
+    private void showNotification(Context context, String text, String car_id) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String title = "Car Alarm";
+        String[] cars = preferences.getString(Names.CARS, "").split(",");
+        if (cars.length > 1) {
+            title = preferences.getString(Names.CAR_NAME, "");
+            if (title.length() == 0) {
+                title = context.getString(R.string.car);
+                if (car_id.length() > 0)
+                    title += " " + car_id;
+            }
+        }
+
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(context)
                         .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle("Car Alarm")
+                        .setContentTitle(title)
                         .setContentText(text);
 
         Intent notificationIntent = new Intent(context, MainActivity.class);
@@ -128,7 +139,6 @@ public class SmsMonitor extends BroadcastReceiver {
                 PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(contentIntent);
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         int id = preferences.getInt(Names.IDS, 0);
         id++;
         SharedPreferences.Editor ed = preferences.edit();
@@ -162,12 +172,12 @@ public class SmsMonitor extends BroadcastReceiver {
         }
     }
 
-    private void showAlarm(Context context, String text) {
-        State.appendLog("show alarm " + text);
+    private void showAlarm(Context context, String text, String car_id) {
         Intent alarmIntent = new Intent(context, Alarm.class);
         alarmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         alarmIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         alarmIntent.putExtra(Names.ALARM, text);
+        alarmIntent.putExtra(Names.ID, car_id);
         context.startActivity(alarmIntent);
     }
 

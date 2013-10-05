@@ -3,14 +3,9 @@
     android:key="root">
 
     <Preference
-        android:summary="@string/api_key_summary"
-        android:title="@string/api_key"
-        android:key="api_key" />
-
-    <Preference
-        android:summary="@string/phone_number_summary"
-        android:title="@string/phone_number"
-        android:key="phone" />
+        android:title="@string/cars"
+        android:summary="@string/cars_sum"
+        android:key="cars" />
 
     <Preference
         android:title="@string/alarm_sound"
@@ -28,24 +23,9 @@
         android:key="notify" />
 
     <Preference
-        android:title="@string/sms_mode"
-        android:summary="@string/sms_mode_summary"
-        android:key="sms_mode" />
-
-    <Preference
         android:title="@string/password"
         android:summary="@string/password_summary"
         android:key="password" />
-
-    <CheckBoxPreference
-        android:title="@string/autostart"
-        android:summary="@string/autostart_summary"
-        android:key="autostart" />
-
-    <CheckBoxPreference
-        android:title="@string/rele1"
-        android:summary="@string/rele1_summary"
-        android:key="rele1" />
 
     <ListPreference
         android:key="map_type"

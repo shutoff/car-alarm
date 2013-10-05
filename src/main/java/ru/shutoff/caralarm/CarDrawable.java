@@ -117,17 +117,17 @@ public class CarDrawable {
         return bitmap;
     }
 
-    void update(SharedPreferences preferences) {
+    void update(SharedPreferences preferences, String car_id) {
         int color = UNKNOWN;
         int alarm = UNKNOWN;
 
-        long last = preferences.getLong(Names.EventTime, 0);
+        long last = preferences.getLong(Names.EVENT_TIME + car_id, 0);
         Date now = new Date();
         if (last > now.getTime() - 24 * 60 * 60 * 1000) {
-            if (!preferences.contains(Names.Guard)) {
+            if (!preferences.contains(Names.GUARD + car_id)) {
                 dLock.setAlpha(0);
                 dUnlock.setAlpha(0);
-            } else if (preferences.getBoolean(Names.Guard, false)) {
+            } else if (preferences.getBoolean(Names.GUARD + car_id, false)) {
                 dLock.setAlpha(255);
                 dUnlock.setAlpha(0);
                 color = GUARD;
@@ -143,14 +143,14 @@ public class CarDrawable {
             dUnlock.setAlpha(0);
         }
 
-        if (preferences.getBoolean(Names.ZoneAccessory, false)) {
+        if (preferences.getBoolean(Names.ZONE_ACCESSORY + car_id, false)) {
             dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             dCar.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
         Drawable d;
-        if (preferences.getBoolean(Names.Input1, false)) {
+        if (preferences.getBoolean(Names.INPUT1 + car_id, false)) {
             dDoors.setAlpha(0);
             dDoorsOpen.setAlpha(255);
             d = dDoorsOpen;
@@ -159,13 +159,13 @@ public class CarDrawable {
             dDoors.setAlpha(255);
             d = dDoors;
         }
-        if (preferences.getBoolean(Names.ZoneDoor, false)) {
+        if (preferences.getBoolean(Names.ZONE_DOOR + car_id, false)) {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
-        if (preferences.getBoolean(Names.Input4, false)) {
+        if (preferences.getBoolean(Names.INPUT4 + car_id, false)) {
             dHood.setAlpha(0);
             dHoodOpen.setAlpha(255);
             d = dHoodOpen;
@@ -174,13 +174,13 @@ public class CarDrawable {
             dHood.setAlpha(255);
             d = dHood;
         }
-        if (preferences.getBoolean(Names.ZoneHood, false)) {
+        if (preferences.getBoolean(Names.ZONE_HOOD + car_id, false)) {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
-        if (preferences.getBoolean(Names.Input2, false)) {
+        if (preferences.getBoolean(Names.INPUT2 + car_id, false)) {
             dTrunk.setAlpha(0);
             dTrunkOpen.setAlpha(255);
             d = dTrunkOpen;
@@ -189,16 +189,16 @@ public class CarDrawable {
             dTrunk.setAlpha(255);
             d = dTrunk;
         }
-        if (preferences.getBoolean(Names.ZoneTrunk, false)) {
+        if (preferences.getBoolean(Names.ZONE_TRUNK + car_id, false)) {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
         } else {
             d.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
         }
 
-        if (preferences.getBoolean(Names.Input3, false) ||
-                preferences.getBoolean(Names.Engine, false)) {
+        if (preferences.getBoolean(Names.INPUT3 + car_id, false) ||
+                preferences.getBoolean(Names.ENGINE + car_id, false)) {
             dIgnition.setAlpha(255);
-            if (preferences.getBoolean(Names.ZoneIgnition, false)) {
+            if (preferences.getBoolean(Names.ZONE_IGNITION + car_id, false)) {
                 dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(alarm)));
             } else {
                 dIgnition.setColorFilter(new ColorMatrixColorFilter(createMatrix(color)));
@@ -206,7 +206,7 @@ public class CarDrawable {
         } else {
             dIgnition.setAlpha(0);
         }
-        if (preferences.getBoolean(Names.Valet, false)) {
+        if (preferences.getBoolean(Names.VALET + car_id, false)) {
             dValet.setAlpha(255);
         } else {
             dValet.setAlpha(0);

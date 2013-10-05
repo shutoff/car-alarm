@@ -24,6 +24,8 @@ public class Actions extends PreferenceActivity {
     ProgressDialog smsProgress;
     SharedPreferences sPref;
 
+    String car_id;
+
     /**
      * Called when the activity is first created.
      */
@@ -34,10 +36,14 @@ public class Actions extends PreferenceActivity {
 
         addPreferencesFromResource(R.xml.actions);
 
+        car_id = getIntent().getStringExtra(Names.ID);
+        if (car_id == null)
+            car_id = "";
+
         PreferenceScreen screen = getPreferenceScreen();
         sPref = PreferenceManager.getDefaultSharedPreferences(this);
 
-        Preference pref = (Preference) findPreference("internet_on");
+        Preference pref = findPreference("internet_on");
         pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
                 sendSMS("INTERNET ALL", "INTERNET ALL OK", getString(R.string.internet_on));
@@ -45,7 +51,7 @@ public class Actions extends PreferenceActivity {
             }
         });
 
-        pref = (Preference) findPreference("internet_off");
+        pref = findPreference("internet_off");
         pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
                 sendSMS("INTERNET OFF", "INTERNET OFF OK", getString(R.string.internet_off));
@@ -53,8 +59,8 @@ public class Actions extends PreferenceActivity {
             }
         });
 
-        pref = (Preference) findPreference("rele1");
-        if (sPref.getBoolean("rele1", false)) {
+        pref = findPreference("rele1");
+        if (getBoolPref(Names.CAR_RELE1)) {
             pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
                 public boolean onPreferenceClick(Preference preference) {
                     sendSMS("REL1 IMPULS", "REL1 IMPULS OK", getString(R.string.rele1));
@@ -65,8 +71,8 @@ public class Actions extends PreferenceActivity {
             screen.removePreference(pref);
         }
 
-        pref = (Preference) findPreference("motor_on");
-        if (sPref.getBoolean("autostart", false)) {
+        pref = findPreference("motor_on");
+        if (getBoolPref(Names.CAR_AUTOSTART)) {
             pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
                 public boolean onPreferenceClick(Preference preference) {
                     sendSMS("MOTOR ON", "MOTOR ON OK", getString(R.string.motor_on));
@@ -77,8 +83,8 @@ public class Actions extends PreferenceActivity {
             screen.removePreference(pref);
         }
 
-        pref = (Preference) findPreference("motor_off");
-        if (sPref.getBoolean("autostart", false)) {
+        pref = findPreference("motor_off");
+        if (getBoolPref(Names.CAR_AUTOSTART)) {
             pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
                 public boolean onPreferenceClick(Preference preference) {
                     sendSMS("MOTOR OFF", "MOTOR OFF OK", getString(R.string.motor_off));
@@ -89,7 +95,7 @@ public class Actions extends PreferenceActivity {
             screen.removePreference(pref);
         }
 
-        pref = (Preference) findPreference("valet_on");
+        pref = findPreference("valet_on");
         pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
                 getCCode(getBaseContext().getString(R.string.valet_on), VALET_ON);
@@ -97,7 +103,7 @@ public class Actions extends PreferenceActivity {
             }
         });
 
-        pref = (Preference) findPreference("valet_off");
+        pref = findPreference("valet_off");
         pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
                 getCCode(getBaseContext().getString(R.string.valet_off), VALET_OFF);
@@ -105,7 +111,7 @@ public class Actions extends PreferenceActivity {
             }
         });
 
-        pref = (Preference) findPreference("block");
+        pref = findPreference("block");
         pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
                 sendSMS("BLOCK MTR", "BLOCK MTR OK", getString(R.string.block));
@@ -179,11 +185,18 @@ public class Actions extends PreferenceActivity {
         smsProgress.show();
         PendingIntent sendPI = createPendingResult(SMS_SENT_RESULT, new Intent(), 0);
         SmsManager smsManager = SmsManager.getDefault();
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String phoneNumber = preferences.getString(Names.PHONE, "");
+        String phoneNumber = getStringPref(Names.CAR_PHONE);
         State.waitAnswer = answer;
         State.waitAnswerPI = sendPI;
         smsManager.sendTextMessage(phoneNumber, null, text, sendPI, null);
+    }
+
+    boolean getBoolPref(String name) {
+        return sPref.getBoolean(name + car_id, false);
+    }
+
+    String getStringPref(String name) {
+        return sPref.getString(name + car_id, "");
     }
 
 }

@@ -45,6 +45,8 @@ public class EventsActivity extends ActionBarActivity {
     Vector<Event> events;
     Vector<Event> filtered;
 
+    String car_id;
+
     int filter;
     boolean error;
 
@@ -70,8 +72,6 @@ public class EventsActivity extends ActionBarActivity {
         int icon;
         int filter;
     }
-
-    ;
 
     static EventType[] event_types = {
             new EventType(24, R.string.guard_on, R.drawable.guard_on, 1),
@@ -135,6 +135,7 @@ public class EventsActivity extends ActionBarActivity {
             new EventType(77, R.string.reset_modem, R.drawable.reset_modem),
             new EventType(78, R.string.reset_modem, R.drawable.reset_modem),
             new EventType(79, R.string.reset_modem, R.drawable.reset_modem),
+            new EventType(74, R.string.error_read, R.drawable.system),
             new EventType(1, R.string.light_shock, R.drawable.light_shock, 0),
             new EventType(2, R.string.ext_zone, R.drawable.ext_zone, 0),
             new EventType(3, R.string.heavy_shock, R.drawable.heavy_shock, 0),
@@ -164,11 +165,14 @@ public class EventsActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.events);
+        car_id = getIntent().getStringExtra(Names.ID);
+        if (car_id == null)
+            car_id = "";
         lvEvents = (ListView) findViewById(R.id.events);
         tvNoEvents = (TextView) findViewById(R.id.no_events);
         progress = findViewById(R.id.progress);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        api_key = preferences.getString(Names.KEY, "");
+        api_key = preferences.getString(Names.CAR_KEY + car_id, "");
         events = new Vector<Event>();
         filtered = new Vector<Event>();
         filter = preferences.getInt(FILTER, 3);
@@ -351,8 +355,6 @@ public class EventsActivity extends ActionBarActivity {
         }
     }
 
-    ;
-
     void setupButton(int id, int mask) {
         Button btn = (Button) findViewById(id);
         if ((mask & filter) != 0)
@@ -417,5 +419,4 @@ public class EventsActivity extends ActionBarActivity {
         long id;
     }
 
-    ;
 }

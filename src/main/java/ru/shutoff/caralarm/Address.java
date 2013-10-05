@@ -11,18 +11,20 @@ public abstract class Address {
 
     String latitude;
     String longitude;
+    String car_id;
 
     Address(SharedPreferences p) {
         preferences = p;
     }
 
-    void update() {
-        latitude = preferences.getString(Names.Latitude, null);
-        longitude = preferences.getString(Names.Longitude, null);
+    void update(String id) {
+        car_id = id;
+        latitude = preferences.getString(Names.LATITUDE + car_id, null);
+        longitude = preferences.getString(Names.LONGITUDE + car_id, null);
         if ((latitude == null) || (longitude == null))
             return;
-        String addr_lat = preferences.getString(Names.AddrLatitude, "");
-        String addr_lon = preferences.getString(Names.AddrLongitude, "");
+        String addr_lat = preferences.getString(Names.ADDR_LAT + car_id, "");
+        String addr_lon = preferences.getString(Names.ADDR_LNG + car_id, "");
         if (addr_lat.equals(latitude) && addr_lon.equals(longitude))
             return;
         if (request != null)
@@ -39,9 +41,9 @@ public abstract class Address {
                     address += ", " + parts[i];
                 }
                 SharedPreferences.Editor ed = preferences.edit();
-                ed.putString(Names.AddrLatitude, latitude);
-                ed.putString(Names.AddrLongitude, longitude);
-                ed.putString(Names.Address, address);
+                ed.putString(Names.ADDR_LAT + car_id, latitude);
+                ed.putString(Names.ADDR_LNG + car_id, longitude);
+                ed.putString(Names.ADDRESS + car_id, address);
                 ed.commit();
                 onResult();
             }

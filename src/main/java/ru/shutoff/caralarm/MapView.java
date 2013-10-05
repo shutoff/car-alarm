@@ -16,21 +16,22 @@ public class MapView extends WebViewActivity {
 
     SharedPreferences preferences;
     BroadcastReceiver br;
+    String car_id;
 
     class JsInterface {
         @JavascriptInterface
         public double getLatitude() {
-            return Double.parseDouble(preferences.getString(Names.Latitude, "0"));
+            return Double.parseDouble(preferences.getString(Names.LATITUDE + car_id, "0"));
         }
 
         @JavascriptInterface
         public double getLongitude() {
-            return Double.parseDouble(preferences.getString(Names.Longitude, "0"));
+            return Double.parseDouble(preferences.getString(Names.LONGITUDE + car_id, "0"));
         }
 
         @JavascriptInterface
         public String getAddress() {
-            String address = preferences.getString(Names.Address, "");
+            String address = preferences.getString(Names.ADDRESS + car_id, "");
             String[] parts = address.split(", ");
             if (parts.length < 3)
                 return address;
@@ -53,6 +54,7 @@ public class MapView extends WebViewActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        car_id = Preferences.getCar(preferences, getIntent().getStringExtra(Names.ID));
 
         super.onCreate(savedInstanceState);
 
@@ -62,7 +64,7 @@ public class MapView extends WebViewActivity {
                 webView.loadUrl("javascript:update()");
             }
         };
-        registerReceiver(br, new IntentFilter(StatusService.ACTION_UPDATE));
+        registerReceiver(br, new IntentFilter(FetchService.ACTION_UPDATE));
     }
 
     @Override

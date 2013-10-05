@@ -10,12 +10,16 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -41,6 +45,7 @@ public class MainActivity extends ActionBarActivity {
     ProgressBar prgUpdate;
 
     static final int REQUEST_ALARM = 4000;
+    static final int CAR_SETUP = 4001;
     static final int UPDATE_INTERVAL = 1 * 60 * 1000;
 
     PendingIntent pi;
@@ -52,10 +57,14 @@ public class MainActivity extends ActionBarActivity {
     CarDrawable drawable;
     Address address;
 
+    String car_id;
+    Cars.Car[] cars;
+
     boolean active;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         try {
             ViewConfiguration config = ViewConfiguration.get(this);
@@ -70,6 +79,14 @@ public class MainActivity extends ActionBarActivity {
 
         setContentView(R.layout.main);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        car_id = getIntent().getStringExtra(Names.ID);
+        if (car_id == null) {
+            State.appendLog("main=null");
+            car_id = preferences.getString(Names.LAST, "");
+        } else {
+            State.appendLog("main=" + car_id);
+        }
+        car_id = Preferences.getCar(preferences, car_id);
 
         imgCar = (ImageView) findViewById(R.id.car);
         tvAddress = (TextView) findViewById(R.id.address);
@@ -103,7 +120,9 @@ public class MainActivity extends ActionBarActivity {
             public void onReceive(Context context, Intent intent) {
                 if (intent == null)
                     return;
-                if (intent.getAction().equals(StatusService.ACTION_UPDATE)) {
+                if (!car_id.equals(intent.getStringExtra(Names.ID)))
+                    return;
+                if (intent.getAction().equals(FetchService.ACTION_UPDATE)) {
                     vError.setVisibility(View.GONE);
                     imgRefresh.setVisibility(View.VISIBLE);
                     prgUpdate.setVisibility(View.GONE);
@@ -111,12 +130,12 @@ public class MainActivity extends ActionBarActivity {
                     stopTimer();
                     startTimer(false);
                 }
-                if (intent.getAction().equals(StatusService.ACTION_NOUPDATE)) {
+                if (intent.getAction().equals(FetchService.ACTION_NOUPDATE)) {
                     vError.setVisibility(View.GONE);
                     imgRefresh.setVisibility(View.VISIBLE);
                     prgUpdate.setVisibility(View.GONE);
                 }
-                if (intent.getAction().equals(StatusService.ACTION_ERROR)) {
+                if (intent.getAction().equals(FetchService.ACTION_ERROR)) {
                     String error_text = intent.getStringExtra(Names.ERROR);
                     if (error_text == null)
                         error_text = getString(R.string.data_error);
@@ -132,27 +151,20 @@ public class MainActivity extends ActionBarActivity {
                 }
             }
         };
-        IntentFilter intFilter = new IntentFilter(StatusService.ACTION_UPDATE);
-        intFilter.addAction(StatusService.ACTION_NOUPDATE);
-        intFilter.addAction(StatusService.ACTION_ERROR);
+        IntentFilter intFilter = new IntentFilter(FetchService.ACTION_UPDATE);
+        intFilter.addAction(FetchService.ACTION_NOUPDATE);
+        intFilter.addAction(FetchService.ACTION_ERROR);
         intFilter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
         registerReceiver(br, intFilter);
 
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         pi = createPendingResult(REQUEST_ALARM, new Intent(), 0);
 
-
-        String phone = preferences.getString(Names.PHONE, "");
-        String key = preferences.getString(Names.KEY, "");
-        if ((phone.length() == 0) || (key.length() == 0)) {
-            Intent intent = new Intent(this, Preferences.class);
-            startActivity(intent);
-        }
-
         tvAddress.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getBaseContext(), MapView.class);
+                intent.putExtra(Names.ID, car_id);
                 startActivity(intent);
             }
         });
@@ -162,15 +174,33 @@ public class MainActivity extends ActionBarActivity {
         address = new Address(preferences) {
             @Override
             void onResult() {
-                tvAddress.setText(
-                        preferences.getString(Names.Latitude, "") + " " +
-                                preferences.getString(Names.Longitude, "") + "\n" +
-                                preferences.getString(Names.Address, ""));
+                if (!car_id.equals(getId()))
+                    return;
+                updateAddress();
             }
         };
-        address.update();
+        address.update(car_id);
         address.onResult();
         update();
+
+        String phone = preferences.getString(Names.CAR_PHONE + car_id, "");
+        String key = preferences.getString(Names.CAR_KEY + car_id, "");
+        if ((phone.length() == 0) || (key.length() == 0)) {
+            Intent intent = new Intent(this, CarPreferences.class);
+            intent.putExtra(Names.ID, car_id);
+            startActivityForResult(intent, CAR_SETUP);
+        }
+    }
+
+    String getId() {
+        return car_id;
+    }
+
+    void updateAddress() {
+        tvAddress.setText(
+                preferences.getString(Names.LONGITUDE + car_id, "") + " " +
+                        preferences.getString(Names.LONGITUDE + car_id, "") + "\n" +
+                        preferences.getString(Names.ADDRESS + car_id, ""));
     }
 
     @Override
@@ -184,6 +214,44 @@ public class MainActivity extends ActionBarActivity {
         super.onStart();
         active = true;
         startTimer(true);
+        setActionBar();
+    }
+
+    void setActionBar() {
+        ActionBar actionBar = getSupportActionBar();
+        cars = Cars.getCars(this);
+        if (cars.length > 1) {
+            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+            actionBar.setListNavigationCallbacks(new CarsAdapter(), new ActionBar.OnNavigationListener() {
+                @Override
+                public boolean onNavigationItemSelected(int i, long l) {
+                    if (cars[i].id.equals(car_id))
+                        return true;
+                    car_id = cars[i].id;
+                    SharedPreferences.Editor ed = preferences.edit();
+                    ed.putString(Names.LAST, car_id);
+                    ed.commit();
+                    update();
+                    updateAddress();
+                    startUpdate();
+                    return true;
+                }
+            });
+            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setDisplayUseLogoEnabled(false);
+            for (int i = 0; i < cars.length; i++) {
+                if (cars[i].id.equals(car_id)) {
+                    actionBar.setSelectedNavigationItem(i);
+                    break;
+                }
+            }
+            setTitle("");
+        } else {
+            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+            actionBar.setDisplayShowHomeEnabled(true);
+            actionBar.setDisplayUseLogoEnabled(false);
+            setTitle(getString(R.string.app_name));
+        }
     }
 
     @Override
@@ -195,8 +263,15 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_ALARM)
+        if (requestCode == REQUEST_ALARM) {
             startUpdate();
+            return;
+        }
+        if (requestCode == CAR_SETUP) {
+            String key = preferences.getString(Names.CAR_KEY + car_id, "");
+            if (key.length() == 0)
+                finish();
+        }
     }
 
     void startTimer(boolean now) {
@@ -213,6 +288,17 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         removeNotifications();
+        String id = intent.getStringExtra(Names.ID);
+        if (id != null) {
+            State.appendLog("new=" + id);
+            id = Preferences.getCar(preferences, id);
+            if (!id.equals(car_id)) {
+                car_id = id;
+                setActionBar();
+            }
+        } else {
+            State.appendLog("new=null");
+        }
     }
 
     @Override
@@ -246,21 +332,25 @@ public class MainActivity extends ActionBarActivity {
             }
             case R.id.actions: {
                 Intent intent = new Intent(this, Actions.class);
+                intent.putExtra(Names.ID, car_id);
                 startActivity(intent);
                 break;
             }
             case R.id.map: {
                 Intent intent = new Intent(this, MapView.class);
+                intent.putExtra(Names.ID, car_id);
                 startActivity(intent);
                 break;
             }
             case R.id.tracks: {
                 Intent intent = new Intent(this, TracksActivity.class);
+                intent.putExtra(Names.ID, car_id);
                 startActivity(intent);
                 break;
             }
             case R.id.events: {
                 Intent intent = new Intent(this, EventsActivity.class);
+                intent.putExtra(Names.ID, car_id);
                 startActivity(intent);
                 break;
             }
@@ -269,7 +359,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
     void update() {
-        long last = preferences.getLong(Names.EventTime, 0);
+        long last = preferences.getLong(Names.EVENT_TIME + car_id, 0);
         if (last != 0) {
             Date d = new Date(last);
             SimpleDateFormat sf = new SimpleDateFormat();
@@ -277,21 +367,52 @@ public class MainActivity extends ActionBarActivity {
         } else {
             tvLast.setText(getString(R.string.unknown));
         }
-        tvVoltage.setText(preferences.getString(Names.VoltageMain, "?") + " V");
-        tvReserve.setText(preferences.getString(Names.VoltageReserved, "?") + " V");
-        tvBalance.setText(preferences.getString(Names.Balance, "?"));
-        tvTemperature.setText(preferences.getString(Names.Temperature, "?") + " \u00B0C");
+        tvVoltage.setText(preferences.getString(Names.VOLTAGE_MAIN + car_id, "?") + " V");
+        tvReserve.setText(preferences.getString(Names.VOLTAGE_RESERVED + car_id, "?") + " V");
+        tvBalance.setText(preferences.getString(Names.BALANCE + car_id, "?"));
+        tvTemperature.setText(preferences.getString(Names.TEMPERATURE + car_id, "?") + " \u00B0C");
 
-        drawable.update(preferences);
-        address.update();
+        drawable.update(preferences, car_id);
+        address.update(car_id);
     }
 
     void startUpdate() {
-        Intent intent = new Intent(this, StatusService.class);
+        Intent intent = new Intent(this, FetchService.class);
+        intent.putExtra(Names.ID, car_id);
         startService(intent);
         vError.setVisibility(View.GONE);
         imgRefresh.setVisibility(View.GONE);
         prgUpdate.setVisibility(View.VISIBLE);
     }
 
+    class CarsAdapter extends BaseAdapter {
+
+        @Override
+        public int getCount() {
+            return cars.length;
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return cars[position];
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            if (v == null) {
+                LayoutInflater inflater = (LayoutInflater) getBaseContext()
+                        .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                v = inflater.inflate(R.layout.car_list_item, null);
+            }
+            TextView tv = (TextView) v.findViewById(R.id.name);
+            tv.setText(cars[position].name);
+            return v;
+        }
+    }
 }

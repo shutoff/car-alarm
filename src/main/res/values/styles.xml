@@ -25,4 +25,6 @@
         <item name="android:paddingBottom">8dip</item>
     </style>
 
+    <style name="spinnerDropDownItemStyle" parent="android:TextAppearance.Widget.TextView.SpinnerItem" />
+
 </resources>

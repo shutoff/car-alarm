@@ -125,8 +125,8 @@
     <string name="input2_off">Вход 2 выключен</string>
     <string name="input3_off">Вход 3 выключен</string>
     <string name="input4_off">Вход 4 выключен</string>
-    <string name="gprs_on">Соединение GPRS потеряно</string>
-    <string name="gprs_off">Соединение GPRS восстановлено</string>
+    <string name="gprs_on">Соединение GPRS восстановлено</string>
+    <string name="gprs_off">Соединение GPRS потеряно</string>
     <string name="reset_modem">Сброс модема</string>
     <string name="reset">Сброс</string>
     <string name="trace_start">Начало маршрута</string>
@@ -160,4 +160,13 @@
     <string name="sos">SOS</string>
     <string name="incomming_sms">Входящее SMS</string>
     <string name="no_events">Нет событий</string>
+    <string name="cars">Автомобили</string>
+    <string name="cars_sum">Настройка ваших машин</string>
+    <string name="new_car">Новый автомобиль</string>
+    <string name="name">Название</string>
+    <string name="car">Автомобиль</string>
+    <string name="add">Добавить</string>
+    <string name="cancel">Отменить</string>
+    <string name="select_car">Выберите автомобиль</string>
+    <string name="error_read">Ошибка чтения данных</string>
 </resources>

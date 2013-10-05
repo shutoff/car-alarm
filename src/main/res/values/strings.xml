@@ -160,6 +160,16 @@
     <string name="alarm_input3">Alarm input 3</string>
     <string name="alarm_input4">Alarm input 4</string>
     <string name="sos">SOS</string>
+    <string name="error_read">Error read memory</string>
     <string name="incomming_sms">Incomming SMS</string>
     <string name="no_events">No events</string>
+    <string name="unknown">unknown</string>
+    <string name="cars">Cars</string>
+    <string name="cars_sum">Control your cars</string>
+    <string name="new_car">New car</string>
+    <string name="name">Name</string>
+    <string name="car">Car</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+    <string name="select_car">Select car</string>
 </resources>

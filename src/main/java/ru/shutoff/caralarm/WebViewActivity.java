@@ -20,15 +20,13 @@ abstract public class WebViewActivity extends ActionBarActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.webview);
-        webView = (WebView)getLastCustomNonConfigurationInstance ();
+        webView = (WebView) getLastCustomNonConfigurationInstance();
         initUI();
     }
 
-    void initUI()
-    {
+    void initUI() {
         holder = (FrameLayout) findViewById(R.id.webview);
-        if (webView == null)
-        {
+        if (webView == null) {
             webView = new WebView(this);
             webView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
 
@@ -38,13 +36,11 @@ abstract public class WebViewActivity extends ActionBarActivity {
             WebChromeClient mChromeClient = new WebChromeClient() {
                 @Override
                 public void onConsoleMessage(String message, int lineNumber, String sourceID) {
-                    State.appendLog(sourceID + ":" + lineNumber + " - " + message);
                     super.onConsoleMessage(message, lineNumber, sourceID);
                 }
 
                 @Override
                 public boolean onConsoleMessage(ConsoleMessage cm) {
-                    State.appendLog(cm.sourceId() + ":" + cm.lineNumber() + " - " + cm.message());
                     return true;
                 }
             };
@@ -55,7 +51,7 @@ abstract public class WebViewActivity extends ActionBarActivity {
     }
 
     @Override
-    public Object onRetainCustomNonConfigurationInstance () {
+    public Object onRetainCustomNonConfigurationInstance() {
         if (webView != null)
             holder.removeView(webView);
         return webView;
