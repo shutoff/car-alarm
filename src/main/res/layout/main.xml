@@ -138,25 +138,6 @@
                     android:textAppearance="?android:attr/textAppearanceSmall" />
             </TableRow>
 
-            <TableRow
-                android:id="@+id/fuel_row"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone">
-
-                <ImageView
-                    android:src="@drawable/fuel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-                <TextView
-                    android:id="@+id/fuel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textStyle="bold"
-                    android:textAppearance="?android:attr/textAppearanceSmall" />
-            </TableRow>
-
         </TableLayout>
 
     </LinearLayout>

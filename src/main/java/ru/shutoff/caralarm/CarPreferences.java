@@ -112,6 +112,13 @@ public class CarPreferences extends PreferenceActivity {
                     SharedPreferences.Editor ed = sPref.edit();
                     ed.putInt(Names.TEMP_SIFT + car_id, v);
                     ed.commit();
+                    Intent intent = new Intent(FetchService.ACTION_UPDATE);
+                    intent.putExtra(Names.ID, car_id);
+                    try {
+                        getBaseContext().sendBroadcast(intent);
+                    } catch (Exception ex) {
+                        // ignore
+                    }
                     return true;
                 }
                 return false;

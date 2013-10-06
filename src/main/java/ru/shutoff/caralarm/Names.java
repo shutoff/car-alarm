@@ -60,7 +60,6 @@ public final class Names {
 
     static final String TEMPERATURE = "Temperature";
     static final String TEMP_SIFT = "TempShift";
-    static final String FUEL = "Fuel";
 
     static final String ADDRESS = "Address";
     static final String ADDR_LAT = "AddrLatitude";

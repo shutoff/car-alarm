@@ -39,10 +39,8 @@ public class MainActivity extends ActionBarActivity {
     TextView tvReserve;
     TextView tvBalance;
     TextView tvTemperature;
-    TextView tvFuel;
     TextView tvError;
     View vError;
-    View vFuel;
     ImageView imgRefresh;
     ProgressBar prgUpdate;
 
@@ -93,8 +91,6 @@ public class MainActivity extends ActionBarActivity {
         tvReserve = (TextView) findViewById(R.id.reserve);
         tvBalance = (TextView) findViewById(R.id.balance);
         tvTemperature = (TextView) findViewById(R.id.temperature);
-        tvFuel = (TextView) findViewById(R.id.fuel);
-        vFuel = findViewById(R.id.fuel_row);
 
         tvError = (TextView) findViewById(R.id.error_text);
         vError = findViewById(R.id.error);
@@ -369,18 +365,6 @@ public class MainActivity extends ActionBarActivity {
         tvReserve.setText(preferences.getString(Names.VOLTAGE_RESERVED + car_id, "?") + " V");
         tvBalance.setText(preferences.getString(Names.BALANCE + car_id, "?"));
         tvTemperature.setText(Preferences.getTemperature(preferences, car_id));
-
-        String fuel = preferences.getString(Names.FUEL + car_id, "");
-        if (fuel.length() > 0) {
-            try {
-                tvFuel.setText(((Integer.parseInt(fuel) + 500) / 1000) + " L");
-                vFuel.setVisibility(View.VISIBLE);
-            } catch (Exception ex) {
-                vFuel.setVisibility(View.GONE);
-            }
-        } else {
-            vFuel.setVisibility(View.GONE);
-        }
 
         drawable.update(preferences, car_id);
         address.update(car_id);
