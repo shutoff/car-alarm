@@ -79,10 +79,15 @@ public class MainActivity extends ActionBarActivity {
 
         setContentView(R.layout.main);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        car_id = getIntent().getStringExtra(Names.ID);
-        if (car_id == null)
-            car_id = preferences.getString(Names.LAST, "");
-        car_id = Preferences.getCar(preferences, car_id);
+
+        if (savedInstanceState != null) {
+            car_id = savedInstanceState.getString(Names.ID);
+        } else {
+            car_id = getIntent().getStringExtra(Names.ID);
+            if (car_id == null)
+                car_id = preferences.getString(Names.LAST, "");
+            car_id = Preferences.getCar(preferences, car_id);
+        }
 
         imgCar = (ImageView) findViewById(R.id.car);
         tvAddress = (TextView) findViewById(R.id.address);
@@ -204,6 +209,12 @@ public class MainActivity extends ActionBarActivity {
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(br);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(Names.ID, car_id);
     }
 
     @Override
@@ -403,6 +414,19 @@ public class MainActivity extends ActionBarActivity {
                 LayoutInflater inflater = (LayoutInflater) getBaseContext()
                         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 v = inflater.inflate(R.layout.car_list_item, null);
+            }
+            TextView tv = (TextView) v.findViewById(R.id.name);
+            tv.setText(cars[position].name);
+            return v;
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            if (v == null) {
+                LayoutInflater inflater = (LayoutInflater) getBaseContext()
+                        .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                v = inflater.inflate(R.layout.car_list_dropdown_item, null);
             }
             TextView tv = (TextView) v.findViewById(R.id.name);
             tv.setText(cars[position].name);

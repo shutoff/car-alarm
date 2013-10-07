@@ -545,10 +545,12 @@ public class TracksActivity extends ActionBarActivity {
             if (id != track_id)
                 return;
             JSONArray list = res.getJSONArray("waystandlist");
-            JSONObject way = list.getJSONObject(list.length() - 1);
-            if (way.getString("type").equals("WAY")) {
-                JSONArray events = way.getJSONArray("events");
-                tracks.get(0).begin = events.getJSONObject(0).getLong("eventTime");
+            if (list.length() > 0) {
+                JSONObject way = list.getJSONObject(list.length() - 1);
+                if (way.getString("type").equals("WAY")) {
+                    JSONArray events = way.getJSONArray("events");
+                    tracks.get(0).begin = events.getJSONObject(0).getLong("eventTime");
+                }
             }
             prgMain.setProgress(++progress);
             if (lastWay) {
@@ -585,10 +587,12 @@ public class TracksActivity extends ActionBarActivity {
             if (id != track_id)
                 return;
             JSONArray list = res.getJSONArray("waystandlist");
-            JSONObject way = list.getJSONObject(0);
-            if (way.getString("type").equals("WAY")) {
-                JSONArray events = way.getJSONArray("events");
-                tracks.get(tracks.size() - 1).end = events.getJSONObject(events.length() - 1).getLong("eventTime");
+            if (list.length() > 0) {
+                JSONObject way = list.getJSONObject(0);
+                if (way.getString("type").equals("WAY")) {
+                    JSONArray events = way.getJSONArray("events");
+                    tracks.get(tracks.size() - 1).end = events.getJSONObject(events.length() - 1).getLong("eventTime");
+                }
             }
             prgMain.setProgress(++progress);
             TrackFetcher fetcher = new TrackFetcher();

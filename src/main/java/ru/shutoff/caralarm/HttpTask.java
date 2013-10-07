@@ -52,6 +52,7 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
             background(result);
             return result;
         } catch (Exception ex) {
+            State.print(ex);
             // ignore
         }
         return null;
