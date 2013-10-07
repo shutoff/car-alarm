@@ -44,6 +44,11 @@ public class MainActivity extends ActionBarActivity {
     ImageView imgRefresh;
     ProgressBar prgUpdate;
 
+    ImageView ivMotor;
+    ImageView ivRele;
+    ImageView ivBlock;
+    ImageView ivValet;
+
     static final int REQUEST_ALARM = 4000;
     static final int CAR_SETUP = 4001;
     static final int UPDATE_INTERVAL = 1 * 60 * 1000;
@@ -96,6 +101,11 @@ public class MainActivity extends ActionBarActivity {
         tvReserve = (TextView) findViewById(R.id.reserve);
         tvBalance = (TextView) findViewById(R.id.balance);
         tvTemperature = (TextView) findViewById(R.id.temperature);
+
+        ivMotor = (ImageView) findViewById(R.id.motor);
+        ivRele = (ImageView) findViewById(R.id.rele);
+        ivBlock = (ImageView) findViewById(R.id.block);
+        ivValet = (ImageView) findViewById(R.id.valet);
 
         tvError = (TextView) findViewById(R.id.error_text);
         vError = findViewById(R.id.error);
@@ -202,7 +212,7 @@ public class MainActivity extends ActionBarActivity {
         tvAddress.setText(
                 preferences.getString(Names.LONGITUDE + car_id, "") + " " +
                         preferences.getString(Names.LONGITUDE + car_id, "") + "\n" +
-                        preferences.getString(Names.ADDRESS + car_id, ""));
+                        Address.getAddress(preferences, car_id));
     }
 
     @Override
@@ -379,6 +389,28 @@ public class MainActivity extends ActionBarActivity {
 
         drawable.update(preferences, car_id);
         address.update(car_id);
+
+        if (preferences.getBoolean(Names.CAR_AUTOSTART + car_id, false)) {
+            ivMotor.setVisibility(View.VISIBLE);
+            if (preferences.getBoolean(Names.INPUT3 + car_id, false)) {
+                ivMotor.setImageResource(R.drawable.motor_off);
+            } else {
+                ivMotor.setImageResource(R.drawable.motor_on);
+            }
+        } else {
+            ivMotor.setVisibility(View.GONE);
+        }
+        if (preferences.getBoolean(Names.CAR_RELE1 + car_id, false)) {
+            ivRele.setVisibility(View.VISIBLE);
+        } else {
+            ivRele.setVisibility(View.GONE);
+        }
+        if (preferences.getBoolean(Names.VALET + car_id, false)) {
+            ivMotor.setImageResource(R.drawable.valet_btn_off);
+        } else {
+            ivMotor.setImageResource(R.drawable.valet_btn_on);
+        }
+
     }
 
     void startUpdate() {

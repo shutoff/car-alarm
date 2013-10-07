@@ -86,7 +86,7 @@ public class MapView extends WebViewActivity {
                             name += " " + id;
                     }
                     data += name + "<br/>";
-                    String address = preferences.getString(Names.ADDRESS + id, "");
+                    String address = Address.getAddress(preferences, id);
                     String[] parts = address.split(", ");
                     if (parts.length >= 3) {
                         address = parts[0] + ", " + parts[1];
