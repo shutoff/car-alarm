@@ -97,7 +97,7 @@ public abstract class Address {
             double lat2 = Double.parseDouble(preferences.getString(Names.ADDR_LAT + car_id, "0"));
             double lng2 = Double.parseDouble(preferences.getString(Names.ADDR_LNG + car_id, "0"));
             if (calc_distance(lat1, lng1, lat2, lng2) < 200)
-                return preferences.getString(Names.ADDRESS, "");
+                return preferences.getString(Names.ADDRESS + car_id, "");
         } catch (Exception ex) {
             // ignore
         }

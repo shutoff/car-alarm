@@ -3,6 +3,7 @@ package ru.shutoff.caralarm;
 import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +13,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.telephony.SmsManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,6 +25,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.joda.time.DateTimeZone;
 
@@ -53,6 +56,12 @@ public class MainActivity extends ActionBarActivity {
     static final int CAR_SETUP = 4001;
     static final int UPDATE_INTERVAL = 1 * 60 * 1000;
 
+    static final int SMS_SENT_RESULT = 3012;
+    static final int SMS_SENT_PASSWD = 3013;
+
+    static final int VALET_ON = 4000;
+    static final int VALET_OFF = 4001;
+
     PendingIntent pi;
 
     BroadcastReceiver br;
@@ -61,6 +70,7 @@ public class MainActivity extends ActionBarActivity {
     SharedPreferences preferences;
     CarDrawable drawable;
     Address address;
+    ProgressDialog smsProgress;
 
     String car_id;
     Cars.Car[] cars;
@@ -106,6 +116,39 @@ public class MainActivity extends ActionBarActivity {
         ivRele = (ImageView) findViewById(R.id.rele);
         ivBlock = (ImageView) findViewById(R.id.block);
         ivValet = (ImageView) findViewById(R.id.valet);
+
+        ivMotor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (preferences.getBoolean(Names.INPUT3 + car_id, false)) {
+                    sendSMS("MOTOR OFF", "MOTOR OFF OK", getString(R.string.motor_off));
+                } else {
+                    sendSMS("MOTOR ON", "MOTOR ON OK", getString(R.string.motor_on));
+                }
+            }
+        });
+        ivRele.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendSMS("REL1 IMPULS", "REL1 IMPULS OK", getString(R.string.rele1));
+            }
+        });
+        ivBlock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendSMS("BLOCK MTR", "BLOCK MTR OK", getString(R.string.block));
+            }
+        });
+        ivValet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (preferences.getBoolean(Names.VALET + car_id, false)) {
+                    getCCode(getBaseContext().getString(R.string.valet_off), VALET_OFF);
+                } else {
+                    getCCode(getBaseContext().getString(R.string.valet_on), VALET_ON);
+                }
+            }
+        });
 
         tvError = (TextView) findViewById(R.id.error_text);
         vError = findViewById(R.id.error);
@@ -290,6 +333,37 @@ public class MainActivity extends ActionBarActivity {
             if (key.length() == 0)
                 finish();
         }
+
+        if (requestCode == SMS_SENT_RESULT) {
+            if (resultCode == RESULT_OK)
+                return;
+            if (smsProgress != null)
+                smsProgress.dismiss();
+            if (resultCode != Names.ANSWER_OK) {
+                Toast.makeText(this, getString(R.string.sms_error), Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+        if (data == null)
+            return;
+
+        if (requestCode == SMS_SENT_PASSWD) {
+            String title = data.getStringExtra(Names.TITLE);
+            String text = data.getStringExtra(Names.TEXT);
+            String answer = data.getStringExtra(Names.ANSWER);
+            real_sendSMS(text, answer, title);
+            return;
+        }
+
+        if ((requestCode == VALET_ON) || (requestCode == VALET_OFF)) {
+            String cCode = data.getStringExtra(Names.CCODE);
+            if ((cCode == null) || (cCode.length() == 0))
+                return;
+            if (requestCode == VALET_ON)
+                real_sendSMS(cCode + " VALET", "Valet OK", getString(R.string.valet_on));
+            if (requestCode == VALET_OFF)
+                real_sendSMS(cCode + " INIT", "Main user OK", getString(R.string.valet_off));
+        }
     }
 
     void startTimer(boolean now) {
@@ -465,4 +539,42 @@ public class MainActivity extends ActionBarActivity {
             return v;
         }
     }
+
+    void sendSMS(String text, String answer, String title) {
+        String password = preferences.getString(Names.PASSWORD, "");
+        if (password.equals("")) {
+            real_sendSMS(text, answer, title);
+            return;
+        }
+        Intent intent = new Intent(this, PasswordDialog.class);
+        intent.putExtra(Names.TITLE, title);
+        intent.putExtra(Names.TEXT, text);
+        intent.putExtra(Names.ANSWER, answer);
+        startActivityForResult(intent, SMS_SENT_PASSWD);
+    }
+
+    void real_sendSMS(String text, String answer, String title) {
+        smsProgress = new ProgressDialog(this) {
+            protected void onStop() {
+                smsProgress = null;
+                State.waitAnswer = null;
+                State.waitAnswerPI = null;
+            }
+        };
+        smsProgress.setMessage(title);
+        smsProgress.show();
+        PendingIntent sendPI = createPendingResult(SMS_SENT_RESULT, new Intent(), 0);
+        SmsManager smsManager = SmsManager.getDefault();
+        String phoneNumber = preferences.getString(Names.CAR_PHONE + car_id, "");
+        State.waitAnswer = answer;
+        State.waitAnswerPI = sendPI;
+        smsManager.sendTextMessage(phoneNumber, null, text, sendPI, null);
+    }
+
+    void getCCode(String title, int id) {
+        Intent intent = new Intent(this, CCodeDialog.class);
+        intent.putExtra(Names.TITLE, title);
+        startActivityForResult(intent, id);
+    }
+
 }
