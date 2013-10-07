@@ -661,7 +661,7 @@ public class TracksActivity extends ActionBarActivity {
                 for (int i = 0; i < track.size() - 1; i++) {
                     Point p1 = track.get(i);
                     Point p2 = track.get(i + 1);
-                    double d = calc_distance(p1.latitude, p1.longitude, p2.latitude, p2.longitude);
+                    double d = Address.calc_distance(p1.latitude, p1.longitude, p2.latitude, p2.longitude);
                     distance += d;
                     if (p2.speed > max_speed)
                         max_speed = p2.speed;
@@ -931,33 +931,5 @@ public class TracksActivity extends ActionBarActivity {
         Vector<Point> track;
     }
 
-    static final double D2R = 0.017453; // Константа для преобразования градусов в радианы
-    static final double a = 6378137.0; // Основные полуоси
-    static final double e2 = 0.006739496742337; // Квадрат эксцентричности эллипсоида
-
-    static double calc_distance(double lat1, double lon1, double lat2, double lon2) {
-
-        if ((lat1 == lat2) && (lon1 == lon2))
-            return 0;
-
-        double fdLambda = (lon1 - lon2) * D2R;
-        double fdPhi = (lat1 - lat2) * D2R;
-        double fPhimean = ((lat1 + lat2) / 2.0) * D2R;
-
-        double fTemp = 1 - e2 * (Math.pow(Math.sin(fPhimean), 2));
-        double fRho = (a * (1 - e2)) / Math.pow(fTemp, 1.5);
-        double fNu = a / (Math.sqrt(1 - e2 * (Math.sin(fPhimean) * Math.sin(fPhimean))));
-
-        double fz = Math.sqrt(Math.pow(Math.sin(fdPhi / 2.0), 2) +
-                Math.cos(lat2 * D2R) * Math.cos(lat1 * D2R) * Math.pow(Math.sin(fdLambda / 2.0), 2));
-        fz = 2 * Math.asin(fz);
-
-        double fAlpha = Math.cos(lat1 * D2R) * Math.sin(fdLambda) * 1 / Math.sin(fz);
-        fAlpha = Math.asin(fAlpha);
-
-        double fR = (fRho * fNu) / ((fRho * Math.pow(Math.sin(fAlpha), 2)) + (fNu * Math.pow(Math.cos(fAlpha), 2)));
-
-        return fz * fR;
-    }
 
 }
