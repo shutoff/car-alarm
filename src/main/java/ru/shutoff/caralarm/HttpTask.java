@@ -46,7 +46,6 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
             JSONObject result = new JSONObject(res);
             if (status != HttpStatus.SC_OK) {
                 error_text = result.getString("error");
-                error();
                 return null;
             }
             background(result);

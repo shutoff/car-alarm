@@ -41,8 +41,8 @@ public class SmsMonitor extends BroadcastReceiver {
             for (String car : cars) {
                 String phone_config = digitsOnly(preferences.getString(Names.CAR_PHONE + car, ""));
                 if ((phone_config.length() > 0) && phone_config.equals(digitsOnly(sms_from))) {
-                    processCarMessage(context, body, car);
-                    abortBroadcast();
+                    if (processCarMessage(context, body, car))
+                        abortBroadcast();
                     return;
                 }
             }
@@ -52,7 +52,6 @@ public class SmsMonitor extends BroadcastReceiver {
                 keyIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 keyIntent.putExtra(Names.CAR_KEY, body);
                 context.startActivity(keyIntent);
-                abortBroadcast();
             }
         }
     }

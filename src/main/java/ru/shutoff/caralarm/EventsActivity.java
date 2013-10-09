@@ -76,6 +76,8 @@ public class EventsActivity extends ActionBarActivity {
     static EventType[] event_types = {
             new EventType(24, R.string.guard_on, R.drawable.guard_on, 1),
             new EventType(25, R.string.guard_off, R.drawable.guard_off, 1),
+            new EventType(132, R.string.can_on, R.drawable.can, 1),
+            new EventType(133, R.string.can_off, R.drawable.can, 1),
             new EventType(91, R.string.end_move, R.drawable.system),
             new EventType(111, R.string.lock_off1, R.drawable.lockclose01, 1),
             new EventType(112, R.string.lock_off2, R.drawable.lockclose02, 1),
@@ -101,6 +103,10 @@ public class EventsActivity extends ActionBarActivity {
             new EventType(12, R.string.input2_on, R.drawable.input2_on, 2),
             new EventType(13, R.string.input3_on, R.drawable.input3_on, 2),
             new EventType(14, R.string.input4_on, R.drawable.input4_on, 2),
+            new EventType(128, R.string.input5_on, R.drawable.input5_on, 2),
+            new EventType(129, R.string.input5_off, R.drawable.input5_off, 2),
+            new EventType(134, R.string.input6_on, R.drawable.input6_on, 2),
+            new EventType(135, R.string.input6_off, R.drawable.input6_off, 2),
             new EventType(15, R.string.trunk_close, R.drawable.boot_close, 2),
             new EventType(16, R.string.hood_close, R.drawable.e_hood_close, 2),
             new EventType(17, R.string.door_close, R.drawable.door_close, 2),
@@ -159,6 +165,15 @@ public class EventsActivity extends ActionBarActivity {
             new EventType(85, R.string.sos, R.drawable.sos, 0),
             new EventType(293, R.string.sos, R.drawable.sos, 0),
             new EventType(88, R.string.incomming_sms, R.drawable.user_sms, 1),
+            new EventType(130, R.string.voice, R.drawable.voice),
+            new EventType(131, R.string.download_events, R.drawable.settings),
+            new EventType(136, R.string.low_battery, R.drawable.system, 0),
+            new EventType(137, R.string.download_settings, R.drawable.settings),
+            new EventType(140, R.string.lan_change, R.drawable.system, 0),
+            new EventType(141, R.string.command, R.drawable.system, 1),
+            new EventType(142, R.string.brake, R.drawable.brake, 2),
+            new EventType(24, R.string.guard2_on, R.drawable.guard_on, 1),
+            new EventType(25, R.string.guard2_off, R.drawable.guard_off, 1)
     };
 
     @Override

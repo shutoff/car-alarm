@@ -94,6 +94,8 @@
     <string name="event">Event</string>
     <string name="guard_on">Guard on</string>
     <string name="guard_off">Guard off</string>
+    <string name="can_on">Guard on via CAN</string>
+    <string name="can_off">Guard off via CAM</string>
     <string name="end_move">End route by move sensor</string>
     <string name="lock_off1">Card 1 off</string>
     <string name="lock_off2">Card 2 off</string>
@@ -118,6 +120,8 @@
     <string name="input2_on">Input 2 ON</string>
     <string name="input3_on">Input 3 ON</string>
     <string name="input4_on">Input 4 ON</string>
+    <string name="input5_on">Input 5 ON</string>
+    <string name="input6_on">Input 6 ON</string>
     <string name="trunk_close">Trunk close</string>
     <string name="hood_close">Hood close</string>
     <string name="door_close">Door close</string>
@@ -127,6 +131,8 @@
     <string name="input2_off">Input 2 OFF</string>
     <string name="input3_off">Input 3 OFF</string>
     <string name="input4_off">Input 4 OFF</string>
+    <string name="input5_off">Input 5 OFF</string>
+    <string name="input6_off">Input 6 OFF</string>
     <string name="gprs_on">GPRS ON</string>
     <string name="gprs_off">GPRS OFF</string>
     <string name="reset_modem">Reset modem</string>
@@ -174,4 +180,13 @@
     <string name="select_car">Select car</string>
     <string name="speed">Speed: %.2f km/h</string>
     <string name="temp_correct">Temperature correction</string>
+    <string name="voice">Download voice</string>
+    <string name="download_events">Download events table</string>
+    <string name="low_battery">Low card battery</string>
+    <string name="download_settings">Download settings</string>
+    <string name="lan_change">LAN devices changed</string>
+    <string name="command">Comannd from buttons</string>
+    <string name="brake">Brake</string>
+    <string name="guard2_on">Guard mode 2 on</string>
+    <string name="guard2_off">Guard mode 2 off</string>
 </resources>

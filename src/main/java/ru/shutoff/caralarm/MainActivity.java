@@ -69,7 +69,6 @@ public class MainActivity extends ActionBarActivity {
 
     SharedPreferences preferences;
     CarDrawable drawable;
-    Address address;
     ProgressDialog smsProgress;
 
     String car_id;
@@ -226,18 +225,6 @@ public class MainActivity extends ActionBarActivity {
 
         active = false;
 
-        address = new Address(preferences) {
-            @Override
-            void onResult() {
-                if (!car_id.equals(getId()))
-                    return;
-                updateAddress();
-            }
-        };
-        address.update(car_id);
-        address.onResult();
-        update();
-
         String phone = preferences.getString(Names.CAR_PHONE + car_id, "");
         String key = preferences.getString(Names.CAR_KEY + car_id, "");
         if ((phone.length() == 0) || (key.length() == 0)) {
@@ -249,13 +236,6 @@ public class MainActivity extends ActionBarActivity {
 
     String getId() {
         return car_id;
-    }
-
-    void updateAddress() {
-        tvAddress.setText(
-                preferences.getString(Names.LONGITUDE + car_id, "") + " " +
-                        preferences.getString(Names.LONGITUDE + car_id, "") + "\n" +
-                        Address.getAddress(preferences, car_id));
     }
 
     @Override
@@ -276,6 +256,7 @@ public class MainActivity extends ActionBarActivity {
         active = true;
         startTimer(true);
         setActionBar();
+        update();
     }
 
     void setActionBar() {
@@ -293,7 +274,6 @@ public class MainActivity extends ActionBarActivity {
                     ed.putString(Names.LAST, car_id);
                     ed.commit();
                     update();
-                    updateAddress();
                     startUpdate();
                     return true;
                 }
@@ -462,7 +442,10 @@ public class MainActivity extends ActionBarActivity {
         tvTemperature.setText(Preferences.getTemperature(preferences, car_id));
 
         drawable.update(preferences, car_id);
-        address.update(car_id);
+        tvAddress.setText(
+                preferences.getString(Names.LONGITUDE + car_id, "") + " " +
+                        preferences.getString(Names.LONGITUDE + car_id, "") + "\n" +
+                        Address.getAddress(this, car_id));
 
         if (preferences.getBoolean(Names.CAR_AUTOSTART + car_id, false)) {
             ivMotor.setVisibility(View.VISIBLE);
@@ -480,9 +463,9 @@ public class MainActivity extends ActionBarActivity {
             ivRele.setVisibility(View.GONE);
         }
         if (preferences.getBoolean(Names.VALET + car_id, false)) {
-            ivMotor.setImageResource(R.drawable.valet_btn_off);
+            ivValet.setImageResource(R.drawable.valet_btn_off);
         } else {
-            ivMotor.setImageResource(R.drawable.valet_btn_on);
+            ivValet.setImageResource(R.drawable.valet_btn_on);
         }
 
     }

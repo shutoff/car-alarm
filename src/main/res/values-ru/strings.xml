@@ -92,6 +92,8 @@
     <string name="event">Событие</string>
     <string name="guard_on">Постановка в охрану</string>
     <string name="guard_off">Снятие с охраны</string>
+    <string name="can_on">Постановка в охрану штатной сигнализации</string>
+    <string name="can_off">Снятие с охраны штатной сигнализации</string>
     <string name="end_move">Конец маршрута по датчику движения</string>
     <string name="lock_off1">Пропала карта 1</string>
     <string name="lock_off2">Пропала карта 2</string>
@@ -116,6 +118,8 @@
     <string name="input2_on">Вход 2 включен</string>
     <string name="input3_on">Вход 3 включен</string>
     <string name="input4_on">Вход 4 включен</string>
+    <string name="input5_on">Вход 5 включен</string>
+    <string name="input6_on">Вход 6 включен</string>
     <string name="trunk_close">Закрыт багажник</string>
     <string name="hood_close">Закрыт капот</string>
     <string name="door_close">Закрыта дверь</string>
@@ -125,6 +129,8 @@
     <string name="input2_off">Вход 2 выключен</string>
     <string name="input3_off">Вход 3 выключен</string>
     <string name="input4_off">Вход 4 выключен</string>
+    <string name="input5_off">Вход 5 выключен</string>
+    <string name="input6_off">Вход 6 выключен</string>
     <string name="gprs_on">Соединение GPRS восстановлено</string>
     <string name="gprs_off">Соединение GPRS потеряно</string>
     <string name="reset_modem">Сброс модема</string>
@@ -171,4 +177,13 @@
     <string name="error_read">Ошибка чтения данных</string>
     <string name="speed">Скорость: %.2f км/ч</string>
     <string name="temp_correct">Коррекция температуры</string>
+    <string name="voice">Загружен голос</string>
+    <string name="download_events">Загружена таблица событий</string>
+    <string name="low_battery">Батарейка в карточке разряжена</string>
+    <string name="download_settings">Загружены настройки устройства</string>
+    <string name="lan_change">Изменилось количество устройств LAN</string>
+    <string name="command">Комманда с кодонаборника</string>
+    <string name="brake">Тормоз</string>
+    <string name="guard2_on">Включен режим охраны 2</string>
+    <string name="guard2_off">Выключен режим охраны 2</string>
 </resources>

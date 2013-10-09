@@ -18,14 +18,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MapView extends WebViewActivity {
 
     SharedPreferences preferences;
     BroadcastReceiver br;
     String car_id;
-
-    String[] car_data;
+    Map<String, String> times;
 
     final static String WAYSTANDS = "http://api.car-online.ru/v2?get=waystands&skey=$1&begin=$2&content=json";
 
@@ -33,10 +34,41 @@ public class MapView extends WebViewActivity {
 
         @JavascriptInterface
         public String getData() {
+
+            Cars.Car[] cars = Cars.getCars(getBaseContext());
+            String[] car_data = new String[cars.length];
+            for (int i = 0; i < cars.length; i++) {
+                String id = cars[i].id;
+                String data = id + ";" +
+                        preferences.getString(Names.LATITUDE + id, "0") + ";" +
+                        preferences.getString(Names.LONGITUDE + id, "0") + ";";
+                if (cars.length > 1) {
+                    String name = preferences.getString(Names.CAR_NAME + id, "");
+                    if (name.length() == 0) {
+                        name = getString(R.string.car);
+                        if (id.length() > 0)
+                            name += " " + id;
+                    }
+                    data += name + "<br/>";
+                    String address = Address.getAddress(getBaseContext(), id);
+                    String[] parts = address.split(", ");
+                    if (parts.length >= 3) {
+                        address = parts[0] + ", " + parts[1];
+                        for (int n = 2; n < parts.length; n++)
+                            address += "<br/>" + parts[n];
+                    }
+                    data += address;
+                }
+                car_data[i] = data;
+                new StateRequest(id);
+            }
+
             String first = null;
             String last = null;
             for (String data : car_data) {
                 String[] p = data.split(";");
+                if (times.containsKey(p[0]))
+                    data += ";" + times.get(p[0]);
                 if (p[0].equals(car_id)) {
                     first = data;
                 } else {
@@ -67,36 +99,15 @@ public class MapView extends WebViewActivity {
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         car_id = Preferences.getCar(preferences, getIntent().getStringExtra(Names.ID));
-
+        times = new HashMap<String, String>();
         if (savedInstanceState != null) {
-            car_data = savedInstanceState.getStringArray(Names.CARS);
-        } else {
-            Cars.Car[] cars = Cars.getCars(this);
-            car_data = new String[cars.length];
-            for (int i = 0; i < cars.length; i++) {
-                String id = cars[i].id;
-                String data = id + ";" +
-                        preferences.getString(Names.LATITUDE + id, "0") + ";" +
-                        preferences.getString(Names.LONGITUDE + id, "0") + ";";
-                if (cars.length > 1) {
-                    String name = preferences.getString(Names.CAR_NAME + id, "");
-                    if (name.length() == 0) {
-                        name = getString(R.string.car);
-                        if (id.length() > 0)
-                            name += " " + id;
-                    }
-                    data += name + "<br/>";
-                    String address = Address.getAddress(preferences, id);
-                    String[] parts = address.split(", ");
-                    if (parts.length >= 3) {
-                        address = parts[0] + ", " + parts[1];
-                        for (int n = 2; n < parts.length; n++)
-                            address += "<br/>" + parts[n];
-                    }
-                    data += address;
+            String car_data = savedInstanceState.getString(Names.CARS);
+            if (car_data != null) {
+                String[] data = car_data.split("|");
+                for (String d : data) {
+                    String[] p = d.split(";");
+                    times.put(p[0], p[1]);
                 }
-                car_data[i] = data;
-                new StateRequest(id);
             }
         }
 
@@ -112,15 +123,25 @@ public class MapView extends WebViewActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putStringArray(Names.CARS, car_data);
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(br);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        String data = null;
+        for (Map.Entry<String, String> v : times.entrySet()) {
+            String p = v.getKey() + ";" + v.getValue();
+            if (data == null) {
+                data = p;
+            } else {
+                data += "|" + p;
+            }
+        }
+        if (data != null)
+            outState.putString(Names.CARS, data);
     }
 
     @Override
@@ -167,17 +188,8 @@ public class MapView extends WebViewActivity {
                     event = events.getJSONObject(0);
                 }
                 LocalDateTime time = new LocalDateTime(event.getLong("eventTime"));
-                for (int i = 0; i < car_data.length; i++) {
-                    String[] d = car_data[i].split(";");
-                    if (d[0].equals(car_id)) {
-                        String data = d[0] + ";" + d[1] + ";" + d[2] + ";" + d[3] + ";" + time.toString("HH:mm");
-                        if (speed != null)
-                            data += ";" + speed;
-                        car_data[i] = data;
-                        webView.loadUrl("javascript:update()");
-                        break;
-                    }
-                }
+                times.put(car_id, time.toString("HH:mm"));
+                webView.loadUrl("javascript:update()");
             }
         }
 

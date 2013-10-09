@@ -1,28 +1,29 @@
 package ru.shutoff.caralarm;
 
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
-public abstract class Address {
-    abstract void onResult();
+public class Address {
 
-    SharedPreferences preferences;
+    static Request request;
 
-    Request request;
-
-    String latitude;
-    String longitude;
-    String car_id;
-
-    Address(SharedPreferences p) {
-        preferences = p;
-    }
-
-    class Request extends AddressRequest {
+    static class Request extends AddressRequest {
 
         String id;
+        String latitude;
+        String longitude;
+        Context context;
+        SharedPreferences preferences;
 
-        Request(String car_id) {
+        Request(Context ctx, String car_id, String lat, String lng) {
+            context = ctx;
             id = car_id;
+            latitude = lat;
+            longitude = lng;
+            preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            getAddress(preferences, lat, lng);
         }
 
         @Override
@@ -35,30 +36,22 @@ public abstract class Address {
             for (int i = 1; i < parts.length - 1; i++) {
                 address += ", " + parts[i];
             }
-            SharedPreferences.Editor ed = preferences.edit();
-            ed.putString(Names.ADDR_LAT + car_id, latitude);
-            ed.putString(Names.ADDR_LNG + car_id, longitude);
-            ed.putString(Names.ADDRESS + car_id, address);
-            ed.commit();
-            if (id.equals(car_id))
-                onResult();
-        }
-    }
+            State.appendLog("result " + id + " " + latitude + "," + longitude + " " + address);
 
-    void update(String id) {
-        car_id = id;
-        latitude = preferences.getString(Names.LATITUDE + car_id, null);
-        longitude = preferences.getString(Names.LONGITUDE + car_id, null);
-        if ((latitude == null) || (longitude == null))
-            return;
-        String addr_lat = preferences.getString(Names.ADDR_LAT + car_id, "");
-        String addr_lon = preferences.getString(Names.ADDR_LNG + car_id, "");
-        if (addr_lat.equals(latitude) && addr_lon.equals(longitude))
-            return;
-        if (request != null)
-            return;
-        request = new Request(car_id);
-        request.getAddress(preferences, latitude, longitude);
+            SharedPreferences.Editor ed = preferences.edit();
+            ed.putString(Names.ADDR_LAT + id, latitude);
+            ed.putString(Names.ADDR_LNG + id, longitude);
+            ed.putString(Names.ADDRESS + id, address);
+            ed.commit();
+
+            try {
+                Intent intent = new Intent(FetchService.ACTION_UPDATE);
+                intent.putExtra(Names.ID, id);
+                context.sendBroadcast(intent);
+            } catch (Exception e) {
+                // ignore
+            }
+        }
     }
 
     static final double D2R = 0.017453; // Константа для преобразования градусов в радианы
@@ -90,14 +83,27 @@ public abstract class Address {
         return fz * fR;
     }
 
-    static String getAddress(SharedPreferences preferences, String car_id) {
+    static String getAddress(Context context, String car_id) {
         try {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
             double lat1 = Double.parseDouble(preferences.getString(Names.LATITUDE + car_id, "0"));
             double lng1 = Double.parseDouble(preferences.getString(Names.LONGITUDE + car_id, "0"));
             double lat2 = Double.parseDouble(preferences.getString(Names.ADDR_LAT + car_id, "0"));
             double lng2 = Double.parseDouble(preferences.getString(Names.ADDR_LNG + car_id, "0"));
-            if (calc_distance(lat1, lng1, lat2, lng2) < 200)
-                return preferences.getString(Names.ADDRESS + car_id, "");
+            State.appendLog("getAddress: " + car_id + " " + lat1 + "," + lng1 + " " + lat2 + "," + lng2);
+            double distance = calc_distance(lat1, lng1, lat2, lng2);
+            String result = preferences.getString(Names.ADDRESS + car_id, "");
+            State.appendLog("d=" + distance + " prev: " + result);
+            if (distance > 200)
+                result = "";
+            if (distance < 20)
+                return result;
+            if ((request != null) && request.id.equals(car_id)) {
+                State.appendLog("request in process");
+                return result;
+            }
+            State.appendLog("create request");
+            request = new Request(context, car_id, lat1 + "", lng1 + "");
         } catch (Exception ex) {
             // ignore
         }
