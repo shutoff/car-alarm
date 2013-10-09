@@ -83,21 +83,6 @@
             android:label="@string/api_key" />
 
         <activity
-            android:name=".CCodeDialog"
-            android:theme="@android:style/Theme.Dialog"
-            android:label="@string/ccode" />
-
-        <activity
-            android:name=".SetPasswordDialog"
-            android:theme="@android:style/Theme.Dialog"
-            android:label="@string/password" />
-
-        <activity
-            android:name=".PasswordDialog"
-            android:theme="@android:style/Theme.Dialog"
-            android:label="@string/input_password" />
-
-        <activity
             android:name=".ConfigWidget"
             android:theme="@android:style/Theme.Dialog"
             android:label="@string/select_car">
@@ -115,6 +100,7 @@
         <receiver android:name=".SmsMonitor">
             <intent-filter android:priority="6000">
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+                <action android:name="ru.shutoff.caralarm.SMS_SENT" />
             </intent-filter>
         </receiver>
 

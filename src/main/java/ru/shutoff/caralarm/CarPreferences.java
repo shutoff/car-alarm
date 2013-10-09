@@ -1,7 +1,5 @@
 package ru.shutoff.caralarm;
 
-import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -10,8 +8,6 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
-import android.telephony.SmsManager;
-import android.widget.Toast;
 
 public class CarPreferences extends PreferenceActivity {
 
@@ -23,13 +19,9 @@ public class CarPreferences extends PreferenceActivity {
     EditTextPreference namePref;
     SeekBarPreference shiftPref;
 
-    ProgressDialog smsProgress;
-
     String car_id;
 
     private static final int GET_PHONE_NUMBER = 3007;
-    private static final int SMS_SENT_RESULT = 3010;
-    private static final int SMS_SENT_PASSWD = 3011;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,23 +119,9 @@ public class CarPreferences extends PreferenceActivity {
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == SMS_SENT_RESULT) {
-            if (resultCode == RESULT_OK)
-                return;
-            if (smsProgress != null)
-                smsProgress.dismiss();
-            if (resultCode != Names.ANSWER_OK) {
-                Toast.makeText(this, getString(R.string.sms_error), Toast.LENGTH_SHORT).show();
-            }
-            return;
-        }
         if (resultCode != RESULT_OK)
             return;
         switch (requestCode) {
-            case SMS_SENT_PASSWD:
-                real_smsMode();
-                return;
-
             case GET_PHONE_NUMBER: {
                 String phoneNumber = (String) data.getExtras().get(
                         ContactsPickerActivity.KEY_PHONE_NUMBER);
@@ -166,30 +144,7 @@ public class CarPreferences extends PreferenceActivity {
     }
 
     void smsMode() {
-        if (sPref.getString(Names.PASSWORD, "").equals("")) {
-            real_smsMode();
-            return;
-        }
-        Intent intent = new Intent(this, PasswordDialog.class);
-        intent.putExtra(Names.TITLE, getString(R.string.sms_mode));
-        startActivityForResult(intent, SMS_SENT_PASSWD);
+        Actions.requestPassword(this, car_id, R.string.sms_mode, R.string.sms_mode_msg, "ALARM SMS", "ALARM SMS OK");
     }
 
-    void real_smsMode() {
-        smsProgress = new ProgressDialog(this) {
-            protected void onStop() {
-                smsProgress = null;
-                State.waitAnswer = null;
-                State.waitAnswerPI = null;
-            }
-        };
-        smsProgress.setMessage(getString(R.string.sms_mode));
-        smsProgress.show();
-        PendingIntent sendPI = createPendingResult(SMS_SENT_RESULT, new Intent(), 0);
-        SmsManager smsManager = SmsManager.getDefault();
-        String phoneNumber = sPref.getString(Names.CAR_PHONE + car_id, "");
-        State.waitAnswer = "ALARM SMS OK";
-        State.waitAnswerPI = sendPI;
-        smsManager.sendTextMessage(phoneNumber, null, "ALARM SMS", sendPI, null);
-    }
 }

@@ -17,7 +17,7 @@
     <string name="preferences">Настройки</string>
     <string name="actions">Действия</string>
     <string name="sms_mode">Переключиться в режим SMS</string>
-    <string name="sms_mode_summary">Нажмите чтобы переключить устройство в режим SMS</string>
+    <string name="sms_mode_summary">Для обработки тревог приложением надо переключить устройство в режим SMS</string>
     <string name="sms_error">Не могу отправить SMS</string>
     <string name="api_key">API ключ</string>
     <string name="api_key_summary">Получите ключ для доступа к API на сайте car-online.ru и введите
@@ -27,7 +27,8 @@
     <string name="bad_key">Неправильный ключ API</string>
     <string name="valet_on">Включить режим VALET</string>
     <string name="valet_off">Выключить режим VALET</string>
-    <string name="ccode">Введите C-код</string>
+    <string name="ccode">C-код:</string>
+    <string name="ok">Продолжить</string>
     <string name="internet_on">Включить интернет</string>
     <string name="internet_off">Выключить интернет</string>
     <string name="internet_on_sum">Разрешить доступ в интернет на устройстве</string>
@@ -186,4 +187,10 @@
     <string name="brake">Тормоз</string>
     <string name="guard2_on">Включен режим охраны 2</string>
     <string name="guard2_off">Выключен режим охраны 2</string>
+    <string name="valet_on_msg">Для включения режима VALET требуется ввод C-кода</string>
+    <string name="valet_off_msg">Для отключения режима VALET требуется ввод C-кода</string>
+    <string name="bad_ccode">Неверный С-код</string>
+    <string name="pswd">Пароль:</string>
+    <string name="block_msg">Для отмены блокировки включите и выключите режим VALET</string>
+    <string name="sms_mode_msg">Для переключения обратно в голосовой режим отправьте SMS\nALARM CALL</string>
 </resources>

@@ -92,8 +92,8 @@ public class EventsActivity extends ActionBarActivity {
             new EventType(42, R.string.user_call, R.drawable.user_call, 1),
             new EventType(46, R.string.motor_start, R.drawable.motor_start, 1),
             new EventType(89, R.string.request_photo, R.drawable.request_photo, 1),
-            new EventType(110, R.string.valet_on, R.drawable.valet_on, 1),
-            new EventType(120, R.string.valet_off, R.drawable.valet_off, 1),
+            new EventType(120, R.string.valet_on, R.drawable.valet_on, 1),
+            new EventType(110, R.string.valet_off, R.drawable.valet_off, 1),
             new EventType(5, R.string.trunk_open, R.drawable.boot_open, 2),
             new EventType(6, R.string.hood_open, R.drawable.e_hood_open, 2),
             new EventType(7, R.string.door_open, R.drawable.door_open, 2),
@@ -172,8 +172,8 @@ public class EventsActivity extends ActionBarActivity {
             new EventType(140, R.string.lan_change, R.drawable.system, 0),
             new EventType(141, R.string.command, R.drawable.system, 1),
             new EventType(142, R.string.brake, R.drawable.brake, 2),
-            new EventType(24, R.string.guard2_on, R.drawable.guard_on, 1),
-            new EventType(25, R.string.guard2_off, R.drawable.guard_off, 1)
+            new EventType(138, R.string.guard2_on, R.drawable.guard_on, 1),
+            new EventType(139, R.string.guard2_off, R.drawable.guard_off, 1)
     };
 
     @Override

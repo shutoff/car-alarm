@@ -21,7 +21,8 @@
     <string name="sms_error">Can&amp;t send SMS</string>
     <string name="save">Save</string>
     <string name="bad_key">Enter valid API-key</string>
-    <string name="ccode">Enter C-Code</string>
+    <string name="ccode">C-Code:</string>
+    <string name="ok">OK</string>
     <string name="valet_on">VALET On</string>
     <string name="valet_off">VALET Off</string>
     <string name="valet_on_sum">Deactivate guard</string>
@@ -63,8 +64,9 @@
     <string name="key_error">Check API key error</string>
     <string name="check_api">Check API key</string>
     <string name="data_error">Data update error</string>
-    <string name="block">Remote clocking</string>
+    <string name="block">Remote blocking</string>
     <string name="block_sum">Remote blocking of the car</string>
+    <string name="block_msg">For cancel blocking switch ON and OFF valet mode</string>
     <string name="autostart">Autostart</string>
     <string name="autostart_summary">Show autoastart actions</string>
     <string name="rele1">prestarting heater</string>
@@ -189,4 +191,9 @@
     <string name="brake">Brake</string>
     <string name="guard2_on">Guard mode 2 on</string>
     <string name="guard2_off">Guard mode 2 off</string>
+    <string name="valet_on_msg">Turn on VALET require enter C-Code</string>
+    <string name="valet_off_msg">Turn off VALET require enter C-Code</string>
+    <string name="bad_ccode">Invalid C-Code</string>
+    <string name="pswd">Password:</string>
+    <string name="sms_mode_msg">For switch back to voice mode send SMS\nALARM CALL</string>
 </resources>

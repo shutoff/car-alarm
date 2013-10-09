@@ -1,5 +1,6 @@
 package ru.shutoff.caralarm;
 
+import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.PendingIntent.CanceledException;
@@ -15,16 +16,43 @@ import android.net.Uri;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class SmsMonitor extends BroadcastReceiver {
 
     private static final String ACTION = "android.provider.Telephony.SMS_RECEIVED";
+    private static final String SMS_SENT = "ru.shutoff.caralarm.SMS_SENT";
+
+    static final String SMS_ANSWER = "ru.shutoff.caralarm.SMS_ANSWER";
+    static final int INCORRECT_MESSAGE = 10001;
+
+    static Map<String, String> answers;
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent != null && intent.getAction() != null &&
-                ACTION.compareToIgnoreCase(intent.getAction()) == 0) {
+        if (intent == null)
+            return;
+        String action = intent.getAction();
+        if (action == null)
+            return;
+        if (action.equals(SMS_SENT)) {
+            int result_code = getResultCode();
+            if (result_code != Activity.RESULT_OK) {
+                Intent i = new Intent(SMS_ANSWER);
+                i.putExtra(Names.ANSWER, result_code);
+                i.putExtra(Names.ID, intent.getStringExtra(Names.ID));
+                context.sendBroadcast(i);
+            }
+            if (answers == null)
+                answers = new HashMap<String, String>();
+            answers.put(intent.getStringExtra(Names.ID), intent.getStringExtra(Names.ANSWER));
+            return;
+        }
+        if (action.equals(ACTION)) {
             Object[] pduArray = (Object[]) intent.getExtras().get("pdus");
             SmsMessage[] messages = new SmsMessage[pduArray.length];
             for (int i = 0; i < pduArray.length; i++) {
@@ -81,6 +109,26 @@ public class SmsMonitor extends BroadcastReceiver {
     };
 
     boolean processCarMessage(Context context, String body, String car_id) {
+        if ((answers != null) && answers.containsKey(car_id)) {
+            String answer = answers.get(car_id);
+            if (body.substring(0, answer.length()).equalsIgnoreCase(answer)) {
+                answers.remove(car_id);
+                Intent i = new Intent(SMS_ANSWER);
+                i.putExtra(Names.ANSWER, Activity.RESULT_OK);
+                i.putExtra(Names.ID, car_id);
+                context.sendBroadcast(i);
+                return true;
+            }
+            if (body.equals("Incorrect Message")) {
+                answers.remove(car_id);
+                Intent i = new Intent(SMS_ANSWER);
+                i.putExtra(Names.ANSWER, INCORRECT_MESSAGE);
+                i.putExtra(Names.ID, car_id);
+                context.sendBroadcast(i);
+                return true;
+            }
+        }
+
         if ((State.waitAnswer != null) && (body.substring(0, State.waitAnswer.length()).equalsIgnoreCase(State.waitAnswer))) {
             try {
                 State.waitAnswerPI.send(Names.ANSWER_OK);
@@ -180,4 +228,14 @@ public class SmsMonitor extends BroadcastReceiver {
         context.startActivity(alarmIntent);
     }
 
+    static void sendSMS(Context context, String car_id, String sms, String answer) {
+        Intent intent = new Intent(SMS_SENT);
+        intent.putExtra(Names.ID, car_id);
+        intent.putExtra(Names.ANSWER, answer);
+        PendingIntent sendPI = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        SmsManager smsManager = SmsManager.getDefault();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String phoneNumber = preferences.getString(Names.CAR_PHONE + car_id, "");
+        smsManager.sendTextMessage(phoneNumber, null, sms, sendPI, null);
+    }
 }

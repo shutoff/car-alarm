@@ -1,8 +1,13 @@
 package ru.shutoff.caralarm;
 
-import android.app.PendingIntent;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -10,26 +15,19 @@ import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
-import android.telephony.SmsManager;
-import android.widget.Toast;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
 public class Actions extends PreferenceActivity {
 
-    static final int SMS_SENT_RESULT = 3012;
-    static final int SMS_SENT_PASSWD = 3013;
-
-    static final int VALET_ON = 4000;
-    static final int VALET_OFF = 4001;
-
-    ProgressDialog smsProgress;
-    SharedPreferences sPref;
+    SharedPreferences preferences;
 
     String car_id;
 
-    /**
-     * Called when the activity is first created.
-     */
-    @SuppressWarnings("deprecation")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,12 +39,14 @@ public class Actions extends PreferenceActivity {
             car_id = "";
 
         PreferenceScreen screen = getPreferenceScreen();
-        sPref = PreferenceManager.getDefaultSharedPreferences(this);
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        final Context context = this;
 
         Preference pref = findPreference("internet_on");
         pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
-                sendSMS("INTERNET ALL", "INTERNET ALL OK", getString(R.string.internet_on));
+                requestPassword(context, car_id, R.string.internet_on, R.string.internet_on_sum, "INTERNET ALL", "INTERNET ALL OK");
                 return true;
             }
         });
@@ -54,7 +54,7 @@ public class Actions extends PreferenceActivity {
         pref = findPreference("internet_off");
         pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
-                sendSMS("INTERNET OFF", "INTERNET OFF OK", getString(R.string.internet_off));
+                requestPassword(context, car_id, R.string.internet_off, R.string.internet_off_sum, "INTERNET OFF", "INTERNET OFF OK");
                 return true;
             }
         });
@@ -63,7 +63,7 @@ public class Actions extends PreferenceActivity {
         if (getBoolPref(Names.CAR_RELE1)) {
             pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
                 public boolean onPreferenceClick(Preference preference) {
-                    sendSMS("REL1 IMPULS", "REL1 IMPULS OK", getString(R.string.rele1));
+                    rele1(context, car_id);
                     return true;
                 }
             });
@@ -75,7 +75,7 @@ public class Actions extends PreferenceActivity {
         if (getBoolPref(Names.CAR_AUTOSTART)) {
             pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
                 public boolean onPreferenceClick(Preference preference) {
-                    sendSMS("MOTOR ON", "MOTOR ON OK", getString(R.string.motor_on));
+                    motorOn(context, car_id);
                     return true;
                 }
             });
@@ -87,7 +87,7 @@ public class Actions extends PreferenceActivity {
         if (getBoolPref(Names.CAR_AUTOSTART)) {
             pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
                 public boolean onPreferenceClick(Preference preference) {
-                    sendSMS("MOTOR OFF", "MOTOR OFF OK", getString(R.string.motor_off));
+                    motorOff(context, car_id);
                     return true;
                 }
             });
@@ -98,7 +98,7 @@ public class Actions extends PreferenceActivity {
         pref = findPreference("valet_on");
         pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
-                getCCode(getBaseContext().getString(R.string.valet_on), VALET_ON);
+                valetOn(context, car_id);
                 return true;
             }
         });
@@ -106,7 +106,7 @@ public class Actions extends PreferenceActivity {
         pref = findPreference("valet_off");
         pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
-                getCCode(getBaseContext().getString(R.string.valet_off), VALET_OFF);
+                valetOff(context, car_id);
                 return true;
             }
         });
@@ -114,89 +114,151 @@ public class Actions extends PreferenceActivity {
         pref = findPreference("block");
         pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
-                sendSMS("BLOCK MTR", "BLOCK MTR OK", getString(R.string.block));
+                blockMotor(context, car_id);
                 return true;
             }
         });
 
-
-    }
-
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == SMS_SENT_RESULT) {
-            if (resultCode == RESULT_OK)
-                return;
-            if (smsProgress != null)
-                smsProgress.dismiss();
-            if (resultCode != Names.ANSWER_OK) {
-                Toast.makeText(this, getString(R.string.sms_error), Toast.LENGTH_SHORT).show();
-            }
-            return;
-        }
-        if (data == null)
-            return;
-
-        if (requestCode == SMS_SENT_PASSWD) {
-            String title = data.getStringExtra(Names.TITLE);
-            String text = data.getStringExtra(Names.TEXT);
-            String answer = data.getStringExtra(Names.ANSWER);
-            real_sendSMS(text, answer, title);
-            return;
-        }
-
-        String cCode = data.getStringExtra(Names.CCODE);
-        if ((cCode == null) || (cCode.length() == 0))
-            return;
-        if (requestCode == VALET_ON)
-            real_sendSMS(cCode + " VALET", "Valet OK", getString(R.string.valet_on));
-        if (requestCode == VALET_OFF)
-            real_sendSMS(cCode + " INIT", "Main user OK", getString(R.string.valet_off));
-    }
-
-    void getCCode(String title, int id) {
-        Intent intent = new Intent(this, CCodeDialog.class);
-        intent.putExtra(Names.TITLE, title);
-        startActivityForResult(intent, id);
-    }
-
-    void sendSMS(String text, String answer, String title) {
-        String password = sPref.getString(Names.PASSWORD, "");
-        if (password.equals("")) {
-            real_sendSMS(text, answer, title);
-            return;
-        }
-        Intent intent = new Intent(this, PasswordDialog.class);
-        intent.putExtra(Names.TITLE, title);
-        intent.putExtra(Names.TEXT, text);
-        intent.putExtra(Names.ANSWER, answer);
-        startActivityForResult(intent, SMS_SENT_PASSWD);
-    }
-
-    void real_sendSMS(String text, String answer, String title) {
-        smsProgress = new ProgressDialog(this) {
-            protected void onStop() {
-                smsProgress = null;
-                State.waitAnswer = null;
-                State.waitAnswerPI = null;
-            }
-        };
-        smsProgress.setMessage(title);
-        smsProgress.show();
-        PendingIntent sendPI = createPendingResult(SMS_SENT_RESULT, new Intent(), 0);
-        SmsManager smsManager = SmsManager.getDefault();
-        String phoneNumber = getStringPref(Names.CAR_PHONE);
-        State.waitAnswer = answer;
-        State.waitAnswerPI = sendPI;
-        smsManager.sendTextMessage(phoneNumber, null, text, sendPI, null);
     }
 
     boolean getBoolPref(String name) {
-        return sPref.getBoolean(name + car_id, false);
+        return preferences.getBoolean(name + car_id, false);
     }
 
-    String getStringPref(String name) {
-        return sPref.getString(name + car_id, "");
+    static void motorOn(Context context, String car_id) {
+        requestPassword(context, car_id, R.string.motor_on, R.string.motor_on_sum, "MOTOR ON", "MOTOR ON OK");
+    }
+
+    static void motorOff(Context context, String car_id) {
+        requestPassword(context, car_id, R.string.motor_off, R.string.motor_off_sum, "MOTOR OFF", "MOTOR OFF OK");
+    }
+
+    static void rele1(Context context, String car_id) {
+        requestPassword(context, car_id, R.string.rele1, R.string.rele1_summary, "REL1 IMPULS", "REL1 IMPULS OK");
+    }
+
+    static void valetOff(Context context, String car_id) {
+        requestCCode(context, car_id, R.string.valet_off, R.string.valet_off_msg, "INIT", "Main user OK");
+    }
+
+    static void valetOn(Context context, String car_id) {
+        requestCCode(context, car_id, R.string.valet_on, R.string.valet_on_msg, "VALET", "Valet OK");
+    }
+
+    static void blockMotor(Context context, String car_id) {
+        requestPassword(context, car_id, R.string.block, R.string.block_msg, "BLOCK MTR", "BLOCK MTR OK");
+    }
+
+    static void requestPassword(final Context context, final String car_id, final int id_title, int id_message, final String sms, final String answer) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                .setTitle(id_title)
+                .setMessage(id_message)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.ok, null);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        final String password = preferences.getString(Names.PASSWORD, "");
+        if (password.length() > 0) {
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+            builder.setView(inflater.inflate(R.layout.password, null));
+        }
+
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (password.length() > 0) {
+                    EditText etPassword = (EditText) dialog.findViewById(R.id.passwd);
+                    if (!password.equals(etPassword.getText().toString())) {
+                        showMessage(context, id_title, R.string.invalid_password);
+                        return;
+                    }
+                }
+                dialog.dismiss();
+                send_sms(context, car_id, sms, answer, id_title);
+            }
+        });
+    }
+
+    static void requestCCode(final Context context, final String car_id, final int id_title, int id_message, final String sms, final String answer) {
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+        final AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle(id_title)
+                .setMessage(id_message)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.ok, null)
+                .setView(inflater.inflate(R.layout.ccode, null))
+                .create();
+        dialog.show();
+        final Button ok = (Button) dialog.getButton(Dialog.BUTTON_POSITIVE);
+        ok.setEnabled(false);
+        final EditText ccode = (EditText) dialog.findViewById(R.id.ccode);
+        ccode.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                ok.setEnabled(s.length() == 6);
+            }
+        });
+        dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                send_sms(context, car_id, ccode.getText() + " " + sms, answer, id_title);
+            }
+        });
+    }
+
+    static void send_sms(final Context context, final String car_id, String sms, String answer, final int id_title) {
+        final ProgressDialog smsProgress = new ProgressDialog(context);
+        smsProgress.setMessage(context.getString(id_title));
+        smsProgress.show();
+        final BroadcastReceiver br = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (!intent.getStringExtra(Names.ID).equals(car_id))
+                    return;
+                smsProgress.dismiss();
+                int result = intent.getIntExtra(Names.ANSWER, 0);
+                if (result == RESULT_OK) {
+                    Intent i = new Intent(context, FetchService.class);
+                    i.setAction(FetchService.ACTION_START);
+                    i.putExtra(Names.ID, car_id);
+                    context.startService(i);
+                    return;
+                }
+                showMessage(context, id_title,
+                        (result == SmsMonitor.INCORRECT_MESSAGE) ? R.string.bad_ccode : R.string.sms_error);
+            }
+        };
+        context.registerReceiver(br, new IntentFilter(SmsMonitor.SMS_ANSWER));
+        smsProgress.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                context.unregisterReceiver(br);
+            }
+        });
+        SmsMonitor.sendSMS(context, car_id, sms, answer);
+    }
+
+    static void showMessage(Context context, int id_title, int id_message) {
+        AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle(id_title)
+                .setMessage(id_message)
+                .setPositiveButton(R.string.ok, null)
+                .create();
+        dialog.show();
     }
 
 }

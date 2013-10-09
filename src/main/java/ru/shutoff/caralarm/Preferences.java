@@ -1,5 +1,8 @@
 package ru.shutoff.caralarm;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -13,10 +16,17 @@ import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
 public class Preferences extends PreferenceActivity {
 
-    SharedPreferences sPref;
+    SharedPreferences preferences;
     Preference alarmPref;
     Preference notifyPref;
     Preference testPref;
@@ -36,7 +46,7 @@ public class Preferences extends PreferenceActivity {
 
         super.onCreate(savedInstanceState);
 
-        sPref = PreferenceManager.getDefaultSharedPreferences(this);
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
         addPreferencesFromResource(R.xml.preferences);
 
         alarmPref = findPreference("alarm");
@@ -56,7 +66,7 @@ public class Preferences extends PreferenceActivity {
             }
         });
 
-        alarmUri = sPref.getString(Names.ALARM, "");
+        alarmUri = preferences.getString(Names.ALARM, "");
         setAlarmTitle();
 
         notifyPref = findPreference("notify");
@@ -76,7 +86,7 @@ public class Preferences extends PreferenceActivity {
             }
         });
 
-        notifyUri = sPref.getString(Names.NOTIFY, "");
+        notifyUri = preferences.getString(Names.NOTIFY, "");
         setNotifyTitle();
 
         aboutPref = findPreference("about");
@@ -98,8 +108,7 @@ public class Preferences extends PreferenceActivity {
         pswdPref = findPreference("password");
         pswdPref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
-                Intent intent = new Intent(getBaseContext(), SetPasswordDialog.class);
-                startActivity(intent);
+                setPassword();
                 return true;
             }
         });
@@ -113,7 +122,7 @@ public class Preferences extends PreferenceActivity {
             }
         });
 
-        mapPref.setSummary(sPref.getString("map_type", "Google"));
+        mapPref.setSummary(preferences.getString("map_type", "Google"));
 
         testPref = findPreference("alarm_test");
         testPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -147,7 +156,7 @@ public class Preferences extends PreferenceActivity {
                 Uri uri = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
                 if (uri != null) {
                     alarmUri = uri.toString();
-                    SharedPreferences.Editor ed = sPref.edit();
+                    SharedPreferences.Editor ed = preferences.edit();
                     ed.putString(Names.ALARM, alarmUri);
                     ed.commit();
                     setAlarmTitle();
@@ -158,7 +167,7 @@ public class Preferences extends PreferenceActivity {
                 Uri uri = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
                 if (uri != null) {
                     notifyUri = uri.toString();
-                    SharedPreferences.Editor ed = sPref.edit();
+                    SharedPreferences.Editor ed = preferences.edit();
                     ed.putString(Names.NOTIFY, notifyUri);
                     ed.commit();
                     setNotifyTitle();
@@ -194,6 +203,68 @@ public class Preferences extends PreferenceActivity {
             String name = ringtone.getTitle(getBaseContext());
             notifyPref.setSummary(name);
         }
+    }
+
+    void setPassword() {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.password)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.save, null)
+                .setView(inflater.inflate(R.layout.setpassword, null))
+                .create();
+        dialog.show();
+        final String password = preferences.getString(Names.PASSWORD, "");
+        final EditText etOldPswd = (EditText) dialog.findViewById(R.id.old_password);
+        if (password.length() == 0) {
+            TextView tvOldLabel = (TextView) dialog.findViewById(R.id.old_password_label);
+            tvOldLabel.setVisibility(View.GONE);
+            etOldPswd.setVisibility(View.GONE);
+        }
+        final EditText etPasswd1 = (EditText) dialog.findViewById(R.id.password);
+        final EditText etPasswd2 = (EditText) dialog.findViewById(R.id.password1);
+        final TextView tvConfrim = (TextView) dialog.findViewById(R.id.invalid_confirm);
+        final Button btnSave = dialog.getButton(Dialog.BUTTON_POSITIVE);
+        final Context context = this;
+
+        TextWatcher watcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (etPasswd1.getText().toString().equals(etPasswd2.getText().toString())) {
+                    tvConfrim.setVisibility(View.INVISIBLE);
+                    btnSave.setEnabled(true);
+                } else {
+                    tvConfrim.setVisibility(View.VISIBLE);
+                    btnSave.setEnabled(false);
+                }
+            }
+        };
+
+        etPasswd1.addTextChangedListener(watcher);
+        etPasswd2.addTextChangedListener(watcher);
+
+        btnSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!password.equals(etOldPswd.getText().toString())) {
+                    Actions.showMessage(context, R.string.password, R.string.invalid_password);
+                    return;
+                }
+                SharedPreferences.Editor ed = preferences.edit();
+                ed.putString(Names.PASSWORD, etPasswd1.getText().toString());
+                ed.commit();
+            }
+        });
     }
 
     static String getCar(SharedPreferences preferences, String car_id) {
