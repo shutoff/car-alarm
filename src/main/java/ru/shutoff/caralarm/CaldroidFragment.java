@@ -1,15 +1,5 @@
 package ru.shutoff.caralarm;
 
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.graphics.Color;
@@ -27,6 +17,16 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 
 /**
  * Caldroid is a fragment that display calendar with dates in a month. Caldroid
@@ -779,7 +779,7 @@ public class CaldroidFragment extends DialogFragment {
     static String monthYear(int year, int month){
         String s = new DateTime(year, month, 1, 0, 0, 0, 0)
                 .monthOfYear().getAsText().toUpperCase();
-        s = s.replaceAll("Я$", "Ь").replaceAll("А$", "");
+        s = s.replaceAll("\u042F$", "\u042C").replaceAll("\u0410$", "");
         return s + " " + year;
     }
 
