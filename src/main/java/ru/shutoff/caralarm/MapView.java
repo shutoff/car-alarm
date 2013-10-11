@@ -12,12 +12,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.webkit.JavascriptInterface;
 
-import org.joda.time.LocalDateTime;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,8 +21,6 @@ public class MapView extends WebViewActivity {
     BroadcastReceiver br;
     String car_id;
     Map<String, String> times;
-
-    final static String WAYSTANDS = "http://api.car-online.ru/v2?get=waystands&skey=$1&begin=$2&content=json";
 
     class JsInterface {
 
@@ -60,7 +52,6 @@ public class MapView extends WebViewActivity {
                     data += address;
                 }
                 car_data[i] = data;
-                new StateRequest(id);
             }
 
             String first = null;
@@ -161,41 +152,4 @@ public class MapView extends WebViewActivity {
         return false;
     }
 
-    class StateRequest extends HttpTask {
-
-        String car_id;
-
-        StateRequest(String id) {
-            car_id = id;
-            Date now = new Date();
-            execute(WAYSTANDS, preferences.getString(Names.CAR_KEY + car_id, ""), (now.getTime() - 24 * 60 * 60 * 1000) + "");
-        }
-
-        @Override
-        void result(JSONObject res) throws JSONException {
-            JSONArray list = res.getJSONArray("waystandlist");
-            if (list.length() > 1) {
-                JSONObject last = list.getJSONObject(list.length() - 1);
-                String type = last.getString("type");
-                String speed = null;
-                JSONArray events = last.getJSONArray("events");
-                JSONObject event;
-                if (type.equals("WAY")) {
-                    event = events.getJSONObject(events.length() - 1);
-                    double s = Double.parseDouble(preferences.getString(Names.SPEED + car_id, "0"));
-                    speed = String.format(getString(R.string.speed), s);
-                } else {
-                    event = events.getJSONObject(0);
-                }
-                LocalDateTime time = new LocalDateTime(event.getLong("eventTime"));
-                times.put(car_id, time.toString("HH:mm"));
-                webView.loadUrl("javascript:update()");
-            }
-        }
-
-        @Override
-        void error() {
-
-        }
-    }
 }

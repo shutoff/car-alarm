@@ -36,7 +36,6 @@ public class Address {
             for (int i = 1; i < parts.length - 1; i++) {
                 address += ", " + parts[i];
             }
-            State.appendLog("result " + id + " " + latitude + "," + longitude + " " + address);
 
             SharedPreferences.Editor ed = preferences.edit();
             ed.putString(Names.ADDR_LAT + id, latitude);
@@ -85,24 +84,24 @@ public class Address {
 
     static String getAddress(Context context, String car_id) {
         try {
+            String result = "";
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
             double lat1 = Double.parseDouble(preferences.getString(Names.LATITUDE + car_id, "0"));
             double lng1 = Double.parseDouble(preferences.getString(Names.LONGITUDE + car_id, "0"));
-            double lat2 = Double.parseDouble(preferences.getString(Names.ADDR_LAT + car_id, "0"));
-            double lng2 = Double.parseDouble(preferences.getString(Names.ADDR_LNG + car_id, "0"));
-            State.appendLog("getAddress: " + car_id + " " + lat1 + "," + lng1 + " " + lat2 + "," + lng2);
-            double distance = calc_distance(lat1, lng1, lat2, lng2);
-            String result = preferences.getString(Names.ADDRESS + car_id, "");
-            State.appendLog("d=" + distance + " prev: " + result);
-            if (distance > 200)
-                result = "";
-            if (distance < 20)
-                return result;
-            if ((request != null) && request.id.equals(car_id)) {
-                State.appendLog("request in process");
-                return result;
+            try {
+                double lat2 = Double.parseDouble(preferences.getString(Names.ADDR_LAT + car_id, "0"));
+                double lng2 = Double.parseDouble(preferences.getString(Names.ADDR_LNG + car_id, "0"));
+                double distance = calc_distance(lat1, lng1, lat2, lng2);
+                result = preferences.getString(Names.ADDRESS + car_id, "");
+                if (distance > 200)
+                    result = "";
+                if ((distance < 20) && (result.length() > 0))
+                    return result;
+            } catch (Exception ex) {
+                // ignore
             }
-            State.appendLog("create request");
+            if ((request != null) && request.id.equals(car_id))
+                return result;
             request = new Request(context, car_id, lat1 + "", lng1 + "");
         } catch (Exception ex) {
             // ignore

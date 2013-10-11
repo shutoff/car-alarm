@@ -24,6 +24,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.util.Date;
+
 public class Preferences extends PreferenceActivity {
 
     SharedPreferences preferences;
@@ -294,6 +296,16 @@ public class Preferences extends PreferenceActivity {
         } catch (Exception ex) {
             return "? \u00B0C";
         }
+    }
+
+    static boolean getValet(SharedPreferences preferences, String car_id) {
+        Date now = new Date();
+        long d = now.getTime() / 1000;
+        if (d - preferences.getLong(Names.VALET_TIME + car_id, 0) < 30)
+            return true;
+        if (d - preferences.getLong(Names.INIT_TIME + car_id, 0) < 30)
+            return false;
+        return preferences.getBoolean(Names.VALET + car_id, false);
     }
 
 }

@@ -3,7 +3,6 @@ package ru.shutoff.caralarm;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.PendingIntent.CanceledException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -75,12 +74,6 @@ public class SmsMonitor extends BroadcastReceiver {
                 }
             }
 
-            if (body.matches("[0-9A-Fa-f]{30}")) {
-                Intent keyIntent = new Intent(context, ApiKeyDialog.class);
-                keyIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                keyIntent.putExtra(Names.CAR_KEY, body);
-                context.startActivity(keyIntent);
-            }
         }
     }
 
@@ -127,15 +120,6 @@ public class SmsMonitor extends BroadcastReceiver {
                 context.sendBroadcast(i);
                 return true;
             }
-        }
-
-        if ((State.waitAnswer != null) && (body.substring(0, State.waitAnswer.length()).equalsIgnoreCase(State.waitAnswer))) {
-            try {
-                State.waitAnswerPI.send(Names.ANSWER_OK);
-            } catch (CanceledException e) {
-                // ignore
-            }
-            return true;
         }
         for (int i = 0; i < notifications.length; i++) {
             if (compare(body, notifications[i])) {
@@ -236,6 +220,14 @@ public class SmsMonitor extends BroadcastReceiver {
         SmsManager smsManager = SmsManager.getDefault();
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         String phoneNumber = preferences.getString(Names.CAR_PHONE + car_id, "");
-        smsManager.sendTextMessage(phoneNumber, null, sms, sendPI, null);
+        try {
+            smsManager.sendTextMessage(phoneNumber, null, sms, sendPI, null);
+        } catch (Exception ex) {
+            try {
+                sendPI.send(context, Activity.RESULT_CANCELED, intent);
+            } catch (Exception e) {
+                // ignore
+            }
+        }
     }
 }

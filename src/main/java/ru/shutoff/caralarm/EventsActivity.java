@@ -141,6 +141,7 @@ public class EventsActivity extends ActionBarActivity {
             new EventType(77, R.string.reset_modem, R.drawable.reset_modem),
             new EventType(78, R.string.reset_modem, R.drawable.reset_modem),
             new EventType(79, R.string.reset_modem, R.drawable.reset_modem),
+            new EventType(80, R.string.reset_modem, R.drawable.reset_modem),
             new EventType(74, R.string.error_read, R.drawable.system),
             new EventType(1, R.string.light_shock, R.drawable.light_shock, 0),
             new EventType(2, R.string.ext_zone, R.drawable.ext_zone, 0),
@@ -173,7 +174,9 @@ public class EventsActivity extends ActionBarActivity {
             new EventType(141, R.string.command, R.drawable.system, 1),
             new EventType(142, R.string.brake, R.drawable.brake, 2),
             new EventType(138, R.string.guard2_on, R.drawable.guard_on, 1),
-            new EventType(139, R.string.guard2_off, R.drawable.guard_off, 1)
+            new EventType(139, R.string.guard2_off, R.drawable.guard_off, 1),
+            new EventType(48, R.string.motor_start_error, R.drawable.motor_start_error, 1),
+            new EventType(47, R.string.motor_stop, R.drawable.motor_stop, 1),
     };
 
     @Override

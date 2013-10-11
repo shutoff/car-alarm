@@ -20,8 +20,8 @@ var markers;
 var infos;
 
 function initialize() {
-    var data =  android.getData();
-    var cars = data.split('|');
+    var data = android.getData();
+    var cars = (data+"").split('|');
     var car_data = cars[0].split(';');
 
     map = L.map('map', {
@@ -89,6 +89,8 @@ function center() {
     var pos = markers[0].getLatLng();
     map.setView([ pos.lat, pos.lng ]);
 }
+
+
 
 
     </script>

@@ -51,7 +51,7 @@ public class MainActivity extends ActionBarActivity {
 
     static final int REQUEST_ALARM = 4000;
     static final int CAR_SETUP = 4001;
-    static final int UPDATE_INTERVAL = 1 * 60 * 1000;
+    static final int UPDATE_INTERVAL = 30 * 1000;
 
     PendingIntent pi;
 
@@ -133,7 +133,7 @@ public class MainActivity extends ActionBarActivity {
         ivValet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (preferences.getBoolean(Names.VALET + car_id, false)) {
+                if (Preferences.getValet(preferences, car_id)) {
                     Actions.valetOff(context, car_id);
                 } else {
                     Actions.valetOn(context, car_id);
@@ -423,7 +423,7 @@ public class MainActivity extends ActionBarActivity {
         } else {
             ivRele.setVisibility(View.GONE);
         }
-        if (preferences.getBoolean(Names.VALET + car_id, false)) {
+        if (Preferences.getValet(preferences, car_id)) {
             ivValet.setImageResource(R.drawable.valet_btn_off);
         } else {
             ivValet.setImageResource(R.drawable.valet_btn_on);

@@ -193,4 +193,6 @@
     <string name="pswd">Пароль:</string>
     <string name="block_msg">Для отмены блокировки включите и выключите режим VALET</string>
     <string name="sms_mode_msg">Для переключения обратно в голосовой режим отправьте SMS\nALARM CALL</string>
+    <string name="motor_start_error">Двигатель не заведен или заглох</string>
+    <string name="motor_stop">Двигатель остановлен</string>
 </resources>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ru.shutoff.caralarm"
-    android:versionCode="14"
-    android:versionName="1.1.0">
+    android:versionCode="15"
+    android:versionName="1.1.1">
 
-    <uses-sdk
+<uses-sdk
         android:minSdkVersion="8"
         android:targetSdkVersion="16" />
 
@@ -76,11 +76,6 @@
             android:name=".Alarm"
             android:configChanges="keyboard|keyboardHidden|orientation"
             android:launchMode="singleTop" />
-
-        <activity
-            android:name=".ApiKeyDialog"
-            android:theme="@android:style/Theme.Dialog"
-            android:label="@string/api_key" />
 
         <activity
             android:name=".ConfigWidget"

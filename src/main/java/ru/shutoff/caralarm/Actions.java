@@ -19,8 +19,11 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+
+import java.util.Date;
 
 public class Actions extends PreferenceActivity {
 
@@ -137,12 +140,35 @@ public class Actions extends PreferenceActivity {
         requestPassword(context, car_id, R.string.rele1, R.string.rele1_summary, "REL1 IMPULS", "REL1 IMPULS OK");
     }
 
-    static void valetOff(Context context, String car_id) {
-        requestCCode(context, car_id, R.string.valet_off, R.string.valet_off_msg, "INIT", "Main user OK");
+    static void valetOff(final Context context, final String car_id) {
+        requestCCode(context, car_id, R.string.valet_off, R.string.valet_off_msg, "INIT", "Main user OK", new Runnable() {
+            @Override
+            public void run() {
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                SharedPreferences.Editor ed = preferences.edit();
+                ed.putBoolean(Names.VALET + car_id, false);
+                Date now = new Date();
+                ed.putLong(Names.INIT_TIME + car_id, now.getTime() / 1000);
+                ed.remove(Names.VALET_TIME);
+                ed.commit();
+            }
+        });
     }
 
-    static void valetOn(Context context, String car_id) {
-        requestCCode(context, car_id, R.string.valet_on, R.string.valet_on_msg, "VALET", "Valet OK");
+    static void valetOn(final Context context, final String car_id) {
+        requestCCode(context, car_id, R.string.valet_on, R.string.valet_on_msg, "VALET", "Valet OK", new Runnable() {
+            @Override
+            public void run() {
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                SharedPreferences.Editor ed = preferences.edit();
+                ed.putBoolean(Names.VALET + car_id, true);
+                ed.putBoolean(Names.GUARD + car_id, false);
+                Date now = new Date();
+                ed.putLong(Names.VALET_TIME + car_id, now.getTime() / 1000);
+                ed.remove(Names.INIT_TIME);
+                ed.commit();
+            }
+        });
     }
 
     static void blockMotor(Context context, String car_id) {
@@ -164,6 +190,8 @@ public class Actions extends PreferenceActivity {
         }
 
         final AlertDialog dialog = builder.create();
+        dialog.getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         dialog.show();
 
         dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
@@ -177,12 +205,12 @@ public class Actions extends PreferenceActivity {
                     }
                 }
                 dialog.dismiss();
-                send_sms(context, car_id, sms, answer, id_title);
+                send_sms(context, car_id, sms, answer, id_title, null);
             }
         });
     }
 
-    static void requestCCode(final Context context, final String car_id, final int id_title, int id_message, final String sms, final String answer) {
+    static void requestCCode(final Context context, final String car_id, final int id_title, int id_message, final String sms, final String answer, final Runnable after) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
         final AlertDialog dialog = new AlertDialog.Builder(context)
                 .setTitle(id_title)
@@ -191,8 +219,10 @@ public class Actions extends PreferenceActivity {
                 .setPositiveButton(R.string.ok, null)
                 .setView(inflater.inflate(R.layout.ccode, null))
                 .create();
+        dialog.getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         dialog.show();
-        final Button ok = (Button) dialog.getButton(Dialog.BUTTON_POSITIVE);
+        final Button ok = dialog.getButton(Dialog.BUTTON_POSITIVE);
         ok.setEnabled(false);
         final EditText ccode = (EditText) dialog.findViewById(R.id.ccode);
         ccode.addTextChangedListener(new TextWatcher() {
@@ -215,12 +245,12 @@ public class Actions extends PreferenceActivity {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
-                send_sms(context, car_id, ccode.getText() + " " + sms, answer, id_title);
+                send_sms(context, car_id, ccode.getText() + " " + sms, answer, id_title, after);
             }
         });
     }
 
-    static void send_sms(final Context context, final String car_id, String sms, String answer, final int id_title) {
+    static void send_sms(final Context context, final String car_id, String sms, String answer, final int id_title, final Runnable after) {
         final ProgressDialog smsProgress = new ProgressDialog(context);
         smsProgress.setMessage(context.getString(id_title));
         smsProgress.show();
@@ -232,10 +262,17 @@ public class Actions extends PreferenceActivity {
                 smsProgress.dismiss();
                 int result = intent.getIntExtra(Names.ANSWER, 0);
                 if (result == RESULT_OK) {
-                    Intent i = new Intent(context, FetchService.class);
-                    i.setAction(FetchService.ACTION_START);
-                    i.putExtra(Names.ID, car_id);
-                    context.startService(i);
+                    if (after != null) {
+                        after.run();
+                        Intent i = new Intent(FetchService.ACTION_UPDATE);
+                        i.putExtra(Names.ID, car_id);
+                        context.sendBroadcast(i);
+                    } else {
+                        Intent i = new Intent(context, FetchService.class);
+                        i.setAction(FetchService.ACTION_START);
+                        i.putExtra(Names.ID, car_id);
+                        context.startService(i);
+                    }
                     return;
                 }
                 showMessage(context, id_title,

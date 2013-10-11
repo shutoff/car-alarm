@@ -206,7 +206,7 @@ public class CarDrawable {
         } else {
             dIgnition.setAlpha(0);
         }
-        if (preferences.getBoolean(Names.VALET + car_id, false)) {
+        if (Preferences.getValet(preferences, car_id)) {
             dValet.setAlpha(255);
         } else {
             dValet.setAlpha(0);

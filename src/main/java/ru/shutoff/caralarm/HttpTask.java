@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Date;
 
 public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
 
@@ -36,9 +37,11 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
             if (pause > 0)
                 Thread.sleep(pause);
             error_text = null;
+            Date start = new Date();
             HttpResponse response = httpclient.execute(new HttpGet(url));
             StatusLine statusLine = response.getStatusLine();
             int status = statusLine.getStatusCode();
+            Date end = new Date();
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             response.getEntity().writeTo(out);
             out.close();
@@ -51,7 +54,6 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
             background(result);
             return result;
         } catch (Exception ex) {
-            State.print(ex);
             // ignore
         }
         return null;

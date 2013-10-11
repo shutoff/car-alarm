@@ -196,4 +196,7 @@
     <string name="bad_ccode">Invalid C-Code</string>
     <string name="pswd">Password:</string>
     <string name="sms_mode_msg">For switch back to voice mode send SMS\nALARM CALL</string>
+    <string name="motor_start_error">Engine start failed</string>
+    <string name="motor_stop">Engine stopped</string>
+    <string name="events">Events</string>
 </resources>

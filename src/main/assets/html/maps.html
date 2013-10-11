@@ -11,7 +11,7 @@
         height: 100%;
         }
     </style>
-    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true"></script>
     <script>
 
 var map;
@@ -20,8 +20,7 @@ var infos;
 
 function initialize() {
     var data =  android.getData();
-    console.log(data);
-    var cars = data.split('|');
+    var cars = (data+"").split('|');
     var car_data = cars[0].split(';');
 
     var mapOptions = {
@@ -95,6 +94,8 @@ function center() {
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
+
+
 
 
     </script>

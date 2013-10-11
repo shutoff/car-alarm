@@ -41,6 +41,7 @@ abstract public class WebViewActivity extends ActionBarActivity {
 
                 @Override
                 public boolean onConsoleMessage(ConsoleMessage cm) {
+                    String message = cm.message();
                     return true;
                 }
             };

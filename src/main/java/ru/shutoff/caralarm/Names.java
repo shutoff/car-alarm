@@ -18,16 +18,12 @@ public final class Names {
     static final String TITLE = "Car Alarm";
     static final String IDS = "n_id";
 
-    static final String CCODE = "ccode";
     static final String TRACK = "track";
     static final String TRACK_DATE = "track_date";
     static final String STATUS = "status";
     static final String ERROR = "error";
 
-    static final int ANSWER_OK = 4000;
-
     static final String PASSWORD = "Password";
-    static final String TEXT = "Text";
     static final String ANSWER = "Answer";
 
     static final String WIDGET = "Widget";
@@ -43,6 +39,9 @@ public final class Names {
     static final String LATITUDE = "Latitude";
     static final String LONGITUDE = "Longitude";
     static final String SPEED = "Speed";
+
+    static final String VALET_TIME = "ValetTime";
+    static final String INIT_TIME = "InitTime";
 
     static final String VALET = "Valet";
     static final String ENGINE = "Engine";
