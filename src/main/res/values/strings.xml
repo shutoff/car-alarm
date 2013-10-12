@@ -199,4 +199,6 @@
     <string name="motor_start_error">Engine start failed</string>
     <string name="motor_stop">Engine stopped</string>
     <string name="events">Events</string>
+    <string name="zone_in">Zone in</string>
+    <string name="zone_out">Zone out</string>
 </resources>

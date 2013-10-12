@@ -175,7 +175,13 @@ public class CarWidget extends AppWidgetProvider {
         widgetView.setTextViewText(R.id.voltage, preferences.getString(Names.VOLTAGE_MAIN + car_id, "--") + " V");
         widgetView.setTextViewText(R.id.reserve, preferences.getString(Names.VOLTAGE_RESERVED + car_id, "--") + " V");
         widgetView.setTextViewText(R.id.balance, preferences.getString(Names.BALANCE + car_id, "---.--"));
-        widgetView.setTextViewText(R.id.temperature, Preferences.getTemperature(preferences, car_id));
+        String temperature = Preferences.getTemperature(preferences, car_id);
+        if (temperature == null) {
+            widgetView.setViewVisibility(R.id.temperature_block, View.GONE);
+        } else {
+            widgetView.setTextViewText(R.id.temperature, temperature);
+            widgetView.setViewVisibility(R.id.temperature_block, View.VISIBLE);
+        }
 
         int height = preferences.getInt(HEIGHT + widgetID, 40);
         widgetView.setViewVisibility(R.id.reserve_block, (height < 60) ? View.GONE : View.VISIBLE);

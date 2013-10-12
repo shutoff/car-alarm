@@ -20,6 +20,7 @@ public class MapView extends WebViewActivity {
     SharedPreferences preferences;
     BroadcastReceiver br;
     String car_id;
+    String point_data;
     Map<String, String> times;
 
     class JsInterface {
@@ -42,37 +43,47 @@ public class MapView extends WebViewActivity {
                             name += " " + id;
                     }
                     data += name + "<br/>";
-                    String address = Address.getAddress(getBaseContext(), id);
-                    String[] parts = address.split(", ");
-                    if (parts.length >= 3) {
-                        address = parts[0] + ", " + parts[1];
-                        for (int n = 2; n < parts.length; n++)
-                            address += "<br/>" + parts[n];
-                    }
-                    data += address;
                 }
+                data += "<b>" + preferences.getString(Names.LATITUDE + id, "0")
+                        + "," + preferences.getString(Names.LONGITUDE + id, "0") + "</b><br/>";
+                String address = Address.getAddress(getBaseContext(), id);
+                String[] parts = address.split(", ");
+                if (parts.length >= 3) {
+                    address = parts[0] + ", " + parts[1];
+                    for (int n = 2; n < parts.length; n++)
+                        address += "<br/>" + parts[n];
+                }
+                data += address;
                 car_data[i] = data;
             }
 
-            String first = null;
-            String last = null;
-            for (String data : car_data) {
-                String[] p = data.split(";");
-                if (times.containsKey(p[0]))
-                    data += ";" + times.get(p[0]);
-                if (p[0].equals(car_id)) {
-                    first = data;
-                } else {
-                    if (last == null) {
-                        last = data;
+            if (car_id != null) {
+                String first = null;
+                String last = null;
+                for (String data : car_data) {
+                    String[] p = data.split(";");
+                    if (times.containsKey(p[0]))
+                        data += ";" + times.get(p[0]);
+                    if (p[0].equals(car_id)) {
+                        first = data;
                     } else {
-                        last += "|" + data;
+                        if (last == null) {
+                            last = data;
+                        } else {
+                            last += "|" + data;
+                        }
                     }
                 }
+                if (last != null)
+                    first += "|" + last;
+                return first;
             }
-            if (last != null)
-                first += "|" + last;
-            return first;
+
+            String res = point_data;
+            for (String data : car_data) {
+                res += "|" + data;
+            }
+            return res;
         }
     }
 
@@ -89,7 +100,8 @@ public class MapView extends WebViewActivity {
     public void onCreate(Bundle savedInstanceState) {
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        car_id = Preferences.getCar(preferences, getIntent().getStringExtra(Names.ID));
+        car_id = getIntent().getStringExtra(Names.ID);
+        point_data = getIntent().getStringExtra(Names.POINT_DATA);
         times = new HashMap<String, String>();
         if (savedInstanceState != null) {
             String car_data = savedInstanceState.getString(Names.CARS);

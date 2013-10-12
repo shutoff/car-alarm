@@ -47,7 +47,6 @@ public class FetchService extends Service {
     static final String STATUS_URL = "http://api.car-online.ru/v2?get=lastinfo&skey=$1&content=json";
     static final String EVENTS_URL = "http://api.car-online.ru/v2?get=events&skey=$1&begin=$2&end=$3&content=json";
     static final String TEMP_URL = "http://api.car-online.ru/v2?get=temperaturelist&skey=$1&begin=$2&end=$3&content=json";
-    static final String BRK_URL = "http://api.car-online.ru/v2?get=brklist&skey=$1&begin=$2&end=$3&median=1&content=json";
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -291,6 +290,8 @@ public class FetchService extends Service {
             if (res == null)
                 return;
             JSONArray arr = res.getJSONArray("temperatureList");
+            if (arr.length() == 0)
+                return;
             JSONObject value = arr.getJSONObject(0);
             String temp = value.getString("value");
             if (temp.equals(preferences.getString(Names.TEMPERATURE + car_id, "")))

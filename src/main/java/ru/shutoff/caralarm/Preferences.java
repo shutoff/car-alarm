@@ -120,6 +120,14 @@ public class Preferences extends PreferenceActivity {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 mapPref.setSummary(newValue.toString());
+                String[] cars = preferences.getString(Names.CARS, "").split(";");
+                SharedPreferences.Editor ed = preferences.edit();
+                for (String id : cars) {
+                    ed.remove(Names.ADDRESS + id);
+                    ed.remove(Names.ADDR_LAT + id);
+                    ed.remove(Names.ADDR_LNG + id);
+                }
+                ed.commit();
                 return true;
             }
         });
@@ -290,12 +298,15 @@ public class Preferences extends PreferenceActivity {
 
     static String getTemperature(SharedPreferences preferences, String car_id) {
         try {
-            double v = Double.parseDouble(preferences.getString(Names.TEMPERATURE + car_id, ""));
+            String s = preferences.getString(Names.TEMPERATURE + car_id, "");
+            if (s.length() == 0)
+                return null;
+            double v = Double.parseDouble(s);
             v += preferences.getInt(Names.TEMP_SIFT + car_id, 0);
             return v + " \u00B0C";
         } catch (Exception ex) {
-            return "? \u00B0C";
         }
+        return null;
     }
 
     static boolean getValet(SharedPreferences preferences, String car_id) {

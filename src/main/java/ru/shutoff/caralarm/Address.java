@@ -7,7 +7,7 @@ import android.preference.PreferenceManager;
 
 public class Address {
 
-    static Request request;
+    static Request addr_request;
 
     static class Request extends AddressRequest {
 
@@ -28,7 +28,7 @@ public class Address {
 
         @Override
         void addressResult(String[] parts) {
-            request = null;
+            addr_request = null;
             if (parts == null)
                 return;
 
@@ -100,9 +100,9 @@ public class Address {
             } catch (Exception ex) {
                 // ignore
             }
-            if ((request != null) && request.id.equals(car_id))
+            if ((addr_request != null) && addr_request.id.equals(car_id))
                 return result;
-            request = new Request(context, car_id, lat1 + "", lng1 + "");
+            addr_request = new Request(context, car_id, lat1 + "", lng1 + "");
         } catch (Exception ex) {
             // ignore
         }

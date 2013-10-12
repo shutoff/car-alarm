@@ -226,8 +226,10 @@ public class CarPreferences extends PreferenceActivity {
                     bodyText.append(m.getMessageBody());
                 }
                 String body = bodyText.toString();
-                if (body.matches("[0-9A-Fa-f]{30}"))
+                if (body.matches("[0-9A-Fa-f]{30}")) {
                     etKey.setText(body);
+                    abortBroadcast();
+                }
             }
         };
         IntentFilter filter = new IntentFilter("android.provider.Telephony.SMS_RECEIVED");
@@ -263,6 +265,14 @@ public class CarPreferences extends PreferenceActivity {
                             res.getInt("id");
                             SharedPreferences.Editor ed = preferences.edit();
                             ed.putString(Names.CAR_KEY + car_id, etKey.getText().toString());
+                            String[] cars = preferences.getString(Names.CARS, "").split(",");
+                            boolean is_new = true;
+                            for (String car : cars) {
+                                if (car.equals(car_id))
+                                    is_new = false;
+                            }
+                            if (is_new)
+                                ed.putString(Names.CARS, preferences.getString(Names.CARS, "") + "," + car_id);
                             ed.commit();
                             dialog.dismiss();
                             Intent intent = new Intent(context, FetchService.class);

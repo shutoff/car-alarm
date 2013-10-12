@@ -40,6 +40,7 @@ public class MainActivity extends ActionBarActivity {
     TextView tvBalance;
     TextView tvTemperature;
     TextView tvError;
+    View vTemperature;
     View vError;
     ImageView imgRefresh;
     ProgressBar prgUpdate;
@@ -100,6 +101,7 @@ public class MainActivity extends ActionBarActivity {
         tvReserve = (TextView) findViewById(R.id.reserve);
         tvBalance = (TextView) findViewById(R.id.balance);
         tvTemperature = (TextView) findViewById(R.id.temperature);
+        vTemperature = findViewById(R.id.temperature_block);
 
         ivMotor = (ImageView) findViewById(R.id.motor);
         ivRele = (ImageView) findViewById(R.id.rele);
@@ -400,7 +402,13 @@ public class MainActivity extends ActionBarActivity {
         tvVoltage.setText(preferences.getString(Names.VOLTAGE_MAIN + car_id, "?") + " V");
         tvReserve.setText(preferences.getString(Names.VOLTAGE_RESERVED + car_id, "?") + " V");
         tvBalance.setText(preferences.getString(Names.BALANCE + car_id, "?"));
-        tvTemperature.setText(Preferences.getTemperature(preferences, car_id));
+        String temperature = Preferences.getTemperature(preferences, car_id);
+        if (temperature == null) {
+            vTemperature.setVisibility(View.GONE);
+        } else {
+            tvTemperature.setText(temperature);
+            vTemperature.setVisibility(View.VISIBLE);
+        }
 
         drawable.update(preferences, car_id);
         tvAddress.setText(

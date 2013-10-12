@@ -23,6 +23,8 @@ public final class Names {
     static final String STATUS = "status";
     static final String ERROR = "error";
 
+    static final String POINT_DATA = "point_data";
+
     static final String PASSWORD = "Password";
     static final String ANSWER = "Answer";
 

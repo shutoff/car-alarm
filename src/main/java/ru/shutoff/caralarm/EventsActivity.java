@@ -2,6 +2,7 @@ package ru.shutoff.caralarm;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -12,6 +13,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -32,6 +34,7 @@ import java.util.Vector;
 public class EventsActivity extends ActionBarActivity {
 
     final static String EVENTS = "http://api.car-online.ru/v2?get=events&skey=$1&begin=$2&end=$3&content=json";
+    final static String EVENT = "http://api.car-online.ru/v2?get=gps&skey=$1&id=$2&time=$3&content=json";
 
     CaldroidFragment dialogCaldroidFragment;
     LocalDate current;
@@ -49,6 +52,7 @@ public class EventsActivity extends ActionBarActivity {
 
     int filter;
     boolean error;
+    long current_item;
 
     static final String FILTER = "filter";
 
@@ -74,39 +78,20 @@ public class EventsActivity extends ActionBarActivity {
     }
 
     static EventType[] event_types = {
-            new EventType(24, R.string.guard_on, R.drawable.guard_on, 1),
-            new EventType(25, R.string.guard_off, R.drawable.guard_off, 1),
-            new EventType(132, R.string.can_on, R.drawable.can, 1),
-            new EventType(133, R.string.can_off, R.drawable.can, 1),
-            new EventType(91, R.string.end_move, R.drawable.system),
-            new EventType(111, R.string.lock_off1, R.drawable.lockclose01, 1),
-            new EventType(112, R.string.lock_off2, R.drawable.lockclose02, 1),
-            new EventType(113, R.string.lock_off3, R.drawable.lockclose03, 1),
-            new EventType(114, R.string.lock_off4, R.drawable.lockclose04, 1),
-            new EventType(115, R.string.lock_off5, R.drawable.lockclose05, 1),
-            new EventType(121, R.string.lock_on1, R.drawable.lockcopen01, 1),
-            new EventType(122, R.string.lock_on2, R.drawable.lockcopen02, 1),
-            new EventType(123, R.string.lock_on3, R.drawable.lockcopen03, 1),
-            new EventType(124, R.string.lock_on4, R.drawable.lockcopen04, 1),
-            new EventType(125, R.string.lock_on5, R.drawable.lockcopen05, 1),
-            new EventType(42, R.string.user_call, R.drawable.user_call, 1),
-            new EventType(46, R.string.motor_start, R.drawable.motor_start, 1),
-            new EventType(89, R.string.request_photo, R.drawable.request_photo, 1),
-            new EventType(120, R.string.valet_on, R.drawable.valet_on, 1),
-            new EventType(110, R.string.valet_off, R.drawable.valet_off, 1),
+            new EventType(1, R.string.light_shock, R.drawable.light_shock, 0),
+            new EventType(2, R.string.ext_zone, R.drawable.ext_zone, 0),
+            new EventType(3, R.string.heavy_shock, R.drawable.heavy_shock, 0),
+            new EventType(4, R.string.inner_zone, R.drawable.inner_zone, 0),
             new EventType(5, R.string.trunk_open, R.drawable.boot_open, 2),
             new EventType(6, R.string.hood_open, R.drawable.e_hood_open, 2),
             new EventType(7, R.string.door_open, R.drawable.door_open, 2),
+            new EventType(8, R.string.tilt, R.drawable.tilt, 0),
             new EventType(9, R.string.ignition_on, R.drawable.ignition_on, 2),
             new EventType(10, R.string.access_on, R.drawable.access_on, 2),
             new EventType(11, R.string.input1_on, R.drawable.input1_on, 2),
             new EventType(12, R.string.input2_on, R.drawable.input2_on, 2),
             new EventType(13, R.string.input3_on, R.drawable.input3_on, 2),
             new EventType(14, R.string.input4_on, R.drawable.input4_on, 2),
-            new EventType(128, R.string.input5_on, R.drawable.input5_on, 2),
-            new EventType(129, R.string.input5_off, R.drawable.input5_off, 2),
-            new EventType(134, R.string.input6_on, R.drawable.input6_on, 2),
-            new EventType(135, R.string.input6_off, R.drawable.input6_off, 2),
             new EventType(15, R.string.trunk_close, R.drawable.boot_close, 2),
             new EventType(16, R.string.hood_close, R.drawable.e_hood_close, 2),
             new EventType(17, R.string.door_close, R.drawable.door_close, 2),
@@ -116,44 +101,25 @@ public class EventsActivity extends ActionBarActivity {
             new EventType(21, R.string.input2_off, R.drawable.input2_off, 2),
             new EventType(22, R.string.input3_off, R.drawable.input3_off, 2),
             new EventType(23, R.string.input4_off, R.drawable.input4_off, 2),
-            new EventType(59, R.string.reset_modem, R.drawable.reset_modem),
-            new EventType(60, R.string.gprs_on, R.drawable.gprs_on),
-            new EventType(61, R.string.gprs_off, R.drawable.gprs_off),
-            new EventType(65, R.string.reset, R.drawable.reset),
-            new EventType(37, R.string.trace_start, R.drawable.trace_start),
-            new EventType(38, R.string.trace_stop, R.drawable.trace_stop),
-            new EventType(31, R.string.gsm_recover, R.drawable.gsm_recover),
-            new EventType(32, R.string.gsm_fail, R.drawable.gsm_fail),
-            new EventType(34, R.string.gps_fail, R.drawable.gps_fail),
-            new EventType(35, R.string.gps_recover, R.drawable.gps_recover),
-            new EventType(90, R.string.till_start, R.drawable.till_start),
-            new EventType(105, R.string.reset_modem, R.drawable.reset_modem),
-            new EventType(106, R.string.reset_modem, R.drawable.reset_modem),
-            new EventType(107, R.string.reset_modem, R.drawable.reset_modem),
-            new EventType(108, R.string.reset_modem, R.drawable.reset_modem),
+            new EventType(24, R.string.guard_on, R.drawable.guard_on, 1),
+            new EventType(25, R.string.guard_off, R.drawable.guard_off, 1),
             new EventType(26, R.string.reset, R.drawable.reset),
-            new EventType(100, R.string.reset, R.drawable.reset),
-            new EventType(101, R.string.reset, R.drawable.reset),
-            new EventType(72, R.string.net_error, R.drawable.system),
-            new EventType(68, R.string.net_error, R.drawable.system),
-            new EventType(75, R.string.net_error, R.drawable.system),
-            new EventType(76, R.string.reset_modem, R.drawable.reset_modem),
-            new EventType(77, R.string.reset_modem, R.drawable.reset_modem),
-            new EventType(78, R.string.reset_modem, R.drawable.reset_modem),
-            new EventType(79, R.string.reset_modem, R.drawable.reset_modem),
-            new EventType(80, R.string.reset_modem, R.drawable.reset_modem),
-            new EventType(74, R.string.error_read, R.drawable.system),
-            new EventType(1, R.string.light_shock, R.drawable.light_shock, 0),
-            new EventType(2, R.string.ext_zone, R.drawable.ext_zone, 0),
-            new EventType(3, R.string.heavy_shock, R.drawable.heavy_shock, 0),
-            new EventType(4, R.string.inner_zone, R.drawable.inner_zone, 0),
-            new EventType(8, R.string.tilt, R.drawable.tilt, 0),
             new EventType(27, R.string.main_power_on, R.drawable.main_power_off, 0),
             new EventType(28, R.string.main_power_off, R.drawable.main_power_off, 0),
             new EventType(29, R.string.reserve_power_on, R.drawable.reserve_power_off, 0),
             new EventType(30, R.string.reserve_power_off, R.drawable.reserve_power_off, 0),
+            new EventType(31, R.string.gsm_recover, R.drawable.gsm_recover),
+            new EventType(32, R.string.gsm_fail, R.drawable.gsm_fail),
+            new EventType(34, R.string.gps_fail, R.drawable.gps_fail),
+            new EventType(35, R.string.gps_recover, R.drawable.gps_recover),
+            new EventType(37, R.string.trace_start, R.drawable.trace_start),
+            new EventType(38, R.string.trace_stop, R.drawable.trace_stop),
+            new EventType(42, R.string.user_call, R.drawable.user_call, 1),
             new EventType(43, R.string.rogue, R.drawable.rogue, 0),
             new EventType(44, R.string.rogue_off, R.drawable.rogue, 0),
+            new EventType(46, R.string.motor_start, R.drawable.motor_start, 1),
+            new EventType(47, R.string.motor_stop, R.drawable.motor_stop, 1),
+            new EventType(48, R.string.motor_start_error, R.drawable.motor_start_error, 1),
             new EventType(49, R.string.alarm_boot, R.drawable.alarm_boot, 0),
             new EventType(50, R.string.alarm_hood, R.drawable.alarm_hood, 0),
             new EventType(51, R.string.alarm_door, R.drawable.alarm_door, 0),
@@ -163,20 +129,60 @@ public class EventsActivity extends ActionBarActivity {
             new EventType(55, R.string.alarm_input2, R.drawable.alarm_input2, 0),
             new EventType(56, R.string.alarm_input3, R.drawable.alarm_input3, 0),
             new EventType(57, R.string.alarm_input4, R.drawable.alarm_input4, 0),
+            new EventType(59, R.string.reset_modem, R.drawable.reset_modem),
+            new EventType(60, R.string.gprs_on, R.drawable.gprs_on),
+            new EventType(61, R.string.gprs_off, R.drawable.gprs_off),
+            new EventType(65, R.string.reset, R.drawable.reset),
+            new EventType(68, R.string.net_error, R.drawable.system),
+            new EventType(72, R.string.net_error, R.drawable.system),
+            new EventType(74, R.string.error_read, R.drawable.system),
+            new EventType(75, R.string.net_error, R.drawable.system),
+            new EventType(76, R.string.reset_modem, R.drawable.reset_modem),
+            new EventType(77, R.string.reset_modem, R.drawable.reset_modem),
+            new EventType(78, R.string.reset_modem, R.drawable.reset_modem),
+            new EventType(79, R.string.reset_modem, R.drawable.reset_modem),
+            new EventType(80, R.string.reset_modem, R.drawable.reset_modem),
             new EventType(85, R.string.sos, R.drawable.sos, 0),
-            new EventType(293, R.string.sos, R.drawable.sos, 0),
+            new EventType(86, R.string.zone_in, R.drawable.zone_in),
+            new EventType(87, R.string.zone_out, R.drawable.zone_out),
             new EventType(88, R.string.incomming_sms, R.drawable.user_sms, 1),
+            new EventType(89, R.string.request_photo, R.drawable.request_photo, 1),
+            new EventType(90, R.string.till_start, R.drawable.till_start),
+            new EventType(91, R.string.end_move, R.drawable.system),
+            new EventType(100, R.string.reset, R.drawable.reset),
+            new EventType(101, R.string.reset, R.drawable.reset),
+            new EventType(105, R.string.reset_modem, R.drawable.reset_modem),
+            new EventType(106, R.string.reset_modem, R.drawable.reset_modem),
+            new EventType(107, R.string.reset_modem, R.drawable.reset_modem),
+            new EventType(108, R.string.reset_modem, R.drawable.reset_modem),
+            new EventType(110, R.string.valet_off, R.drawable.valet_off, 1),
+            new EventType(111, R.string.lock_off1, R.drawable.lockclose01, 1),
+            new EventType(112, R.string.lock_off2, R.drawable.lockclose02, 1),
+            new EventType(113, R.string.lock_off3, R.drawable.lockclose03, 1),
+            new EventType(114, R.string.lock_off4, R.drawable.lockclose04, 1),
+            new EventType(115, R.string.lock_off5, R.drawable.lockclose05, 1),
+            new EventType(120, R.string.valet_on, R.drawable.valet_on, 1),
+            new EventType(121, R.string.lock_on1, R.drawable.lockcopen01, 1),
+            new EventType(122, R.string.lock_on2, R.drawable.lockcopen02, 1),
+            new EventType(123, R.string.lock_on3, R.drawable.lockcopen03, 1),
+            new EventType(124, R.string.lock_on4, R.drawable.lockcopen04, 1),
+            new EventType(125, R.string.lock_on5, R.drawable.lockcopen05, 1),
+            new EventType(128, R.string.input5_on, R.drawable.input5_on, 2),
+            new EventType(129, R.string.input5_off, R.drawable.input5_off, 2),
             new EventType(130, R.string.voice, R.drawable.voice),
             new EventType(131, R.string.download_events, R.drawable.settings),
+            new EventType(132, R.string.can_on, R.drawable.can, 1),
+            new EventType(133, R.string.can_off, R.drawable.can, 1),
+            new EventType(134, R.string.input6_on, R.drawable.input6_on, 2),
+            new EventType(135, R.string.input6_off, R.drawable.input6_off, 2),
             new EventType(136, R.string.low_battery, R.drawable.system, 0),
             new EventType(137, R.string.download_settings, R.drawable.settings),
+            new EventType(138, R.string.guard2_on, R.drawable.guard_on, 1),
+            new EventType(139, R.string.guard2_off, R.drawable.guard_off, 1),
             new EventType(140, R.string.lan_change, R.drawable.system, 0),
             new EventType(141, R.string.command, R.drawable.system, 1),
             new EventType(142, R.string.brake, R.drawable.brake, 2),
-            new EventType(138, R.string.guard2_on, R.drawable.guard_on, 1),
-            new EventType(139, R.string.guard2_off, R.drawable.guard_off, 1),
-            new EventType(48, R.string.motor_start_error, R.drawable.motor_start_error, 1),
-            new EventType(47, R.string.motor_stop, R.drawable.motor_stop, 1),
+            new EventType(293, R.string.sos, R.drawable.sos, 0),
     };
 
     @Override
@@ -187,6 +193,38 @@ public class EventsActivity extends ActionBarActivity {
         if (car_id == null)
             car_id = "";
         lvEvents = (ListView) findViewById(R.id.events);
+        lvEvents.setClickable(true);
+        final Context context = this;
+        lvEvents.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (current_item == position) {
+                    Event e = filtered.get(position);
+                    if (e.point == null)
+                        return;
+                    LocalTime time = new LocalTime(e.time);
+                    String info = "<b>" + time.toString("H:mm:ss") + " ";
+                    boolean found = false;
+                    for (EventType et : event_types) {
+                        if (et.type == e.type) {
+                            found = true;
+                            info += getString(et.string);
+                        }
+                    }
+                    if (!found)
+                        info += getString(R.string.event) + " #" + e.type;
+                    info += "</b><br/>";
+                    Intent i = new Intent(context, MapView.class);
+                    i.putExtra(Names.POINT_DATA, ";" + e.point + ";" + info + e.address.replace("\n", "<br/>"));
+                    startActivity(i);
+                    return;
+                }
+                current_item = position;
+                EventsAdapter adapter = (EventsAdapter) lvEvents.getAdapter();
+                adapter.notifyDataSetChanged();
+                new EventRequest(filtered.get(position).id, filtered.get(position).time);
+            }
+        });
         tvNoEvents = (TextView) findViewById(R.id.no_events);
         progress = findViewById(R.id.progress);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -369,6 +407,21 @@ public class EventsActivity extends ActionBarActivity {
                 tvName.setText(getString(R.string.event) + " #" + e.type);
                 icon.setVisibility(View.GONE);
             }
+            View progress = v.findViewById(R.id.progress);
+            TextView tvAddress = (TextView) v.findViewById(R.id.address);
+            if (position == current_item) {
+                if (e.address == null) {
+                    progress.setVisibility(View.VISIBLE);
+                    tvAddress.setVisibility(View.GONE);
+                } else {
+                    tvAddress.setText(e.address);
+                    progress.setVisibility(View.GONE);
+                    tvAddress.setVisibility(View.VISIBLE);
+                }
+            } else {
+                progress.setVisibility(View.GONE);
+                tvAddress.setVisibility(View.GONE);
+            }
             return v;
         }
     }
@@ -410,6 +463,7 @@ public class EventsActivity extends ActionBarActivity {
                 filtered.add(e);
         }
         if (filtered.size() > 0) {
+            current_item = -1;
             lvEvents.setAdapter(new EventsAdapter());
             lvEvents.setVisibility(View.VISIBLE);
             tvNoEvents.setVisibility(View.GONE);
@@ -435,6 +489,57 @@ public class EventsActivity extends ActionBarActivity {
         int type;
         long time;
         long id;
+        String point;
+        String address;
+    }
+
+    class EventRequest extends HttpTask {
+
+        long event_id;
+        long event_time;
+
+        EventRequest(long id, long time) {
+            event_id = id;
+            event_time = time;
+            execute(EVENT, api_key, id + "", time + "");
+        }
+
+        @Override
+        void result(JSONObject res) throws JSONException {
+            final double lat = res.getDouble("latitude");
+            final double lng = res.getDouble("longitude");
+            AddressRequest request = new AddressRequest() {
+                @Override
+                void addressResult(String[] parts) {
+                    String addr = lat + "," + lng;
+                    if (parts != null) {
+                        addr += "\n" + parts[0];
+                        for (int i = 1; i < parts.length - 1; i++) {
+                            addr += ", " + parts[i];
+                        }
+                    }
+                    setAddress(addr, lat + ";" + lng);
+                }
+            };
+            request.getAddress(preferences, lat + "", lng + "");
+        }
+
+        @Override
+        void error() {
+            setAddress(getString(R.string.error_load), null);
+        }
+
+        void setAddress(String result, String point) {
+            if (current_item < 0)
+                return;
+            Event e = filtered.get((int) current_item);
+            if ((e.id != event_id) || (e.time != event_time))
+                return;
+            e.address = result;
+            e.point = point;
+            EventsAdapter adapter = (EventsAdapter) lvEvents.getAdapter();
+            adapter.notifyDataSetChanged();
+        }
     }
 
 }
