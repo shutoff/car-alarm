@@ -87,7 +87,7 @@ public class ConfigWidget extends Activity {
                 if (v == null) {
                     LayoutInflater inflater = (LayoutInflater) getBaseContext()
                             .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    v = inflater.inflate(R.layout.car_list_item, null);
+                    v = inflater.inflate(R.layout.car_list_dropdown_item, null);
                 }
                 TextView tvName = (TextView) v.findViewById(R.id.name);
                 tvName.setText(cars[position].name);

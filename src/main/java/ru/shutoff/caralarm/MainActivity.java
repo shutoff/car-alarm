@@ -475,7 +475,7 @@ public class MainActivity extends ActionBarActivity {
             if (v == null) {
                 LayoutInflater inflater = (LayoutInflater) getBaseContext()
                         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                v = inflater.inflate(R.layout.car_list_item, null);
+                v = inflater.inflate(R.layout.car_list_dropdown_item, null);
             }
             TextView tv = (TextView) v.findViewById(R.id.name);
             tv.setText(cars[position].name);
