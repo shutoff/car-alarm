@@ -184,6 +184,7 @@ public class FetchService extends Service {
             ed.putString(Names.LATITUDE + car_id, gps.getString("latitude"));
             ed.putString(Names.LONGITUDE + car_id, gps.getString("longitude"));
             ed.putString(Names.SPEED + car_id, gps.getString("speed"));
+            ed.putString(Names.COURSE + car_id, gps.getString("course"));
 
             JSONObject contact = res.getJSONObject("contact");
             ed.putBoolean(Names.GUARD + car_id, contact.getBoolean("stGuard"));
@@ -224,7 +225,11 @@ public class FetchService extends Service {
             JSONArray events = res.getJSONArray("events");
             if (events.length() > 0) {
                 boolean valet_state = preferences.getBoolean(Names.VALET + car_id, false);
+                boolean valet = valet_state;
                 boolean engine_state = preferences.getBoolean(Names.ENGINE + car_id, false);
+                boolean engine = engine_state;
+                long last_stand = preferences.getLong(Names.LAST_STAND, 0);
+                long stand = last_stand;
                 for (int i = events.length() - 1; i >= 0; i--) {
                     JSONObject event = events.getJSONObject(i);
                     int type = event.getInt("eventType");
@@ -247,18 +252,31 @@ public class FetchService extends Service {
                         case 48:
                             engine_state = false;
                             break;
+                        case 37:
+                            last_stand = -event.getLong("eventTime");
+                            break;
+                        case 38:
+                            last_stand = event.getLong("eventTime");
+                            break;
                     }
                 }
-                boolean valet = preferences.getBoolean(Names.VALET + car_id, false);
-                boolean engine = preferences.getBoolean(Names.ENGINE + car_id, false);
+                boolean changed = false;
                 SharedPreferences.Editor ed = preferences.edit();
                 ed.putLong(Names.LAST_EVENT + car_id, eventTime);
-                if (valet_state != valet)
+                if (valet_state != valet){
                     ed.putBoolean(Names.VALET + car_id, valet_state);
-                if (engine_state != engine)
+                    changed = true;
+                }
+                if (engine_state != engine){
                     ed.putBoolean(Names.ENGINE + car_id, engine_state);
+                    changed = true;
+                }
+                if (last_stand != stand){
+                    ed.putLong(Names.LAST_STAND + car_id, last_stand);
+                    changed = true;
+                }
                 ed.commit();
-                if ((valet_state != valet) || (engine_state != engine))
+                if (changed)
                     sendUpdate(ACTION_UPDATE, car_id);
             }
 

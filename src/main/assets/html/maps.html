@@ -12,6 +12,7 @@
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true"></script>
+    <script src="../../../../../android.js"></script>
     <script>
 
 var map;
@@ -40,10 +41,19 @@ function initialize() {
             var car_data = cars[i].split(';');
             var lat = car_data[1];
             var lng = car_data[2];
+            var course = car_data[3];
             var text = createText(car_data);
 
             var marker = new google.maps.Marker({
                 position: new google.maps.LatLng(lat, lng),
+                icon: {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    scale: 3,
+                    strokeColor: '#000080',
+                    fillColor: '#000080',
+                    fillOpacity: 0.5,
+                    rotation: course
+                },
                 map: map
             });
             var info = new google.maps.InfoWindow({
@@ -71,6 +81,7 @@ function update() {
         var car_data = cars[i].split(';');
         var lat = car_data[1];
         var lng = car_data[2];
+        var course = car_data[3];
         var text = createText(car_data);
         markers[i].setPosition(new google.maps.LatLng(lat, lng));
         var info = infos[i];
@@ -79,11 +90,11 @@ function update() {
 }
 
 function createText(data) {
-    var res = data[3];
-    if (data[4])
-        res = '<b>' + data[4] + '</b> ' + res;
+    var res = data[4];
     if (data[5])
-        res += '<br/>' + data[5];
+        res = '<b>' + data[5] + '</b> ' + res;
+    if (data[6])
+        res += '<br/>' + data[6];
     return res;
 }
 

@@ -6,6 +6,8 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"/>
     <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+    <script src="../js/Marker.Rotate.js"></script>
+    <script src="../../../../../android.js"></script>
     <style>
         html, body, #map-canvas {
         margin: 0;
@@ -36,14 +38,26 @@ function initialize() {
     markers = [];
     infos = [];
 
+    var icon = L.icon({
+        iconUrl: '../svg/arrow_.svg',
+        iconSize: [ 24, 24 ],
+        iconAnchor: [ 0, 12 ]
+    });
+
     for (var i in cars){
         (function(i) {
             var car_data = cars[i].split(';');
             var lat = car_data[1];
             var lng = car_data[2];
+            var course = car_data[3];
             var text = createText(car_data);
 
-            var marker = L.marker([lat, lng]).addTo(map);
+            var marker = new L.Marker([ lat, lng ], {
+                icon: icon,
+                iconAngle: course
+            });
+            map.addLayer(marker);
+
             var info = L.popup()
                 .setLatLng([lat, lng])
                 .setContent(text);
@@ -59,11 +73,11 @@ function initialize() {
 }
 
 function createText(data) {
-    var res = data[3];
-    if (data[4])
-        res = '<b>' + data[4] + '</b> ' + res;
+    var res = data[4];
     if (data[5])
-        res += '<br/>' + data[5];
+        res = '<b>' + data[5] + '</b> ' + res;
+    if (data[6])
+        res += '<br/>' + data[6];
     return res;
 }
 
@@ -77,6 +91,7 @@ function update() {
         var car_data = cars[i].split(';');
         var lat = car_data[1];
         var lng = car_data[2];
+        var course = car_data[3];
         var text = createText(car_data);
         markers[i].setLatLng([lat, lng]);
         infos[i].setLatLng([lat, lng]).setContent(text);

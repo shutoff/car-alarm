@@ -25,6 +25,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDateTime;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
@@ -411,10 +412,26 @@ public class MainActivity extends ActionBarActivity {
         }
 
         drawable.update(preferences, car_id);
-        tvAddress.setText(
-                preferences.getString(Names.LONGITUDE + car_id, "") + " " +
-                        preferences.getString(Names.LONGITUDE + car_id, "") + "\n" +
-                        Address.getAddress(this, car_id));
+        String address = "";
+        long last_stand = preferences.getLong(Names.LAST_STAND + car_id, 0);
+        if (last_stand > 0){
+            LocalDateTime stand = new LocalDateTime(last_stand);
+            LocalDateTime now = new LocalDateTime();
+            if (stand.toLocalDate().equals(now.toLocalDate())){
+                address = stand.toString("HH:mm");
+            }else{
+                address = stand.toString("d-MM-yy HH:mm");
+            }
+            address += " ";
+        }else if (last_stand < 0){
+            String speed = preferences.getString(Names.SPEED + car_id, "");
+            if (speed.length() > 0)
+                address = String.format(getString(R.string.speed, speed));
+        }
+        address += preferences.getString(Names.LONGITUDE + car_id, "") + " ";
+        address += preferences.getString(Names.LONGITUDE + car_id, "") + "\n";
+        address += Address.getAddress(this, car_id);
+        tvAddress.setText(address);
 
         if (preferences.getBoolean(Names.CAR_AUTOSTART + car_id, false)) {
             ivMotor.setVisibility(View.VISIBLE);

@@ -180,7 +180,7 @@
     <string name="add">Add</string>
     <string name="cancel">Cancel</string>
     <string name="select_car">Select car</string>
-    <string name="speed">Speed: %.2f km/h</string>
+    <string name="speed">Speed: %s km/h</string>
     <string name="temp_correct">Temperature correction</string>
     <string name="voice">Download voice</string>
     <string name="download_events">Download events table</string>

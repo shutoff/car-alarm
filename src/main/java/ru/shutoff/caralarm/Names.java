@@ -41,6 +41,7 @@ public final class Names {
     static final String LATITUDE = "Latitude";
     static final String LONGITUDE = "Longitude";
     static final String SPEED = "Speed";
+    static final String COURSE = "Course";
 
     static final String VALET_TIME = "ValetTime";
     static final String INIT_TIME = "InitTime";
@@ -48,6 +49,7 @@ public final class Names {
     static final String VALET = "Valet";
     static final String ENGINE = "Engine";
     static final String LAST_EVENT = "LastEvent";
+    static final String LAST_STAND = "LastStand";
     static final String GUARD = "Guard";
     static final String INPUT1 = "Input1";
     static final String INPUT2 = "Input2";
