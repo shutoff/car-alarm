@@ -1,5 +1,7 @@
 package ru.shutoff.caralarm;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +14,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.webkit.JavascriptInterface;
 
+import org.joda.time.LocalDateTime;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +26,12 @@ public class MapView extends WebViewActivity {
     String car_id;
     String point_data;
     Map<String, String> times;
+    AlarmManager alarmMgr;
+    PendingIntent pi;
+    boolean active;
+
+    static final int REQUEST_ALARM = 4000;
+    static final int UPDATE_INTERVAL = 30 * 1000;
 
     class JsInterface {
 
@@ -34,7 +44,8 @@ public class MapView extends WebViewActivity {
                 String id = cars[i].id;
                 String data = id + ";" +
                         preferences.getString(Names.LATITUDE + id, "0") + ";" +
-                        preferences.getString(Names.LONGITUDE + id, "0") + ";";
+                        preferences.getString(Names.LONGITUDE + id, "0") + ";" +
+                        preferences.getString(Names.COURSE + id, "0") + ";";
                 if (cars.length > 1) {
                     String name = preferences.getString(Names.CAR_NAME + id, "");
                     if (name.length() == 0) {
@@ -44,8 +55,24 @@ public class MapView extends WebViewActivity {
                     }
                     data += name + "<br/>";
                 }
-                data += "<b>" + preferences.getString(Names.LATITUDE + id, "0")
-                        + "," + preferences.getString(Names.LONGITUDE + id, "0") + "</b><br/>";
+                long last_stand = preferences.getLong(Names.LAST_STAND + id, 0);
+                if (last_stand > 0){
+                    LocalDateTime stand = new LocalDateTime(last_stand);
+                    LocalDateTime now = new LocalDateTime();
+                    data += "<b>";
+                    if (stand.toLocalDate().equals(now.toLocalDate())){
+                        data += stand.toString("HH:mm");
+                    }else{
+                        data += stand.toString("d-MM-yy HH:mm");
+                    }
+                    data += "</b> ";
+                }else if (last_stand < 0){
+                    String speed = preferences.getString(Names.SPEED + id, "");
+                    if (speed.length() > 0)
+                        data += String.format(getString(R.string.speed, speed));
+                }
+                data += preferences.getString(Names.LATITUDE + id, "0") + ","
+                      + preferences.getString(Names.LONGITUDE + id, "0") + "<br/>";
                 String address = Address.getAddress(getBaseContext(), id);
                 String[] parts = address.split(", ");
                 if (parts.length >= 3) {
@@ -115,11 +142,15 @@ public class MapView extends WebViewActivity {
         }
 
         super.onCreate(savedInstanceState);
+        alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        pi = createPendingResult(REQUEST_ALARM, new Intent(), 0);
 
         br = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 webView.loadUrl("javascript:update()");
+                stopTimer();
+                startTimer(false);
             }
         };
         registerReceiver(br, new IntentFilter(FetchService.ACTION_UPDATE));
@@ -130,6 +161,43 @@ public class MapView extends WebViewActivity {
         super.onDestroy();
         unregisterReceiver(br);
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        active = true;
+        startTimer(true);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        active = false;
+        stopTimer();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ALARM) {
+            Intent intent = new Intent(this, FetchService.class);
+            intent.putExtra(Names.ID, car_id);
+            startService(intent);
+            return;
+        }
+    }
+
+    void startTimer(boolean now) {
+        if (!active)
+            return;
+        alarmMgr.setInexactRepeating(AlarmManager.RTC,
+                System.currentTimeMillis() + (now ? 0 : UPDATE_INTERVAL), UPDATE_INTERVAL, pi);
+    }
+
+    void stopTimer() {
+        alarmMgr.cancel(pi);
+    }
+
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
