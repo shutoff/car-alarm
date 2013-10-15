@@ -50,6 +50,7 @@ public class EventsActivity extends ActionBarActivity {
 
     String car_id;
 
+    boolean loaded;
     int filter;
     boolean error;
     long current_item;
@@ -215,7 +216,7 @@ public class EventsActivity extends ActionBarActivity {
                         info += getString(R.string.event) + " #" + e.type;
                     info += "</b><br/>";
                     Intent i = new Intent(context, MapView.class);
-                    i.putExtra(Names.POINT_DATA, ";" + e.point + ";" + info + e.address.replace("\n", "<br/>"));
+                    i.putExtra(Names.POINT_DATA, ";" + e.point + ";" + e.course + ";" + info + e.address.replace("\n", "<br/>"));
                     startActivity(i);
                     return;
                 }
@@ -338,6 +339,7 @@ public class EventsActivity extends ActionBarActivity {
                 e.id = id;
                 events.add(e);
             }
+            loaded = true;
             filterEvents();
             progress.setVisibility(View.GONE);
         }
@@ -356,6 +358,7 @@ public class EventsActivity extends ActionBarActivity {
             DateTime finish = next.toDateTime(new LocalTime(0, 0));
             events.clear();
             error = false;
+            loaded = false;
             execute(EVENTS,
                     api_key,
                     start.toDate().getTime() + "",
@@ -462,6 +465,8 @@ public class EventsActivity extends ActionBarActivity {
             if (isShow(e.type))
                 filtered.add(e);
         }
+        if (!loaded)
+            return;
         if (filtered.size() > 0) {
             current_item = -1;
             lvEvents.setAdapter(new EventsAdapter());
@@ -490,6 +495,7 @@ public class EventsActivity extends ActionBarActivity {
         long time;
         long id;
         String point;
+        String course;
         String address;
     }
 
@@ -508,6 +514,7 @@ public class EventsActivity extends ActionBarActivity {
         void result(JSONObject res) throws JSONException {
             final double lat = res.getDouble("latitude");
             final double lng = res.getDouble("longitude");
+            final String course = res.getString("course");
             AddressRequest request = new AddressRequest() {
                 @Override
                 void addressResult(String[] parts) {
@@ -518,7 +525,7 @@ public class EventsActivity extends ActionBarActivity {
                             addr += ", " + parts[i];
                         }
                     }
-                    setAddress(addr, lat + ";" + lng);
+                    setAddress(addr, lat + ";" + lng, course);
                 }
             };
             request.getAddress(preferences, lat + "", lng + "");
@@ -526,10 +533,10 @@ public class EventsActivity extends ActionBarActivity {
 
         @Override
         void error() {
-            setAddress(getString(R.string.error_load), null);
+            setAddress(getString(R.string.error_load), null, null);
         }
 
-        void setAddress(String result, String point) {
+        void setAddress(String result, String point, String course) {
             if (current_item < 0)
                 return;
             Event e = filtered.get((int) current_item);
@@ -537,6 +544,7 @@ public class EventsActivity extends ActionBarActivity {
                 return;
             e.address = result;
             e.point = point;
+            e.course = course;
             EventsAdapter adapter = (EventsAdapter) lvEvents.getAdapter();
             adapter.notifyDataSetChanged();
         }

@@ -414,19 +414,19 @@ public class MainActivity extends ActionBarActivity {
         drawable.update(preferences, car_id);
         String address = "";
         long last_stand = preferences.getLong(Names.LAST_STAND + car_id, 0);
-        if (last_stand > 0){
+        if (last_stand > 0) {
             LocalDateTime stand = new LocalDateTime(last_stand);
             LocalDateTime now = new LocalDateTime();
-            if (stand.toLocalDate().equals(now.toLocalDate())){
+            if (stand.toLocalDate().equals(now.toLocalDate())) {
                 address = stand.toString("HH:mm");
-            }else{
+            } else {
                 address = stand.toString("d-MM-yy HH:mm");
             }
             address += " ";
-        }else if (last_stand < 0){
+        } else if (last_stand < 0) {
             String speed = preferences.getString(Names.SPEED + car_id, "");
             if (speed.length() > 0)
-                address = String.format(getString(R.string.speed, speed));
+                address = String.format(getString(R.string.speed, speed)) + " ";
         }
         address += preferences.getString(Names.LONGITUDE + car_id, "") + " ";
         address += preferences.getString(Names.LONGITUDE + car_id, "") + "\n";

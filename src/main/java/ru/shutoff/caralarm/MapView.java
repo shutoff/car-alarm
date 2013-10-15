@@ -56,23 +56,23 @@ public class MapView extends WebViewActivity {
                     data += name + "<br/>";
                 }
                 long last_stand = preferences.getLong(Names.LAST_STAND + id, 0);
-                if (last_stand > 0){
+                if (last_stand > 0) {
                     LocalDateTime stand = new LocalDateTime(last_stand);
                     LocalDateTime now = new LocalDateTime();
                     data += "<b>";
-                    if (stand.toLocalDate().equals(now.toLocalDate())){
+                    if (stand.toLocalDate().equals(now.toLocalDate())) {
                         data += stand.toString("HH:mm");
-                    }else{
+                    } else {
                         data += stand.toString("d-MM-yy HH:mm");
                     }
                     data += "</b> ";
-                }else if (last_stand < 0){
+                } else if (last_stand < 0) {
                     String speed = preferences.getString(Names.SPEED + id, "");
                     if (speed.length() > 0)
                         data += String.format(getString(R.string.speed, speed));
                 }
                 data += preferences.getString(Names.LATITUDE + id, "0") + ","
-                      + preferences.getString(Names.LONGITUDE + id, "0") + "<br/>";
+                        + preferences.getString(Names.LONGITUDE + id, "0") + "<br/>";
                 String address = Address.getAddress(getBaseContext(), id);
                 String[] parts = address.split(", ");
                 if (parts.length >= 3) {
@@ -142,9 +142,9 @@ public class MapView extends WebViewActivity {
         }
 
         super.onCreate(savedInstanceState);
+
         alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         pi = createPendingResult(REQUEST_ALARM, new Intent(), 0);
-
         br = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {

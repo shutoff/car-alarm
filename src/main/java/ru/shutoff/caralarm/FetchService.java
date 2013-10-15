@@ -47,6 +47,7 @@ public class FetchService extends Service {
     static final String STATUS_URL = "http://api.car-online.ru/v2?get=lastinfo&skey=$1&content=json";
     static final String EVENTS_URL = "http://api.car-online.ru/v2?get=events&skey=$1&begin=$2&end=$3&content=json";
     static final String TEMP_URL = "http://api.car-online.ru/v2?get=temperaturelist&skey=$1&begin=$2&end=$3&content=json";
+    static final String GPS_URL = "http://api.car-online.ru/v2?get=gps&skey=$1&id=$2&time=$3&content=json";
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -184,7 +185,6 @@ public class FetchService extends Service {
             ed.putString(Names.LATITUDE + car_id, gps.getString("latitude"));
             ed.putString(Names.LONGITUDE + car_id, gps.getString("longitude"));
             ed.putString(Names.SPEED + car_id, gps.getString("speed"));
-            ed.putString(Names.COURSE + car_id, gps.getString("course"));
 
             JSONObject contact = res.getJSONObject("contact");
             ed.putBoolean(Names.GUARD + car_id, contact.getBoolean("stGuard"));
@@ -197,6 +197,8 @@ public class FetchService extends Service {
             ed.putBoolean(Names.ZONE_TRUNK + car_id, contact.getBoolean("stZoneTrunk"));
             ed.putBoolean(Names.ZONE_ACCESSORY + car_id, contact.getBoolean("stZoneAccessoryOn"));
             ed.putBoolean(Names.ZONE_IGNITION + car_id, contact.getBoolean("stZoneIgnitionOn"));
+            if (contact.getBoolean("stGPS") && contact.getBoolean("stGPSValid"))
+                ed.putString(Names.COURSE + car_id, gps.getString("course"));
 
             ed.commit();
             sendUpdate(ACTION_UPDATE, car_id);
@@ -230,6 +232,7 @@ public class FetchService extends Service {
                 boolean engine = engine_state;
                 long last_stand = preferences.getLong(Names.LAST_STAND, 0);
                 long stand = last_stand;
+                long event_id = 0;
                 for (int i = events.length() - 1; i >= 0; i--) {
                     JSONObject event = events.getJSONObject(i);
                     int type = event.getInt("eventType");
@@ -257,21 +260,24 @@ public class FetchService extends Service {
                             break;
                         case 38:
                             last_stand = event.getLong("eventTime");
+                            event_id = event.getLong("eventId");
                             break;
                     }
                 }
+                if (event_id > 0)
+                    new GPSRequest(car_id, event_id, last_stand);
                 boolean changed = false;
                 SharedPreferences.Editor ed = preferences.edit();
                 ed.putLong(Names.LAST_EVENT + car_id, eventTime);
-                if (valet_state != valet){
+                if (valet_state != valet) {
                     ed.putBoolean(Names.VALET + car_id, valet_state);
                     changed = true;
                 }
-                if (engine_state != engine){
+                if (engine_state != engine) {
                     ed.putBoolean(Names.ENGINE + car_id, engine_state);
                     changed = true;
                 }
-                if (last_stand != stand){
+                if (last_stand != stand) {
                     ed.putLong(Names.LAST_STAND + car_id, last_stand);
                     changed = true;
                 }
@@ -295,6 +301,33 @@ public class FetchService extends Service {
 
         long eventTime;
 
+    }
+
+    class GPSRequest extends ServerRequest {
+
+        String event_id;
+        String event_time;
+
+        GPSRequest(String id, long eventId, long eventTime) {
+            super("G", id);
+            event_id = eventId + "";
+            event_time = eventTime + "";
+        }
+
+        @Override
+        void background(JSONObject res) throws JSONException {
+            if (res == null)
+                return;
+            SharedPreferences.Editor ed = preferences.edit();
+            ed.putString(Names.COURSE + car_id, res.getString("course"));
+            ed.commit();
+        }
+
+        @Override
+        void exec(String api_key) {
+            long eventTime = preferences.getLong(Names.LAST_EVENT + car_id, 0);
+            execute(GPS_URL, api_key, event_id, event_time);
+        }
     }
 
     class TemperatureRequest extends ServerRequest {
