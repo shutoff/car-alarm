@@ -39,9 +39,9 @@ function initialize() {
     infos = [];
 
     var icon = L.icon({
-        iconUrl: '../svg/arrow_.svg',
-        iconSize: [ 24, 24 ],
-        iconAnchor: [ 0, 12 ]
+        iconUrl: '../img/arrow.png',
+        iconSize: [ 20, 20 ],
+        iconAnchor: [ 10, 0 ]
     });
 
     for (var i in cars){
@@ -104,11 +104,6 @@ function center() {
     var pos = markers[0].getLatLng();
     map.setView([ pos.lat, pos.lng ]);
 }
-
-
-
-
-
 
     </script>
 </head>
