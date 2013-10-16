@@ -689,6 +689,11 @@ public class TracksActivity extends ActionBarActivity {
             }
 
             prgMain.setProgress(++progress);
+            if (tracks.size() == 0) {
+                all_done();
+                return;
+            }
+
             if (++pos >= tracks.size()) {
                 // All tracks done
                 TrackStartPositionFetcher fetcher = new TrackStartPositionFetcher();

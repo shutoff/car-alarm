@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"/>
     <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
     <script src="../js/Marker.Rotate.js"></script>
-    <script src="../../../../../android.js"></script>
     <style>
         html, body, #map-canvas {
         margin: 0;
@@ -44,6 +43,12 @@ function initialize() {
         iconAnchor: [ 10, 0 ]
     });
 
+    var icon_small = L.icon({
+        iconUrl: '../img/arrow2.png',
+        iconSize: [ 16, 16 ],
+        iconAnchor: [ 8, 0 ]
+    });
+
     for (var i in cars){
         (function(i) {
             var car_data = cars[i].split(';');
@@ -53,7 +58,7 @@ function initialize() {
             var text = createText(car_data);
 
             var marker = new L.Marker([ lat, lng ], {
-                icon: icon,
+                icon: (i == 0) ? icon : icon_small,
                 iconAngle: course
             });
             map.addLayer(marker);
