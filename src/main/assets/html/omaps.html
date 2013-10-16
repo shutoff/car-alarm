@@ -107,7 +107,7 @@ function center() {
     if (map == null)
         return;
     var pos = markers[0].getLatLng();
-    map.setView([ pos.lat, pos.lng ]);
+    map.setView([ pos.lat, pos.lng ], map.getZoom(), { animate: true });
 }
 
     </script>
