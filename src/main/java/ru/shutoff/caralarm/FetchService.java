@@ -209,6 +209,7 @@ public class FetchService extends Service {
 
         @Override
         void exec(String api_key) {
+            sendUpdate(ACTION_START_UPDATE, car_id);
             execute(STATUS_URL, api_key);
         }
     }
@@ -325,7 +326,6 @@ public class FetchService extends Service {
 
         @Override
         void exec(String api_key) {
-            long eventTime = preferences.getLong(Names.LAST_EVENT + car_id, 0);
             execute(GPS_URL, api_key, event_id, event_time);
         }
     }

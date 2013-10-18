@@ -6,7 +6,7 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"/>
     <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
-    <!-- <script src="../../../../android.js"></script> -->
+    <script src="../js/OSMBuildings-Leaflet.js"></script>
     <style>
         html, body, #map-canvas {
         margin: 0;
@@ -93,9 +93,13 @@ function initialize() {
 	var zoom = map.getBoundsZoom([[min_lat, min_lon], [max_lat, max_lon]]);
 	map.setZoom(zoom);
 
-	L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
+	  L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
 	    maxZoom: 19
-	}).addTo(map);
+	  }).addTo(map);
+
+	  var osmb = new OSMBuildings(map).loadData();
+	  osmb.setStyle({ shadows: true })
+	  L.control.layers({}, { Buildings: osmb }).addTo(map);
 
     for (var i in markers){
         (function(i){
