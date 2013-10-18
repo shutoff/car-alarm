@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"/>
     <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
     <script src="../js/Marker.Rotate.js"></script>
-    <script src="../js/OSMBuildings-Leaflet.js"></script>
     <style>
         html, body, #map-canvas {
         margin: 0;
@@ -33,10 +32,7 @@ function initialize() {
 
     L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
 	    maxZoom: 19
-	  }).addTo(map);
-	  var osmb = new OSMBuildings(map).loadData();
-	  osmb.setStyle({ shadows: true })
-	  L.control.layers({}, { Buildings: osmb }).addTo(map);
+	}).addTo(map);
 
     markers = [];
     infos = [];
@@ -113,6 +109,8 @@ function center() {
     var pos = markers[0].getLatLng();
     map.setView([ pos.lat, pos.lng ], map.getZoom(), { animate: true });
 }
+
+
 
     </script>
 </head>

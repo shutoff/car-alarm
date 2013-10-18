@@ -179,6 +179,10 @@ public class MainActivity extends ActionBarActivity {
                     stopTimer();
                     startTimer(false);
                 }
+                if (intent.getAction().equals(FetchService.ACTION_START)) {
+                    prgUpdate.setVisibility(View.VISIBLE);
+                    imgRefresh.setVisibility(View.GONE);
+                }
                 if (intent.getAction().equals(FetchService.ACTION_NOUPDATE)) {
                     vError.setVisibility(View.GONE);
                     imgRefresh.setVisibility(View.VISIBLE);
@@ -425,8 +429,13 @@ public class MainActivity extends ActionBarActivity {
             address += " ";
         } else if (last_stand < 0) {
             String speed = preferences.getString(Names.SPEED + car_id, "");
-            if (speed.length() > 0)
-                address = String.format(getString(R.string.speed, speed)) + " ";
+            try {
+                double s = Double.parseDouble(speed);
+                if (s > 0)
+                    address += String.format(getString(R.string.speed, speed)) + " ";
+            } catch (Exception ex) {
+                // ignore
+            }
         }
         address += preferences.getString(Names.LONGITUDE + car_id, "") + " ";
         address += preferences.getString(Names.LONGITUDE + car_id, "") + "\n";

@@ -79,7 +79,7 @@
 
         <activity
             android:name=".ConfigWidget"
-            android:theme="@android:style/Theme.Dialog"
+            android:theme="@style/Theme.Transparent"
             android:label="@string/select_car">
             <intent-filter android:priority="6000">
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />

@@ -68,8 +68,15 @@ public class MapView extends WebViewActivity {
                     data += "</b> ";
                 } else if (last_stand < 0) {
                     String speed = preferences.getString(Names.SPEED + id, "");
-                    if (speed.length() > 0)
-                        data += String.format(getString(R.string.speed, speed));
+                    try {
+                        double s = Double.parseDouble(speed);
+                        if (s > 0) {
+                            data += String.format(getString(R.string.speed, speed));
+                            data += "<br/>";
+                        }
+                    } catch (Exception ex) {
+                        // ignore
+                    }
                 }
                 data += preferences.getString(Names.LATITUDE + id, "0") + ","
                         + preferences.getString(Names.LONGITUDE + id, "0") + "<br/>";
@@ -183,7 +190,6 @@ public class MapView extends WebViewActivity {
             Intent intent = new Intent(this, FetchService.class);
             intent.putExtra(Names.ID, car_id);
             startService(intent);
-            return;
         }
     }
 

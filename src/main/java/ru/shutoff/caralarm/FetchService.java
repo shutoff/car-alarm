@@ -209,7 +209,7 @@ public class FetchService extends Service {
 
         @Override
         void exec(String api_key) {
-            sendUpdate(ACTION_START_UPDATE, car_id);
+            sendUpdate(ACTION_START, car_id);
             execute(STATUS_URL, api_key);
         }
     }

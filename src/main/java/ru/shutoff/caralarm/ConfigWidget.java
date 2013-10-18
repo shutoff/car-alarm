@@ -1,8 +1,11 @@
 package ru.shutoff.caralarm;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -10,9 +13,9 @@ import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.ListView;
+import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 public class ConfigWidget extends Activity {
@@ -63,8 +66,16 @@ public class ConfigWidget extends Activity {
             return;
         }
 
-        setContentView(R.layout.config_widget);
-        ListView lv = (ListView) findViewById(R.id.list);
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.select_car)
+                .setPositiveButton(R.string.ok, null)
+                .setNegativeButton(R.string.cancel, null)
+                .setView(inflater.inflate(R.layout.config_widget, null))
+                .create();
+        dialog.show();
+
+        final Spinner lv = (Spinner) dialog.findViewById(R.id.list);
         lv.setAdapter(new BaseAdapter() {
             @Override
             public int getCount() {
@@ -87,21 +98,42 @@ public class ConfigWidget extends Activity {
                 if (v == null) {
                     LayoutInflater inflater = (LayoutInflater) getBaseContext()
                             .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    v = inflater.inflate(R.layout.car_list_dropdown_item, null);
+                    v = inflater.inflate(R.layout.car_key_item, null);
+                }
+                TextView tvName = (TextView) v.findViewById(R.id.name);
+                tvName.setText(cars[position].name);
+                return v;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                View v = convertView;
+                if (v == null) {
+                    LayoutInflater inflater = (LayoutInflater) getBaseContext()
+                            .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    v = inflater.inflate(R.layout.car_key_item, null);
                 }
                 TextView tvName = (TextView) v.findViewById(R.id.name);
                 tvName.setText(cars[position].name);
                 return v;
             }
         });
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                car_id = cars[position].id;
-                saveWidget();
+            public void onDismiss(DialogInterface dialog) {
                 finish();
             }
         });
+        final Button btnOk = dialog.getButton(Dialog.BUTTON_POSITIVE);
+        btnOk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                car_id = cars[lv.getSelectedItemPosition()].id;
+                saveWidget();
+                dialog.dismiss();
+            }
+        });
+
     }
 
     @Override
