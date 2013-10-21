@@ -8,8 +8,6 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.text.Html;
-import android.text.SpannedString;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -32,9 +30,14 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Vector;
 
@@ -222,122 +225,53 @@ public class TracksActivity extends ActionBarActivity {
     void showTrack(int index) {
         Intent intent = new Intent(this, TrackView.class);
         Track track = tracks.get(index);
-
+        Vector<Track> track1 = new Vector<Track>();
+        track1.add(track);
+        if (!setTrack(track1, intent))
+            return;
         LocalDateTime begin = new LocalDateTime(track.begin);
         LocalDateTime end = new LocalDateTime(track.end);
-
-        Point p = track.track.get(track.track.size() - 1);
-        StringBuilder track_data = new StringBuilder();
-        track_data.append(p.latitude);
-        track_data.append(",");
-        track_data.append(p.longitude);
-        track_data.append(",");
-        track_data.append(infoMark(begin, track.start));
-        for (int i = track.track.size() - 1; i >= 0; i--) {
-            p = track.track.get(i);
-            track_data.append("|");
-            track_data.append(p.latitude);
-            track_data.append(",");
-            track_data.append(p.longitude);
-            track_data.append(",");
-            track_data.append(p.speed);
-            track_data.append(",");
-            track_data.append(p.time);
-        }
-        p = track.track.get(0);
-        track_data.append("|");
-        track_data.append(p.latitude);
-        track_data.append(",");
-        track_data.append(p.longitude);
-        track_data.append(",");
-        track_data.append(infoMark(end, track.finish));
-        intent.putExtra(Names.TRACK, track_data.toString());
-        intent.putExtra(Names.STATUS, String.format(getString(R.string.status),
-                track.mileage,
-                timeFormat((int) ((track.end - track.begin) / 60000)),
-                track.avg_speed,
-                track.max_speed));
         intent.putExtra(Names.TITLE, begin.toString("d MMMM HH:mm") + "-" + end.toString("HH:mm"));
         startActivity(intent);
     }
 
     void showDay() {
         Intent intent = new Intent(this, TrackView.class);
-        Track track = tracks.get(0);
-
-        LocalDateTime begin = new LocalDateTime(track.begin);
-
-        Point p = track.track.get(track.track.size() - 1);
-        StringBuilder track_data = new StringBuilder();
-        track_data.append(p.latitude);
-        track_data.append(",");
-        track_data.append(p.longitude);
-        track_data.append(",");
-        track_data.append(infoMark(begin, track.start));
-        for (int i = track.track.size() - 1; i >= 0; i--) {
-            p = track.track.get(i);
-            track_data.append("|");
-            track_data.append(p.latitude);
-            track_data.append(",");
-            track_data.append(p.longitude);
-            track_data.append(",");
-            track_data.append(p.speed);
-            track_data.append(",");
-            track_data.append(p.time);
-        }
-
-        for (int i = 1; i < tracks.size(); i++) {
-            Track prev = tracks.get(i - 1);
-            track = tracks.get(i);
-
-            begin = new LocalDateTime(track.begin);
-            LocalDateTime end = new LocalDateTime(prev.end);
-
-            p = track.track.get(track.track.size() - 1);
-            track_data.append("|");
-            track_data.append(p.latitude);
-            track_data.append(",");
-            track_data.append(p.longitude);
-            track_data.append(",");
-            track_data.append(infoMark(end, begin, track.start));
-            for (int n = track.track.size() - 1; n >= 0; n--) {
-                p = track.track.get(n);
-                track_data.append("|");
-                track_data.append(p.latitude);
-                track_data.append(",");
-                track_data.append(p.longitude);
-                track_data.append(",");
-                track_data.append(p.speed);
-                track_data.append(",");
-                track_data.append(p.time);
-            }
-        }
-
-        track = tracks.get(tracks.size() - 1);
-        LocalDateTime end = new LocalDateTime(track.end);
-        p = track.track.get(0);
-        track_data.append("|");
-        track_data.append(p.latitude);
-        track_data.append(",");
-        track_data.append(p.longitude);
-        track_data.append(",");
-        track_data.append(infoMark(end, track.finish));
-
-        intent.putExtra(Names.TRACK, track_data.toString());
+        if (!setTrack(tracks, intent))
+            return;
         intent.putExtra(Names.TITLE, getTitle());
         startActivity(intent);
     }
 
-    static String infoMark(LocalDateTime t, String address) {
-        return "<b>" + t.toString("HH:mm") + "</b><br/>" + Html.toHtml(new SpannedString(address))
-                .replaceAll(",", "&#x2C;")
-                .replaceAll("\\|", "&#x7C;");
-    }
-
-    static String infoMark(LocalDateTime begin, LocalDateTime end, String address) {
-        return "<b>" + begin.toString("HH:mm") + "-" + end.toString("HH:mm") + "</b><br/>" + Html.toHtml(new SpannedString(address))
-                .replaceAll(",", "&#x2C;")
-                .replaceAll("\\|", "&#x7C;");
+    boolean setTrack(Vector<Track> tracks, Intent intent) {
+        byte[] data = null;
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutput out = new ObjectOutputStream(bos);
+            out.writeObject(tracks);
+            data = bos.toByteArray();
+            out.close();
+            bos.close();
+        } catch (Exception ex) {
+            // ignore
+        }
+        if (data == null)
+            return false;
+        if (data.length > 500000) {
+            try {
+                File outputDir = getCacheDir();
+                File file = File.createTempFile("track", "dat", outputDir);
+                FileOutputStream f = new FileOutputStream(file);
+                f.write(data);
+                intent.putExtra(Names.TRACK_FILE, file.getAbsolutePath());
+                f.close();
+            } catch (Exception ex) {
+                return false;
+            }
+        } else {
+            intent.putExtra(Names.TRACK, data);
+        }
+        return true;
     }
 
     void showError() {
@@ -655,6 +589,16 @@ public class TracksActivity extends ActionBarActivity {
                 track.remove(i);
             }
             if (track.size() > 2) {
+                Collections.sort(track, new Comparator<Point>() {
+                    @Override
+                    public int compare(Point lhs, Point rhs) {
+                        if (lhs.time < rhs.time)
+                            return -1;
+                        if (lhs.time > rhs.time)
+                            return 1;
+                        return 0;
+                    }
+                });
                 double distance = 0;
                 double day_distance = 0;
                 double max_speed = 0;
@@ -679,8 +623,8 @@ public class TracksActivity extends ActionBarActivity {
                 t.track = track;
                 t.mileage = distance / 1000.;
                 t.max_speed = max_speed;
-                t.end = track.get(0).time;
-                t.begin = track.get(track.size() - 1).time;
+                t.begin = track.get(0).time;
+                t.end = track.get(track.size() - 1).time;
                 t.avg_speed = distance * 3600. / (t.end - t.begin);
                 t.day_mileage = day_distance / 1000.;
                 t.day_max_speed = day_max_speed;

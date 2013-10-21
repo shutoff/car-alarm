@@ -19,8 +19,8 @@ public final class Names {
     static final String IDS = "n_id";
 
     static final String TRACK = "track";
+    static final String TRACK_FILE = "track_file";
     static final String TRACK_DATE = "track_date";
-    static final String STATUS = "status";
     static final String ERROR = "error";
 
     static final String POINT_DATA = "point_data";
