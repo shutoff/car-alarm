@@ -197,4 +197,5 @@
     <string name="motor_stop">Двигатель остановлен</string>
     <string name="zone_in">Въезд в зону</string>
     <string name="zone_out">Выезд из зоны</string>
+    <string name="position">Мое положение</string>
 </resources>

@@ -16,7 +16,12 @@
 
 var map;
 var markers;
+var my_location;
+var my_marker;
 var infos;
+var my_icon;
+var my_arrow;
+var my_options;
 
 function initialize() {
     var data =  android.getData();
@@ -51,6 +56,22 @@ function initialize() {
         fillOpacity: 0.2
     };
 
+    my_icon = {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 3,
+        strokeColor: '#800000',
+        fillColor: '#800000',
+        fillOpacity: 0.5
+    };
+
+    my_arrow = {
+        path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+        scale: 2,
+        strokeColor: '#800000',
+        fillColor: '#800000',
+        fillOpacity: 0.5        
+    };
+
     for (var i in cars){
         (function(i){
             var car_data = cars[i].split(';');
@@ -80,6 +101,54 @@ function initialize() {
             markers[i] = marker;
             infos[i] = info;
         })(i);
+    }
+    myLocation();
+}
+
+function myLocation() {
+    if (map == null)
+        return;
+    var location = android.getLocation().split(',');
+    if (location.length < 3)
+        return;
+    var lat = location[0];
+    var lng = location[1];
+    var radius = parseFloat(location[2]);    
+    if (my_location == null){
+        my_options = {
+            strokeColor: "#0000FF",
+            strokeOpacity: 0.4,
+            strokeWeight: 2,
+            fillColor: "#0000FF",
+            fillOpacity: 0.2,
+            map: map,
+            center: new google.maps.LatLng(lat, lng),
+            radius: radius
+        };
+        my_location = new google.maps.Circle(my_options);
+        var icon = my_icon;
+        console.log(location);
+        if (location.length > 3){
+            icon = my_arrow;
+            icon.rotation = parseInt(location[3]);
+        }
+        console.log(icon);
+        my_marker = new google.maps.Marker({
+            position: new google.maps.LatLng(lat, lng),
+            icon: icon,
+            map: map
+        });
+    }else{
+        my_options.position = new google.maps.LatLng(lat, lng);
+        my_options.radius = radius;
+        my_location.setOptions(my_options);
+        my_marker.setPosition(new google.maps.LatLng(lat, lng));
+        var icon = my_icon;
+        if (location.length > 3){
+            icon = my_arrow;
+            icon.rotation = parseInt(location[3]);
+        }
+        my_marker.setIcon(icon);
     }
 }
 
@@ -118,6 +187,8 @@ function center() {
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
+
+
 
 
     </script>

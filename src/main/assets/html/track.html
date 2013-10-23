@@ -58,6 +58,7 @@ function initialize() {
     points = [];
     var markers = [];
 
+    var last_mark = false;
     for (var i in parts){
         var p = parts[i].split(',');
         var lat = parseFloat(p[0]);
@@ -77,11 +78,15 @@ function initialize() {
                     break;
             }
             var point = new google.maps.LatLng(lat, lon);
-            if (points.length){
-                var last = points[points.length - 1];
-                last.points.push(point);
-                if (last.index == index)
-                    index = -1;
+            if (last_mark){
+                last_mark = false;
+            }else{
+                if (points.length){
+                    var last = points[points.length - 1];
+                    last.points.push(point);
+                    if (last.index == index)
+                        index = -1;
+                }
             }
             if (index >= 0){
                 var last = {
@@ -92,6 +97,7 @@ function initialize() {
             }
         }else{
             markers.push(p);
+            last_mark = true;
         }
     }
 
@@ -203,6 +209,8 @@ function shareTrack() {
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
+
+
 
 
 </script>

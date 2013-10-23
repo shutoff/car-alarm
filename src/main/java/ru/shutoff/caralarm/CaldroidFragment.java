@@ -142,9 +142,9 @@ public class CaldroidFragment extends DialogFragment {
 	/**
 	 * textColorForDateMap holds color for text for each date
 	 */
-	protected HashMap<DateTime, Integer> textColorForDateTimeMap = new HashMap<DateTime, Integer>();;
+    protected HashMap<DateTime, Integer> textColorForDateTimeMap = new HashMap<DateTime, Integer>();
 
-	/**
+    /**
 	 * First column of calendar is Sunday
 	 */
 	protected int startDayOfWeek = DateTimeConstants.SUNDAY;
@@ -779,7 +779,7 @@ public class CaldroidFragment extends DialogFragment {
     static String monthYear(int year, int month){
         String s = new DateTime(year, month, 1, 0, 0, 0, 0)
                 .monthOfYear().getAsText().toUpperCase();
-        s = s.replaceAll("\u042F$", "\u042C").replaceAll("\u0410$", "");
+        s = s.replaceAll("\u0410\u042F$", "\u0410\u0419").replaceAll("\u042F$", "\u042C").replaceAll("\u0410$", "");
         return s + " " + year;
     }
 

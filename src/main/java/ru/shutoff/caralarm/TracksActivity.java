@@ -200,6 +200,8 @@ public class TracksActivity extends ActionBarActivity {
                 dialogCaldroidFragment.setArguments(args);
                 LocalDateTime now = new LocalDateTime();
                 dialogCaldroidFragment.setMaxDate(now.toDate());
+                Date sel = current.toDate();
+                dialogCaldroidFragment.setSelectedDates(sel, sel);
                 dialogCaldroidFragment.show(getSupportFragmentManager(), "TAG");
                 break;
             }

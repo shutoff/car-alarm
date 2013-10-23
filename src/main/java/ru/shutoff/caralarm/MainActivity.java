@@ -437,7 +437,7 @@ public class MainActivity extends ActionBarActivity {
                 // ignore
             }
         }
-        address += preferences.getString(Names.LONGITUDE + car_id, "") + " ";
+        address += preferences.getString(Names.LATITUDE + car_id, "") + " ";
         address += preferences.getString(Names.LONGITUDE + car_id, "") + "\n";
         address += Address.getAddress(this, car_id);
         tvAddress.setText(address);

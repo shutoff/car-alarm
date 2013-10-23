@@ -201,4 +201,5 @@
     <string name="events">Events</string>
     <string name="zone_in">Zone in</string>
     <string name="zone_out">Zone out</string>
+    <string name="position">My position</string>
 </resources>
