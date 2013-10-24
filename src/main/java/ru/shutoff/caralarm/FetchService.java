@@ -328,6 +328,11 @@ public class FetchService extends Service {
         void exec(String api_key) {
             execute(GPS_URL, api_key, event_id, event_time);
         }
+
+        @Override
+        void error() {
+            requests.remove(key);
+        }
     }
 
     class TemperatureRequest extends ServerRequest {

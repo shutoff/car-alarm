@@ -217,6 +217,7 @@ public class EventsActivity extends ActionBarActivity {
                     info += "</b><br/>";
                     Intent i = new Intent(context, MapView.class);
                     i.putExtra(Names.POINT_DATA, ";" + e.point + ";" + e.course + ";" + info + e.address.replace("\n", "<br/>"));
+                    i.putExtra(Names.ID, car_id);
                     startActivity(i);
                     return;
                 }

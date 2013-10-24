@@ -114,34 +114,31 @@ function myLocation() {
     var lat = location[0];
     var lng = location[1];
     var radius = parseFloat(location[2]);    
-    if (my_location == null){
-        my_options = {
-            strokeColor: "#0000FF",
-            strokeOpacity: 0.4,
-            strokeWeight: 2,
-            fillColor: "#0000FF",
-            fillOpacity: 0.2,
-            map: map,
-            center: new google.maps.LatLng(lat, lng),
-            radius: radius
-        };
-        my_location = new google.maps.Circle(my_options);
+    if (my_location != null)
+        my_location.setMap(null);
+    my_options = {
+        strokeColor: "#0000FF",
+        strokeOpacity: 0.1,
+        strokeWeight: 2,
+        fillColor: "#0000FF",
+        fillOpacity: 0.05,
+        map: map,
+        center: new google.maps.LatLng(lat, lng),
+        radius: radius
+    };
+    my_location = new google.maps.Circle(my_options);
+    if (my_marker == null){
         var icon = my_icon;
-        console.log(location);
         if (location.length > 3){
             icon = my_arrow;
             icon.rotation = parseInt(location[3]);
         }
-        console.log(icon);
         my_marker = new google.maps.Marker({
             position: new google.maps.LatLng(lat, lng),
             icon: icon,
             map: map
         });
     }else{
-        my_options.position = new google.maps.LatLng(lat, lng);
-        my_options.radius = radius;
-        my_location.setOptions(my_options);
         my_marker.setPosition(new google.maps.LatLng(lat, lng));
         var icon = my_icon;
         if (location.length > 3){
@@ -150,6 +147,33 @@ function myLocation() {
         }
         my_marker.setIcon(icon);
     }
+}
+
+function setPosition() {
+    if (map == null)
+        return;
+    var pos = markers[0].getPosition();
+    var lat1 = pos.lat();
+    var lng1 = pos.lng();
+    var pos = android.getLocation().split(',');
+    if (pos.length < 3)
+        return;
+    var lat2 = parseFloat(pos[0]);
+    var lng2 = parseFloat(pos[1]);
+    if (lat1 > lat2){
+        var r = lat1;
+        lat1 = lat2;
+        lat2 = r;
+    }
+    if (lng1 > lng2){
+        var r = lng1;
+        lng1 = lng2;
+        lng2 = r;
+    }
+    var d_lat = (lat2 - lat1) / 8;
+    var d_lng = (lng2 - lng1) / 8;
+    var bounds = new google.maps.LatLngBounds(new google.maps.LatLng(lat1 - d_lat, lng1 - d_lng), new google.maps.LatLng(lat2 + d_lat, lng2 + d_lng));
+    map.fitBounds(bounds);
 }
 
 function update() {
@@ -168,6 +192,13 @@ function update() {
         markers[i].setPosition(new google.maps.LatLng(lat, lng));
         var info = infos[i];
         info.setContent(text);
+    }
+
+    for (i = cars.length; i < markers.length; i++){
+        if (markers[i] == null)
+            continue;
+        markers[i].setMap(null);
+        marlers[i] = null;
     }
 }
 

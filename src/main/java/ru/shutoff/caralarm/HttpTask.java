@@ -32,6 +32,7 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
         for (int i = 1; i < params.length; i++) {
             url = url.replace("$" + i, params[i]);
         }
+        String res = null;
         try {
             if (pause > 0)
                 Thread.sleep(pause);
@@ -42,7 +43,7 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             response.getEntity().writeTo(out);
             out.close();
-            String res = out.toString();
+            res = out.toString();
             JSONObject result = new JSONObject(res);
             if (status != HttpStatus.SC_OK) {
                 error_text = result.getString("error");
@@ -52,6 +53,10 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
             return result;
         } catch (Exception ex) {
             ex.printStackTrace();
+            if (res != null) {
+                State.appendLog("url " + url);
+                State.appendLog("answer " + res);
+            }
             State.print(ex);
             // ignore
         }

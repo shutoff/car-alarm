@@ -12,10 +12,16 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v7.app.ActionBar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
+import android.widget.BaseAdapter;
+import android.widget.TextView;
 
 import org.joda.time.LocalDateTime;
 
@@ -36,6 +42,7 @@ public class MapView extends WebViewActivity {
     Location currentBestLocation;
     LocationListener netListener;
     LocationListener gpsListener;
+    Cars.Car[] cars;
 
     static final int REQUEST_ALARM = 4000;
     static final int UPDATE_INTERVAL = 30 * 1000;
@@ -51,6 +58,7 @@ public class MapView extends WebViewActivity {
             res += currentBestLocation.getAccuracy();
             if (currentBestLocation.hasBearing())
                 res += currentBestLocation.getBearing();
+            State.appendLog("location: " + res);
             return res;
         }
 
@@ -110,33 +118,35 @@ public class MapView extends WebViewActivity {
                 car_data[i] = data;
             }
 
-            if (car_id != null) {
-                String first = null;
-                String last = null;
+            if (point_data != null) {
+                String res = point_data;
                 for (String data : car_data) {
-                    String[] p = data.split(";");
-                    if (times.containsKey(p[0]))
-                        data += ";" + times.get(p[0]);
-                    if (p[0].equals(car_id)) {
-                        first = data;
-                    } else {
-                        if (last == null) {
-                            last = data;
-                        } else {
-                            last += "|" + data;
-                        }
-                    }
+                    res += "|" + data;
                 }
-                if (last != null)
-                    first += "|" + last;
-                return first;
+                State.appendLog("data: " + res);
+                return res;
             }
 
-            String res = point_data;
+            String first = null;
+            String last = null;
             for (String data : car_data) {
-                res += "|" + data;
+                String[] p = data.split(";");
+                if (times.containsKey(p[0]))
+                    data += ";" + times.get(p[0]);
+                if (p[0].equals(car_id)) {
+                    first = data;
+                } else {
+                    if (last == null) {
+                        last = data;
+                    } else {
+                        last += "|" + data;
+                    }
+                }
             }
-            return res;
+            if (last != null)
+                first += "|" + last;
+            State.appendLog("data: " + first);
+            return first;
         }
     }
 
@@ -245,6 +255,7 @@ public class MapView extends WebViewActivity {
         super.onStart();
         active = true;
         startTimer(true);
+        setActionBar();
     }
 
     @Override
@@ -261,6 +272,42 @@ public class MapView extends WebViewActivity {
             Intent intent = new Intent(this, FetchService.class);
             intent.putExtra(Names.ID, car_id);
             startService(intent);
+        }
+    }
+
+    void setActionBar() {
+        ActionBar actionBar = getSupportActionBar();
+        cars = Cars.getCars(this);
+        if (cars.length > 1) {
+            String save_point_data = point_data;
+            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setDisplayUseLogoEnabled(false);
+            actionBar.setListNavigationCallbacks(new CarsAdapter(), new ActionBar.OnNavigationListener() {
+                @Override
+                public boolean onNavigationItemSelected(int i, long l) {
+                    if (cars[i].id.equals(car_id))
+                        return true;
+                    point_data = null;
+                    car_id = cars[i].id;
+                    webView.loadUrl("javascript:update()");
+                    webView.loadUrl("javascript:center()");
+                    return true;
+                }
+            });
+            for (int i = 0; i < cars.length; i++) {
+                if (cars[i].id.equals(car_id)) {
+                    actionBar.setSelectedNavigationItem(i);
+                    break;
+                }
+            }
+            point_data = save_point_data;
+            setTitle("");
+        } else {
+            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+            actionBar.setDisplayShowHomeEnabled(true);
+            actionBar.setDisplayUseLogoEnabled(false);
+            setTitle(getString(R.string.app_name));
         }
     }
 
@@ -301,10 +348,12 @@ public class MapView extends WebViewActivity {
 
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.map: {
+            case R.id.map:
                 webView.loadUrl("javascript:center()");
                 break;
-            }
+            case R.id.my:
+                webView.loadUrl("javascript:setPosition()");
+                break;
         }
         return false;
     }
@@ -376,5 +425,49 @@ public class MapView extends WebViewActivity {
         if (provider1 == null)
             return provider2 == null;
         return provider1.equals(provider2);
+    }
+
+    class CarsAdapter extends BaseAdapter {
+
+        @Override
+        public int getCount() {
+            return cars.length;
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return cars[position];
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            if (v == null) {
+                LayoutInflater inflater = (LayoutInflater) getBaseContext()
+                        .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                v = inflater.inflate(R.layout.car_list_dropdown_item, null);
+            }
+            TextView tv = (TextView) v.findViewById(R.id.name);
+            tv.setText(cars[position].name);
+            return v;
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            if (v == null) {
+                LayoutInflater inflater = (LayoutInflater) getBaseContext()
+                        .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                v = inflater.inflate(R.layout.car_list_dropdown_item, null);
+            }
+            TextView tv = (TextView) v.findViewById(R.id.name);
+            tv.setText(cars[position].name);
+            return v;
+        }
     }
 }

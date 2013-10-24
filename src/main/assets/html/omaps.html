@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
-    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"/>
-    <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
-    <script src="../js/Marker.Rotate.js"></script>
-    <style>
-        html, body, #map-canvas {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        }
-    </style>
-    <script>
+<title></title>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"/>
+<script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+<script src="../js/Marker.Rotate.js"></script>
+<style>
+    html, body, #map-canvas {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    }
+</style>
+<script>
 
 var map;
 var markers;
@@ -55,8 +55,8 @@ function initialize() {
 
     my_icon = L.icon({
         iconUrl: '../img/i.png',
-        iconSize: [ 16, 16 ],
-        iconAnchor: [ 8, 8 ]
+        iconSize: [ 10, 10 ],
+        iconAnchor: [ 5, 5 ]
     });
 
     my_arrow = L.icon({
@@ -142,6 +142,33 @@ function myLocation() {
     }
 }
 
+function setPosition() {
+    if (map == null)
+        return;
+    var pos = markers[0].getLatLng();
+    var lat1 = pos.lat;
+    var lng1 = pos.lng;
+    var pos = android.getLocation().split(',');
+    if (pos.length < 3)
+        return;
+    var lat2 = parseFloat(pos[0]);
+    var lng2 = parseFloat(pos[1]);
+    console.log(lat1, lng1, lat2, lng2);
+    if (lat1 > lat2){
+        var r = lat1;
+        lat1 = lat2;
+        lat2 = r;
+    }
+    if (lng1 > lng2){
+        var r = lng1;
+        lng1 = lng2;
+        lng2 = r;
+    }
+    var d_lat = (lat2 - lat1) / 8;
+    var d_lng = (lng2 - lng1) / 8;
+    map.fitBounds([ [lat1 - d_lat, lng1 - d_lng], [lat2 + d_lat, lng2 + d_lng]]);
+}
+
 function createText(data) {
     var res = data[4];
     if (data[5])
@@ -166,6 +193,13 @@ function update() {
         markers[i].setLatLng([lat, lng]);
         infos[i].setLatLng([lat, lng]).setContent(text);
     }
+
+    for (i = cars.length; i < markers.length; i++){
+        if (markers[i] == null)
+            continue;
+        map.reoveLayer(markers[i]);
+        markers[i] = null;
+    }
 }
 
 function center() {
@@ -176,10 +210,7 @@ function center() {
 }
 
 
-
-
-
-    </script>
+</script>
 </head>
 <body onload="initialize()">
 <div id="map" style="height: 100%"></div>

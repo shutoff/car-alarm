@@ -93,6 +93,7 @@ public class Address {
                 double lng2 = Double.parseDouble(preferences.getString(Names.ADDR_LNG + car_id, "0"));
                 double distance = calc_distance(lat1, lng1, lat2, lng2);
                 result = preferences.getString(Names.ADDRESS + car_id, "");
+                State.appendLog("address " + car_id + " " + lat1 + "," + lng1 + " " + lat2 + "," + lng2 + " " + distance);
                 if (distance > 200)
                     result = "";
                 if ((distance < 20) && (result.length() > 0))
@@ -102,6 +103,7 @@ public class Address {
             }
             if ((addr_request != null) && addr_request.id.equals(car_id))
                 return result;
+            State.appendLog("create address request");
             addr_request = new Request(context, car_id, lat1 + "", lng1 + "");
         } catch (Exception ex) {
             // ignore

@@ -711,7 +711,7 @@ public class TracksActivity extends ActionBarActivity {
 
         @Override
         Point getPoint(Track track) {
-            return track.track.get(track.track.size() - 1);
+            return track.track.get(0);
         }
 
         @Override
@@ -738,7 +738,7 @@ public class TracksActivity extends ActionBarActivity {
 
         @Override
         Point getPoint(Track track) {
-            return track.track.get(0);
+            return track.track.get(track.track.size() - 1);
         }
 
         @Override
