@@ -198,4 +198,9 @@
     <string name="zone_in">Въезд в зону</string>
     <string name="zone_out">Выезд из зоны</string>
     <string name="position">Мое положение</string>
+    <string name="settings">Настройки</string>
+    <string name="no_gps_title">GPS выкллючен</string>
+    <string name="no_gps_message">GPS выключен в системе.\nДля определения местоположения надо включить GPS в настройках</string>
+    <string name="net_gps_message">Местоположение определено по сети.\nДля более точного определения положения надо включить GPS в настройках</string>
+    <string name="no_location">Неизвестное местоположение</string>
 </resources>

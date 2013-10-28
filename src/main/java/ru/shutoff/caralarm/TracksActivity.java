@@ -563,26 +563,35 @@ public class TracksActivity extends ActionBarActivity {
                 return;
             Vector<Point> track = new Vector<Point>();
             JSONArray list = res.getJSONArray("gpslist");
-            boolean first = true;
-            long last_time = 0;
-            for (int i = 0; i < list.length(); i++) {
+
+            for (int i = list.length() - 1; i >= 0; i--) {
                 JSONObject p = list.getJSONObject(i);
                 if (!p.getBoolean("valid"))
                     continue;
                 Point point = new Point();
                 point.speed = p.getDouble("speed");
-                if (first) {
-                    if (point.speed == 0)
-                        continue;
-                    first = false;
-                }
                 point.latitude = p.getDouble("latitude");
                 point.longitude = p.getDouble("longitude");
                 point.time = p.getLong("eventTime");
-                if ((last_time > 0) && (point.time >= last_time))
-                    continue;
+                point.id = p.getLong("eventId");
                 track.add(point);
-                last_time = point.time;
+            }
+            Collections.sort(track, new Comparator<Point>() {
+                @Override
+                public int compare(Point lhs, Point rhs) {
+                    if (lhs.id < rhs.id)
+                        return -1;
+                    if (lhs.id > rhs.id)
+                        return 1;
+                    return 0;
+                }
+            });
+            while (track.size() > 0) {
+                Point p = track.get(0);
+                if (p.speed > 0)
+                    break;
+                ;
+                track.remove(0);
             }
             for (int i = track.size() - 1; i >= 0; i--) {
                 Point p = track.get(i);
@@ -591,16 +600,6 @@ public class TracksActivity extends ActionBarActivity {
                 track.remove(i);
             }
             if (track.size() > 2) {
-                Collections.sort(track, new Comparator<Point>() {
-                    @Override
-                    public int compare(Point lhs, Point rhs) {
-                        if (lhs.time < rhs.time)
-                            return -1;
-                        if (lhs.time > rhs.time)
-                            return 1;
-                        return 0;
-                    }
-                });
                 double distance = 0;
                 double day_distance = 0;
                 double max_speed = 0;
@@ -611,7 +610,21 @@ public class TracksActivity extends ActionBarActivity {
                 for (int i = 0; i < track.size() - 1; i++) {
                     Point p1 = track.get(i);
                     Point p2 = track.get(i + 1);
+                    if (p1.time >= p2.time) {
+                        track.remove(i);
+                        i--;
+                        continue;
+                    }
                     double d = Address.calc_distance(p1.latitude, p1.longitude, p2.latitude, p2.longitude);
+                    double speed = (d * 3600.) / (p2.time - p1.time);
+                    double point_speed = p1.speed;
+                    if (p2.speed > point_speed)
+                        point_speed = p2.speed;
+                    if (speed > point_speed * 1.3) {
+                        track.remove(i);
+                        i--;
+                        continue;
+                    }
                     distance += d;
                     if (p2.speed > max_speed)
                         max_speed = p2.speed;
@@ -871,6 +884,7 @@ public class TracksActivity extends ActionBarActivity {
         double longitude;
         double speed;
         long time;
+        long id;
     }
 
     public static class Track implements Serializable {

@@ -1,9 +1,11 @@
 package ru.shutoff.caralarm;
 
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -12,6 +14,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v7.app.ActionBar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,6 +25,7 @@ import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.joda.time.LocalDateTime;
 
@@ -58,7 +62,6 @@ public class MapView extends WebViewActivity {
             res += currentBestLocation.getAccuracy();
             if (currentBestLocation.hasBearing())
                 res += currentBestLocation.getBearing();
-            State.appendLog("location: " + res);
             return res;
         }
 
@@ -123,7 +126,6 @@ public class MapView extends WebViewActivity {
                 for (String data : car_data) {
                     res += "|" + data;
                 }
-                State.appendLog("data: " + res);
                 return res;
             }
 
@@ -145,7 +147,6 @@ public class MapView extends WebViewActivity {
             }
             if (last != null)
                 first += "|" + last;
-            State.appendLog("data: " + first);
             return first;
         }
     }
@@ -237,8 +238,17 @@ public class MapView extends WebViewActivity {
 
         currentBestLocation = getLastBestLocation();
 
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, gpsListener);
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 10, netListener);
+        try {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, gpsListener);
+        } catch (Exception ex) {
+            gpsListener = null;
+        }
+
+        try {
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 10, netListener);
+        } catch (Exception ex) {
+            netListener = null;
+        }
 
     }
 
@@ -352,6 +362,32 @@ public class MapView extends WebViewActivity {
                 webView.loadUrl("javascript:center()");
                 break;
             case R.id.my:
+                boolean gps_enabled = false;
+                try {
+                    gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+                } catch (Exception ex) {
+                    // ignore
+                }
+                if (!gps_enabled) {
+                    AlertDialog.Builder ad = new AlertDialog.Builder(this);
+                    ad.setTitle(R.string.no_gps_title);
+                    ad.setMessage((currentBestLocation == null) ? R.string.no_gps_message : R.string.net_gps_message);
+                    ad.setPositiveButton(R.string.settings, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivity(intent);
+                        }
+                    });
+                    ad.setNegativeButton(R.string.cancel, null);
+                    ad.show();
+                    if (currentBestLocation == null)
+                        return true;
+                } else if (currentBestLocation == null) {
+                    Toast toast = Toast.makeText(this, R.string.no_location, Toast.LENGTH_SHORT);
+                    toast.show();
+                    return true;
+                }
                 webView.loadUrl("javascript:setPosition()");
                 break;
         }
@@ -450,7 +486,7 @@ public class MapView extends WebViewActivity {
             if (v == null) {
                 LayoutInflater inflater = (LayoutInflater) getBaseContext()
                         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                v = inflater.inflate(R.layout.car_list_dropdown_item, null);
+                v = inflater.inflate(R.layout.car_list_item, null);
             }
             TextView tv = (TextView) v.findViewById(R.id.name);
             tv.setText(cars[position].name);

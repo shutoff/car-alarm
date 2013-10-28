@@ -39,14 +39,14 @@ public class TrackView extends WebViewActivity {
 
             LocalDateTime begin = new LocalDateTime(track.begin);
 
-            TracksActivity.Point p = track.track.get(track.track.size() - 1);
+            TracksActivity.Point p = track.track.get(0);
             StringBuilder track_data = new StringBuilder();
             track_data.append(p.latitude);
             track_data.append(",");
             track_data.append(p.longitude);
             track_data.append(",");
             track_data.append(infoMark(begin, track.start));
-            for (int i = track.track.size() - 1; i >= 0; i--) {
+            for (int i = 0; i < track.track.size(); i++) {
                 p = track.track.get(i);
                 track_data.append("|");
                 track_data.append(p.latitude);
@@ -65,14 +65,14 @@ public class TrackView extends WebViewActivity {
                 begin = new LocalDateTime(track.begin);
                 LocalDateTime end = new LocalDateTime(prev.end);
 
-                p = track.track.get(track.track.size() - 1);
+                p = track.track.get(0);
                 track_data.append("|");
                 track_data.append(p.latitude);
                 track_data.append(",");
                 track_data.append(p.longitude);
                 track_data.append(",");
                 track_data.append(infoMark(end, begin, track.start));
-                for (int n = track.track.size() - 1; n >= 0; n--) {
+                for (int n = 0; n < track.track.size(); n++) {
                     p = track.track.get(n);
                     track_data.append("|");
                     track_data.append(p.latitude);
@@ -87,7 +87,7 @@ public class TrackView extends WebViewActivity {
 
             track = tracks.get(tracks.size() - 1);
             LocalDateTime end = new LocalDateTime(track.end);
-            p = track.track.get(0);
+            p = track.track.get(track.track.size() - 1);
             track_data.append("|");
             track_data.append(p.latitude);
             track_data.append(",");
