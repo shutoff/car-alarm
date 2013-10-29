@@ -35,46 +35,42 @@ public class TrackView extends WebViewActivity {
 
         @JavascriptInterface
         public String getTrack() {
-            TracksActivity.Track track = tracks.get(0);
-
-            LocalDateTime begin = new LocalDateTime(track.begin);
-
-            TracksActivity.Point p = track.track.get(0);
+            Vector<Marker> markers = new Vector<Marker>();
             StringBuilder track_data = new StringBuilder();
-            track_data.append(p.latitude);
-            track_data.append(",");
-            track_data.append(p.longitude);
-            track_data.append(",");
-            track_data.append(infoMark(begin, track.start));
-            for (int i = 0; i < track.track.size(); i++) {
-                p = track.track.get(i);
-                track_data.append("|");
-                track_data.append(p.latitude);
-                track_data.append(",");
-                track_data.append(p.longitude);
-                track_data.append(",");
-                track_data.append(p.speed);
-                track_data.append(",");
-                track_data.append(p.time);
-            }
-
-            for (int i = 1; i < tracks.size(); i++) {
-                TracksActivity.Track prev = tracks.get(i - 1);
-                track = tracks.get(i);
-
-                begin = new LocalDateTime(track.begin);
-                LocalDateTime end = new LocalDateTime(prev.end);
-
-                p = track.track.get(0);
-                track_data.append("|");
-                track_data.append(p.latitude);
-                track_data.append(",");
-                track_data.append(p.longitude);
-                track_data.append(",");
-                track_data.append(infoMark(end, begin, track.start));
-                for (int n = 0; n < track.track.size(); n++) {
-                    p = track.track.get(n);
-                    track_data.append("|");
+            for (int i = 0; i < tracks.size(); i++) {
+                TracksActivity.Track track = tracks.get(i);
+                TracksActivity.Point start = track.track.get(0);
+                TracksActivity.Point finish = track.track.get(track.track.size() - 1);
+                boolean found = false;
+                for (Marker marker : markers) {
+                    double delta = Address.calc_distance(start.latitude, start.longitude, marker.latitude, marker.longitude);
+                    if (delta < 100) {
+                        if ((marker.times.size() == 0) || (marker.times.get(marker.times.size() - 1).end > 0))
+                            marker.times.add(new TimeInterval());
+                        TimeInterval interval = marker.times.get(marker.times.size() - 1);
+                        interval.end = start.time;
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    Marker marker = new Marker();
+                    marker.latitude = start.latitude;
+                    marker.longitude = start.longitude;
+                    marker.address = track.start;
+                    TimeInterval interval = new TimeInterval();
+                    interval.end = start.time;
+                    marker.times = new Vector<TimeInterval>();
+                    marker.times.add(interval);
+                    markers.add(marker);
+                }
+                if (i > 0) {
+                    TracksActivity.Track prev = tracks.get(i - 1);
+                    TracksActivity.Point last = prev.track.get(prev.track.size() - 1);
+                    double delta = Address.calc_distance(start.latitude, start.longitude, last.latitude, last.longitude);
+                    if (delta > 100)
+                        track_data.append("|");
+                }
+                for (TracksActivity.Point p : track.track) {
                     track_data.append(p.latitude);
                     track_data.append(",");
                     track_data.append(p.longitude);
@@ -82,20 +78,57 @@ public class TrackView extends WebViewActivity {
                     track_data.append(p.speed);
                     track_data.append(",");
                     track_data.append(p.time);
+                    track_data.append("|");
+                }
+                found = false;
+                for (Marker marker : markers) {
+                    double delta = Address.calc_distance(finish.latitude, finish.longitude, marker.latitude, marker.longitude);
+                    if (delta < 100) {
+                        TimeInterval interval = new TimeInterval();
+                        interval.begin = finish.time;
+                        marker.times.add(interval);
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    Marker marker = new Marker();
+                    marker.latitude = finish.latitude;
+                    marker.longitude = finish.longitude;
+                    marker.address = track.finish;
+                    TimeInterval interval = new TimeInterval();
+                    interval.begin = finish.time;
+                    marker.times = new Vector<TimeInterval>();
+                    marker.times.add(interval);
+                    markers.add(marker);
                 }
             }
-
-            track = tracks.get(tracks.size() - 1);
-            LocalDateTime end = new LocalDateTime(track.end);
-            p = track.track.get(track.track.size() - 1);
             track_data.append("|");
-            track_data.append(p.latitude);
-            track_data.append(",");
-            track_data.append(p.longitude);
-            track_data.append(",");
-            track_data.append(infoMark(end, track.finish));
-
-            return track_data.toString();
+            for (Marker marker : markers) {
+                track_data.append("|");
+                track_data.append(marker.latitude);
+                track_data.append(",");
+                track_data.append(marker.longitude);
+                track_data.append(",<b>");
+                for (TimeInterval interval : marker.times) {
+                    if (interval.begin > 0) {
+                        LocalDateTime begin = new LocalDateTime(interval.begin);
+                        track_data.append(begin.toString("HH:mm"));
+                        if (interval.end > 0)
+                            track_data.append("-");
+                    }
+                    if (interval.end > 0) {
+                        LocalDateTime end = new LocalDateTime(interval.end);
+                        track_data.append(end.toString("HH:mm"));
+                    }
+                    track_data.append(" ");
+                }
+                track_data.append("</b><br/>");
+                track_data.append(Html.toHtml(new SpannedString(marker.address))
+                        .replaceAll(",", "&#x2C;")
+                        .replaceAll("\\|", "&#x7C;"));
+            }
+            String res = track_data.toString();
+            return res;
         }
 
         @JavascriptInterface
@@ -277,6 +310,18 @@ public class TrackView extends WebViewActivity {
         return "<b>" + begin.toString("HH:mm") + "-" + end.toString("HH:mm") + "</b><br/>" + Html.toHtml(new SpannedString(address))
                 .replaceAll(",", "&#x2C;")
                 .replaceAll("\\|", "&#x7C;");
+    }
+
+    static class TimeInterval {
+        long begin;
+        long end;
+    }
+
+    static class Marker {
+        double latitude;
+        double longitude;
+        String address;
+        Vector<TimeInterval> times;
     }
 
 }
