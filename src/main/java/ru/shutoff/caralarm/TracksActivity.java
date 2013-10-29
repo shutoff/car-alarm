@@ -62,14 +62,13 @@ public class TracksActivity extends ActionBarActivity {
     int progress;
     int track_id;
 
-    boolean firstWay;
-    boolean lastWay;
     boolean loaded;
 
     static final int MAX_DAYS = 7;
 
     final static String TELEMETRY = "http://api.car-online.ru/v2?get=telemetry&skey=$1&begin=$2&end=$3&content=json";
-    final static String WAYSTANDS = "http://api.car-online.ru/v2?get=waystands&skey=$1&begin=$2&end=$3&content=json";
+    //    final static String WAYSTANDS = "http://api.car-online.ru/v2?get=waystands&skey=$1&begin=$2&end=$3&content=json";
+    final static String EVENTS = "http://api.car-online.ru/v2?get=events&skey=$1&begin=$2&end=$3&content=json";
     final static String GPSLIST = "http://api.car-online.ru/v2?get=gpslist&skey=$1&begin=$2&end=$3&content=json";
 
     @Override
@@ -412,42 +411,56 @@ public class TracksActivity extends ActionBarActivity {
         void result(JSONObject res) throws JSONException {
             if (id != track_id)
                 return;
-            JSONArray list = res.getJSONArray("waystandlist");
-            firstWay = false;
-            lastWay = false;
-            long last_end = 0;
-            for (int i = 0; i < list.length(); i++) {
-                lastWay = false;
-                JSONObject way = list.getJSONObject(i);
-                if (!way.getString("type").equals("WAY"))
-                    continue;
-                JSONArray events = way.getJSONArray("events");
-                int last = events.length() - 1;
-                long begin = events.getJSONObject(0).getLong("eventTime");
-                long end = events.getJSONObject(last).getLong("eventTime");
-                if (end > begin) {
-                    if ((last_end > 0) && (begin - last_end <= 90000)) {
-                        Track track = tracks.get(tracks.size() - 1);
-                        track.end = end;
-                    } else {
+            boolean first = false;
+            boolean in_track = false;
+            boolean first_track = false;
+            JSONArray list = res.getJSONArray("events");
+            for (int i = list.length() - 1; i >= 0; i--) {
+                JSONObject e = list.getJSONObject(i);
+                switch (e.getInt("eventType")) {
+                    case 37: {
+                        if (in_track)
+                            break;
+                        if (first)
+                            first = false;
                         Track track = new Track();
-                        track.begin = begin;
-                        track.end = end;
+                        long time = e.getLong("eventTime");
+                        track.begin = time;
+                        track.end = time;
                         tracks.add(track);
+                        in_track = true;
+                        break;
                     }
-                    if (i == 0)
-                        firstWay = true;
-                    lastWay = true;
-                    last_end = end;
+                    case 38: {
+                        if (first){
+                            first = false;
+                            first_track = true;
+                            Track track = new Track();
+                            track.begin = start_time;
+                            track.end = e.getLong("eventTime");
+                            tracks.add(track);
+                        }
+                        if (in_track){
+                            Track track = tracks.get(tracks.size() - 1);
+                            track.end = e.getLong("eventTime");
+                            in_track = false;
+                        }
+                        break;
+                    }
+                    default:
+                        if (in_track){
+                            Track track = tracks.get(tracks.size() - 1);
+                            track.end = e.getLong("eventTime");
+                        }
                 }
             }
             prgMain.setProgress(++progress);
-            if (firstWay) {
-                PrevTracksFetcher fetcher = new PrevTracksFetcher();
+            if (first_track) {
+                PrevTracksFetcher fetcher = new PrevTracksFetcher(in_track);
                 fetcher.update();
                 return;
             }
-            if (lastWay) {
+            if (in_track) {
                 NextTracksFetcher fetcher = new NextTracksFetcher();
                 fetcher.update();
                 return;
@@ -466,30 +479,40 @@ public class TracksActivity extends ActionBarActivity {
             DateTime start = current.toDateTime(new LocalTime(0, 0));
             LocalDate next = current.plusDays(1);
             DateTime finish = next.toDateTime(new LocalTime(0, 0));
-            execute(WAYSTANDS,
+            start_time = start.toDate().getTime();
+            execute(EVENTS,
                     api_key,
                     start.toDate().getTime() + "",
                     finish.toDate().getTime() + "");
         }
+
+        long start_time;
     }
 
     class PrevTracksFetcher extends HttpTask {
         int id;
+        boolean next;
+
+        PrevTracksFetcher(boolean do_next){
+            next = do_next;
+        }
 
         @Override
         void result(JSONObject res) throws JSONException {
             if (id != track_id)
                 return;
-            JSONArray list = res.getJSONArray("waystandlist");
+            JSONArray list = res.getJSONArray("events");
             if (list.length() > 0) {
-                JSONObject way = list.getJSONObject(list.length() - 1);
-                if (way.getString("type").equals("WAY")) {
-                    JSONArray events = way.getJSONArray("events");
-                    tracks.get(0).begin = events.getJSONObject(0).getLong("eventTime");
+                Track track = tracks.get(0);
+                for (int i = 0; i < list.length() - 1; i++) {
+                    JSONObject e = list.getJSONObject(i);
+                    track.begin = e.getLong("eventTime");
+                    if (e.getInt("eventType") == 37)
+                        break;
                 }
             }
             prgMain.setProgress(++progress);
-            if (lastWay) {
+            if (next) {
                 NextTracksFetcher fetcher = new NextTracksFetcher();
                 fetcher.update();
                 return;
@@ -508,7 +531,7 @@ public class TracksActivity extends ActionBarActivity {
             DateTime finish = current.toDateTime(new LocalTime(0, 0));
             LocalDate prev = current.minusDays(1);
             DateTime start = prev.toDateTime(new LocalTime(0, 0));
-            execute(WAYSTANDS,
+            execute(EVENTS,
                     api_key,
                     start.toDate().getTime() + "",
                     finish.toDate().getTime() + "");
@@ -522,12 +545,14 @@ public class TracksActivity extends ActionBarActivity {
         void result(JSONObject res) throws JSONException {
             if (id != track_id)
                 return;
-            JSONArray list = res.getJSONArray("waystandlist");
+            JSONArray list = res.getJSONArray("events");
             if (list.length() > 0) {
-                JSONObject way = list.getJSONObject(0);
-                if (way.getString("type").equals("WAY")) {
-                    JSONArray events = way.getJSONArray("events");
-                    tracks.get(tracks.size() - 1).end = events.getJSONObject(events.length() - 1).getLong("eventTime");
+                Track track = tracks.get(tracks.size() - 1);
+                for (int i = list.length() - 1; i >= 0; i--) {
+                    JSONObject e = list.getJSONObject(i);
+                    track.end = e.getLong("eventTime");
+                    if (e.getInt("eventType") == 38)
+                        break;
                 }
             }
             prgMain.setProgress(++progress);
@@ -546,7 +571,7 @@ public class TracksActivity extends ActionBarActivity {
             DateTime start = next.toDateTime(new LocalTime(0, 0));
             next = next.plusDays(1);
             DateTime finish = next.toDateTime(new LocalTime(0, 0));
-            execute(WAYSTANDS,
+            execute(EVENTS,
                     api_key,
                     start.toDate().getTime() + "",
                     finish.toDate().getTime() + "");
@@ -572,16 +597,16 @@ public class TracksActivity extends ActionBarActivity {
                 point.speed = p.getDouble("speed");
                 point.latitude = p.getDouble("latitude");
                 point.longitude = p.getDouble("longitude");
-                point.time = p.getLong("eventTime");
-                point.id = p.getLong("eventId");
+                point.time = p.getLong("gpsTime");
+
                 track.add(point);
             }
             Collections.sort(track, new Comparator<Point>() {
                 @Override
                 public int compare(Point lhs, Point rhs) {
-                    if (lhs.id < rhs.id)
+                    if (lhs.time < rhs.time)
                         return -1;
-                    if (lhs.id > rhs.id)
+                    if (lhs.time > rhs.time)
                         return 1;
                     return 0;
                 }
@@ -607,6 +632,7 @@ public class TracksActivity extends ActionBarActivity {
                 long start = current.toDateTime(new LocalTime(0, 0)).toDate().getTime();
                 LocalDate next = current.plusDays(1);
                 long finish = next.toDateTime(new LocalTime(0, 0)).toDate().getTime();
+                Point p = track.get(0);
                 for (int i = 0; i < track.size() - 1; i++) {
                     Point p1 = track.get(i);
                     Point p2 = track.get(i + 1);
@@ -616,15 +642,6 @@ public class TracksActivity extends ActionBarActivity {
                         continue;
                     }
                     double d = Address.calc_distance(p1.latitude, p1.longitude, p2.latitude, p2.longitude);
-                    double speed = (d * 3600.) / (p2.time - p1.time);
-                    double point_speed = p1.speed;
-                    if (p2.speed > point_speed)
-                        point_speed = p2.speed;
-                    if (speed > point_speed * 1.3) {
-                        track.remove(i);
-                        i--;
-                        continue;
-                    }
                     distance += d;
                     if (p2.speed > max_speed)
                         max_speed = p2.speed;
@@ -884,7 +901,6 @@ public class TracksActivity extends ActionBarActivity {
         double longitude;
         double speed;
         long time;
-        long id;
     }
 
     public static class Track implements Serializable {
@@ -899,6 +915,5 @@ public class TracksActivity extends ActionBarActivity {
         String finish;
         Vector<Point> track;
     }
-
 
 }
