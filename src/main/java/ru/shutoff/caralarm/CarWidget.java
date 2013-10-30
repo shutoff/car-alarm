@@ -18,6 +18,7 @@ import org.joda.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class CarWidget extends AppWidgetProvider {
 
@@ -111,7 +112,7 @@ public class CarWidget extends AppWidgetProvider {
                     }
                 }
                 if (action.equalsIgnoreCase(Intent.ACTION_TIMEZONE_CHANGED)) {
-                    DateTimeZone tz = DateTimeZone.getDefault();
+                    DateTimeZone tz = DateTimeZone.forTimeZone(TimeZone.getDefault());
                     DateTimeZone.setDefault(tz);
                     updateWidgets(context, null);
                 }

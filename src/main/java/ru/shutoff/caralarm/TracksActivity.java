@@ -67,7 +67,6 @@ public class TracksActivity extends ActionBarActivity {
     static final int MAX_DAYS = 7;
 
     final static String TELEMETRY = "http://api.car-online.ru/v2?get=telemetry&skey=$1&begin=$2&end=$3&content=json";
-    //    final static String WAYSTANDS = "http://api.car-online.ru/v2?get=waystands&skey=$1&begin=$2&end=$3&content=json";
     final static String EVENTS = "http://api.car-online.ru/v2?get=events&skey=$1&begin=$2&end=$3&content=json";
     final static String GPSLIST = "http://api.car-online.ru/v2?get=gpslist&skey=$1&begin=$2&end=$3&content=json";
 
@@ -411,7 +410,7 @@ public class TracksActivity extends ActionBarActivity {
         void result(JSONObject res) throws JSONException {
             if (id != track_id)
                 return;
-            boolean first = false;
+            boolean first = true;
             boolean in_track = false;
             boolean first_track = false;
             JSONArray list = res.getJSONArray("events");
