@@ -332,7 +332,7 @@ public class EventsActivity extends ActionBarActivity {
             for (int i = 0; i < res.length(); i++) {
                 JSONObject event = res.getJSONObject(i);
                 int type = event.getInt("eventType");
-                if ((type == 94) || (type == 98) || (type == 41) || (type == 33) || (type == 39))
+                if ((type == 94) || (type == 98) || (type == 41) || (type == 33)/* || (type == 39)*/)
                     continue;
                 long time = event.getLong("eventTime");
                 long id = event.getLong("eventId");

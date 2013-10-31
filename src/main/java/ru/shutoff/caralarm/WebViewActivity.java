@@ -2,6 +2,7 @@ package ru.shutoff.caralarm;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.webkit.ConsoleMessage;
 import android.webkit.WebChromeClient;
@@ -37,11 +38,13 @@ abstract public class WebViewActivity extends ActionBarActivity {
                 @Override
                 public void onConsoleMessage(String message, int lineNumber, String sourceID) {
                     super.onConsoleMessage(message, lineNumber, sourceID);
+                    Log.v("console", message);
                 }
 
                 @Override
                 public boolean onConsoleMessage(ConsoleMessage cm) {
                     String message = cm.message();
+                    Log.v("console", message);
                     return true;
                 }
             };
