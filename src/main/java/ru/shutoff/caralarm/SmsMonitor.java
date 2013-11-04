@@ -174,6 +174,7 @@ public class SmsMonitor extends BroadcastReceiver {
         id++;
         SharedPreferences.Editor ed = preferences.edit();
         ed.putInt(Names.IDS, id);
+        ed.putBoolean(Names.SMS_ALARM, true);
         ed.commit();
 
         // Add as notification
@@ -204,6 +205,10 @@ public class SmsMonitor extends BroadcastReceiver {
     }
 
     private void showAlarm(Context context, String text, String car_id) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor ed = preferences.edit();
+        ed.putBoolean(Names.SMS_ALARM, true);
+        ed.commit();
         Intent alarmIntent = new Intent(context, Alarm.class);
         alarmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         alarmIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

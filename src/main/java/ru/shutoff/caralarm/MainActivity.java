@@ -50,6 +50,7 @@ public class MainActivity extends ActionBarActivity {
     ImageView ivRele;
     ImageView ivBlock;
     ImageView ivValet;
+    View balanceBlock;
 
     static final int REQUEST_ALARM = 4000;
     static final int CAR_SETUP = 4001;
@@ -108,6 +109,8 @@ public class MainActivity extends ActionBarActivity {
         ivRele = (ImageView) findViewById(R.id.rele);
         ivBlock = (ImageView) findViewById(R.id.block);
         ivValet = (ImageView) findViewById(R.id.valet);
+
+        balanceBlock = findViewById(R.id.balance_block);
 
         final Context context = this;
 
@@ -467,6 +470,8 @@ public class MainActivity extends ActionBarActivity {
         } else {
             ivBlock.setVisibility(View.GONE);
         }
+
+        balanceBlock.setVisibility(preferences.getBoolean(Names.SHOW_BALANCE + car_id, true) ? View.VISIBLE : View.GONE);
     }
 
     void startUpdate() {

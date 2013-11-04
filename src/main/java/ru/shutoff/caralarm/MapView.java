@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import org.joda.time.LocalDateTime;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -395,14 +396,37 @@ public class MapView extends WebViewActivity {
     }
 
     Location getLastBestLocation() {
-        Location locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        Location locationNet = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        Location locationGPS = null;
+        try {
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+                locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        } catch (Exception ex) {
+            // ignore
+        }
+        Location locationNet = null;
+        try {
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
+                locationNet = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        } catch (Exception ex) {
+            // ignore
+        }
         long GPSLocationTime = 0;
-        if (locationGPS != null)
+        Date now = new Date();
+        if (locationGPS != null){
             GPSLocationTime = locationGPS.getTime();
+            if (GPSLocationTime < now.getTime() - TWO_MINUTES){
+                locationGPS = null;
+                GPSLocationTime = 0;
+            }
+        }
         long NetLocationTime = 0;
-        if (locationNet != null)
+        if (locationNet != null){
             NetLocationTime = locationNet.getTime();
+            if (NetLocationTime < now.getTime() - TWO_MINUTES){
+                locationNet = null;
+                NetLocationTime = 0;
+            }
+        }
         if (GPSLocationTime > NetLocationTime)
             return locationGPS;
         return locationNet;

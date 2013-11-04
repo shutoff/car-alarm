@@ -9,7 +9,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -63,6 +65,8 @@ public class CarPreferences extends PreferenceActivity {
         setTitle(title);
         SharedPreferences.Editor ed = preferences.edit();
         ed.putInt("tmp_shift", preferences.getInt(Names.TEMP_SIFT + car_id, 0));
+        ed.putBoolean("show_balance", preferences.getBoolean(Names.SHOW_BALANCE + car_id, true));
+        ed.putInt("shock_sens", preferences.getInt(Names.SHOCK_SENS + car_id, 5));
         ed.putString("name_", name);
         ed.commit();
 
@@ -134,6 +138,48 @@ public class CarPreferences extends PreferenceActivity {
                 return false;
             }
         });
+
+        SeekBarPreference sensPref = (SeekBarPreference) findPreference("shock_sens");
+        sensPref.mMin = 1;
+        sensPref.summaryGenerator = new SeekBarPreference.SummaryGenerator() {
+            @Override
+            String summary(int value) {
+                Resources res = getResources();
+                String[] levels = res.getStringArray(R.array.levels);
+                return levels[value - 1];
+            }
+        };
+        sensPref.setSummary(sensPref.summary());
+        sensPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                if (newValue instanceof Integer) {
+                    int v = (Integer) newValue;
+                    Actions.requestPassword(CarPreferences.this, car_id, R.string.shock_sens, 0, "SET 1," + newValue, "SET OK");
+                    SharedPreferences.Editor ed = preferences.edit();
+                    ed.putInt(Names.SHOCK_SENS + car_id, v);
+                    ed.commit();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        CheckBoxPreference balancePref = (CheckBoxPreference) findPreference("show_balance");
+        balancePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                if (newValue instanceof Boolean) {
+                    boolean v = (Boolean) newValue;
+                    SharedPreferences.Editor ed = preferences.edit();
+                    ed.putBoolean(Names.SHOW_BALANCE + car_id, v);
+                    ed.commit();
+                    return true;
+                }
+                return false;
+            }
+        });
+
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -141,8 +187,7 @@ public class CarPreferences extends PreferenceActivity {
             return;
         switch (requestCode) {
             case GET_PHONE_NUMBER: {
-                String phoneNumber = (String) data.getExtras().get(
-                        ContactsPickerActivity.KEY_PHONE_NUMBER);
+                String phoneNumber = (String) data.getExtras().get(ContactsPickerActivity.KEY_PHONE_NUMBER);
                 SharedPreferences.Editor ed = preferences.edit();
                 ed.putString(Names.CAR_PHONE + car_id, phoneNumber);
                 ed.commit();
@@ -200,13 +245,11 @@ public class CarPreferences extends PreferenceActivity {
             }
 
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count,
-                                          int after) {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before,
-                                      int count) {
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
             }
 
         };

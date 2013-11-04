@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -415,13 +416,50 @@ public class TracksActivity extends ActionBarActivity {
             if (id != track_id)
                 return;
             JSONArray list = res.getJSONArray("events");
+            int first_type = 0;
+            int last_type = 0;
+            long first_time = end_time;
+            long last_time = start_time;
             for (int i = list.length() - 1; i >= 0; i--) {
                 JSONObject e = list.getJSONObject(i);
                 int type = e.getInt("eventType");
                 if ((type == 37) || (type == 38) || (type == 39)) {
+
+                    if ((type == 37) || (type == 38)){
+                        Log.v("event", type + " " + e.getLong("eventId"));
+                    }
+
                     events.put(e.getLong("eventId"), type);
+                    long time = e.getLong("eventTime");
+                    if (time < first_time){
+                        first_time = time;
+                        first_type = type;
+                    }
+                    if (time > last_time){
+                        last_time = time;
+                        last_type = type;
+                    }
                 }
             }
+            long time = last_time + 600000;
+            if (last_type == 38)
+                time = last_time + 60000;
+            boolean next = time > end_time;
+
+            time = first_time - 600000;
+            if (first_type == 37)
+                time = first_time - 60000;
+            if (time < start_time){
+                PrevTracksFetcher fetcher = new PrevTracksFetcher(next);
+                fetcher.update(start_time, end_time);
+                return;
+            }
+            if (next){
+                NextTracksFetcher fetcher = new NextTracksFetcher();
+                fetcher.update(start_time, end_time);
+                return;
+            }
+
             prgMain.setProgress(++progress);
             TrackDataFetcher fetcher = new TrackDataFetcher();
             fetcher.update(id, start_time, end_time);
@@ -446,7 +484,6 @@ public class TracksActivity extends ActionBarActivity {
         long end_time;
     }
 
-/*
     class PrevTracksFetcher extends HttpTask {
         int id;
         boolean next;
@@ -461,17 +498,39 @@ public class TracksActivity extends ActionBarActivity {
                 return;
             JSONArray list = res.getJSONArray("events");
             if (list.length() > 0) {
-                Track track = tracks.get(0);
-                for (int i = 0; i < list.length() - 1; i++) {
+                Vector<EventInfo> es = new Vector<EventInfo>();
+                for (int i = list.length() - 1; i >= 0; i--) {
                     JSONObject e = list.getJSONObject(i);
                     int type = e.getInt("eventType");
-                    if ((type == 37) || (type == 39)){
-                        track.begin = e.getLong("eventTime");
-                        start_time = track.begin;
-                        events.put(e.getLong("eventId"), new EventInfo(start_time, 0));
+                    if ((type == 37) || (type == 38) || (type == 39)) {
+                        EventInfo event = new EventInfo();
+                        event.time = e.getLong("eventTime");
+                        event.id = e.getLong("eventId");
+                        event.type = type;
+                        es.add(event);
                     }
-                    if (type == 37)
+                }
+                Collections.sort(es, new Comparator<EventInfo>() {
+                    @Override
+                    public int compare(EventInfo lhs, EventInfo rhs) {
+                        if (lhs.time < rhs.time)
+                            return -1;
+                        if (lhs.time > rhs.time)
+                            return 1;
+                        return 0;
+                    }
+                });
+                long last_time = start_time;
+                for (int i = es.size() - 1; i >= 0; i--){
+                    EventInfo e = es.get(i);
+                    long time = e.time + 600000;
+                    if (e.type == 38)
+                        time = e.time + 60000;
+                    if (time < last_time)
                         break;
+                    last_time = e.time;
+                    start_time = e.time;
+                    events.put(e.id, e.type);
                 }
             }
             prgMain.setProgress(++progress);
@@ -512,18 +571,41 @@ public class TracksActivity extends ActionBarActivity {
                 return;
             JSONArray list = res.getJSONArray("events");
             if (list.length() > 0) {
-                Track track = tracks.get(tracks.size() - 1);
+                Vector<EventInfo> es = new Vector<EventInfo>();
                 for (int i = list.length() - 1; i >= 0; i--) {
                     JSONObject e = list.getJSONObject(i);
                     int type = e.getInt("eventType");
-                    if ((type == 38) || (type == 39)){
-                        track.end = e.getLong("eventTime");
-                        end_time = track.end;
-                        events.put(e.getLong("eventId"), new EventInfo(end_time, tracks.size() - 1));
+                    if ((type == 37) || (type == 38) || (type == 39)) {
+                        EventInfo event = new EventInfo();
+                        event.time = e.getLong("eventTime");
+                        event.id = e.getLong("eventId");
+                        event.type = type;
+                        es.add(event);
                     }
-                    if (type == 38)
-                        break;
                 }
+                Collections.sort(es, new Comparator<EventInfo>() {
+                    @Override
+                    public int compare(EventInfo lhs, EventInfo rhs) {
+                        if (lhs.time < rhs.time)
+                            return -1;
+                        if (lhs.time > rhs.time)
+                            return 1;
+                        return 0;
+                    }
+                });
+                long first_time = end_time;
+                for (int i = 0; i < es.size(); i++){
+                    EventInfo e = es.get(i);
+                    long time = e.time - 600000;
+                    if (e.type == 38)
+                        time = e.time - 60000;
+                    if (time > first_time)
+                        break;
+                    first_time = e.time;
+                    end_time = e.time;
+                    events.put(e.id, e.type);
+                }
+
             }
             prgMain.setProgress(++progress);
             TrackDataFetcher fetcher = new TrackDataFetcher();
@@ -548,7 +630,6 @@ public class TracksActivity extends ActionBarActivity {
         long start_time;
         long end_time;
     }
-*/
 
     class TrackDataFetcher extends HttpTask {
         int id;
@@ -567,6 +648,11 @@ public class TracksActivity extends ActionBarActivity {
                 if (!events.containsKey(id))
                     continue;
                 int type = events.get(id);
+
+                if ((type == 37) || (type == 38)){
+                    Log.v("t", type + " " + p.toString());
+                }
+
                 events.remove(id);
                 if (!p.getBoolean("valid"))
                     continue;
@@ -623,15 +709,17 @@ public class TracksActivity extends ActionBarActivity {
 
             for (int i = 0; i < tracks.size(); i++) {
                 Vector<Point> track = tracks.get(i).track;
-                while (track.size() > 0) {
-                    Point p = track.get(0);
-                    if (p.speed > 0)
+                while (track.size() > 2) {
+                    Point p1 = track.get(0);
+                    Point p2 = track.get(1);
+                    if ((p1.speed > 0) || (p2.speed > 0))
                         break;
                     track.remove(0);
                 }
-                for (int n = track.size() - 1; n >= 0; n--) {
-                    Point p = track.get(n);
-                    if (p.speed > 0)
+                for (int n = track.size() - 1; n > 0; n--) {
+                    Point p1 = track.get(n);
+                    Point p2 = track.get(n - 1);
+                    if ((p1.speed > 0) || (p2.speed  > 0))
                         break;
                     track.remove(n);
                 }
@@ -923,6 +1011,12 @@ public class TracksActivity extends ActionBarActivity {
     static class PointInfo {
         Point point;
         int type;
+    }
+
+    static class EventInfo {
+        long id;
+        long time;
+        int  type;
     }
 
 }

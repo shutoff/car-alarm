@@ -27,17 +27,9 @@
         android:summary="@string/password_summary"
         android:key="password" />
 
-    <ListPreference
-        android:key="map_type"
-        android:title="@string/map_type"
-        android:entries="@array/map_types"
-        android:entryValues="@array/map_types"
-        android:defaultValue="Google" />
-
     <CheckBoxPreference
-        android:title="@string/traffic"
-        android:summary="@string/traffic_summary"
-        android:key="traffic" />
+        android:key="safe_mode"
+        android:title="@string/safe_mode" />
 
     <Preference
         android:title="@string/about"

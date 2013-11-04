@@ -30,6 +30,10 @@ public class TrackView extends WebViewActivity {
 
     SharedPreferences preferences;
     Vector<TracksActivity.Track> tracks;
+    Menu topSubMenu;
+
+    static String TRAFFIC = "traffic";
+    static String MAP_TYPE = "map_type";
 
     class JsInterface {
 
@@ -43,7 +47,7 @@ public class TrackView extends WebViewActivity {
                     TracksActivity.Point start = track.track.get(0);
                     TracksActivity.Point finish = track.track.get(track.track.size() - 1);
                     int n_start = markers.size();
-                    double d_best = 100.;
+                    double d_best = 200.;
                     for (int n = 0; n < markers.size(); n++) {
                         Marker marker = markers.get(n);
                         double delta = Address.calc_distance(start.latitude, start.longitude, marker.latitude, marker.longitude);
@@ -71,7 +75,7 @@ public class TrackView extends WebViewActivity {
                         TracksActivity.Track prev = tracks.get(i - 1);
                         TracksActivity.Point last = prev.track.get(prev.track.size() - 1);
                         double delta = Address.calc_distance(start.latitude, start.longitude, last.latitude, last.longitude);
-                        if (delta > 100)
+                        if (delta > 200)
                             track_data.append("|");
                     }
                     for (TracksActivity.Point p : track.track) {
@@ -86,7 +90,7 @@ public class TrackView extends WebViewActivity {
                     }
 
                     int n_finish = markers.size();
-                    d_best = 100;
+                    d_best = 200;
                     for (int n = 0; n < markers.size(); n++) {
                         if (n == n_start)
                             continue;
@@ -159,7 +163,7 @@ public class TrackView extends WebViewActivity {
 
         @JavascriptInterface
         public String traffic() {
-            return preferences.getBoolean("traffic", true) ? "1" : "";
+            return preferences.getBoolean(TRAFFIC, true) ? "1" : "";
         }
     }
 
@@ -187,10 +191,7 @@ public class TrackView extends WebViewActivity {
             finish();
         }
         webView.addJavascriptInterface(new JsInterface(), "android");
-        preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        if (preferences.getString("map_type", "").equals("OSM"))
-            return "file:///android_asset/html/otrack.html";
-        return "file:///android_asset/html/track.html";
+        return getURL();
     }
 
     @Override
@@ -201,23 +202,60 @@ public class TrackView extends WebViewActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        topSubMenu = menu;
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.track, menu);
+        menu.findItem(R.id.traffic).setTitle(getCheckedText(R.string.traffic, preferences.getBoolean(TRAFFIC, true)));
+        boolean isOSM = preferences.getString(MAP_TYPE, "").equals("OSM");
+        menu.findItem(R.id.google).setTitle(getCheckedText(R.string.google, !isOSM));
+        menu.findItem(R.id.osm).setTitle(getCheckedText(R.string.osm, isOSM));
         return super.onCreateOptionsMenu(menu);
+    }
+
+    String getCheckedText(int id, boolean check) {
+        String check_mark = check ? "\u2714" : "";
+        return check_mark + getString(id);
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.save: {
+            case R.id.save:
                 webView.loadUrl("javascript:saveTrack()");
                 break;
-            }
-            case R.id.share: {
+            case R.id.share:
                 webView.loadUrl("javascript:shareTrack()");
+                break;
+            case R.id.traffic: {
+                SharedPreferences.Editor ed = preferences.edit();
+                ed.putBoolean(TRAFFIC, !preferences.getBoolean(TRAFFIC, true));
+                ed.commit();
+                updateMenu();
+                webView.loadUrl(getURL());
+                break;
+            }
+            case R.id.google: {
+                SharedPreferences.Editor ed = preferences.edit();
+                ed.putString(MAP_TYPE, "Google");
+                ed.commit();
+                updateMenu();
+                webView.loadUrl(getURL());
+                break;
+            }
+            case R.id.osm: {
+                SharedPreferences.Editor ed = preferences.edit();
+                ed.putString(MAP_TYPE, "OSM");
+                ed.commit();
+                updateMenu();
+                webView.loadUrl(getURL());
                 break;
             }
         }
         return false;
+    }
+
+    void updateMenu() {
+        topSubMenu.clear();
+        onCreateOptionsMenu(topSubMenu);
     }
 
     File saveTrack(double min_lat, double max_lat, double min_lon, double max_lon, boolean show_toast) {
@@ -299,6 +337,13 @@ public class TrackView extends WebViewActivity {
         }
         return null;
     }
+
+    String getURL() {
+        if (preferences.getString(MAP_TYPE, "").equals("OSM"))
+            return "file:///android_asset/html/otrack.html";
+        return "file:///android_asset/html/track.html";
+    }
+
 
     void shareTrack(double min_lat, double max_lat, double min_lon, double max_lon) {
         File out = saveTrack(min_lat, max_lat, min_lon, max_lon, false);

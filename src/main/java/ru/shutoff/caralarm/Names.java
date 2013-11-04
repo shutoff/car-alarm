@@ -37,6 +37,8 @@ public final class Names {
     static final String VOLTAGE_RESERVED = "VoltageReserved";
 
     static final String BALANCE = "Balance";
+    static final String SHOW_BALANCE = "show_balance_";
+    static final String SHOCK_SENS = "shock_sens_";
 
     static final String LATITUDE = "Latitude";
     static final String LONGITUDE = "Longitude";
@@ -60,9 +62,11 @@ public final class Names {
     static final String ZONE_TRUNK = "ZoneTrunk";
     static final String ZONE_ACCESSORY = "ZoneAccessory";
     static final String ZONE_IGNITION = "ZoneIgnition";
+    static final String SMS_ALARM = "sms_alarm";
 
     static final String TEMPERATURE = "Temperature";
     static final String TEMP_SIFT = "TempShift";
+    static final String SAFE_MODE = "safe_mode";
 
     static final String ADDRESS = "Address";
     static final String ADDR_LAT = "AddrLatitude";

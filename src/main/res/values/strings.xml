@@ -4,7 +4,7 @@
     <string name="notification">Light shock|Low card battery|Supply reserve|Supply regular|ERROR
         LAN-devices|Low reserve voltage|Roaming. Internet OFF
     </string>
-    <string name="alarm">Heavy shock|Trunk|Hood|Doors|Ignition Lock|MovTilt sensor|Rogue</string>
+    <string name="alarm">Heavy shock|Trunk|Hood|Doors|Ignition Lock|MovTilt sensor|Rogue|Accessory zone</string>
     <string name="def">default</string>
     <string name="phone_number_summary">Select car phone number</string>
     <string name="phone_number">Phone number</string>
@@ -82,10 +82,6 @@
     <string name="invalid_confirm">Invalid confirm</string>
     <string name="input_password">Input password</string>
     <string name="map_type">Map type</string>
-    <array name="map_types">
-        <item>Google</item>
-        <item>OSM</item>
-    </array>
     <string name="kmh">kmh</string>
     <string name="close">Close</string>
     <string name="traffic">Show speed</string>
@@ -207,4 +203,16 @@
     <string name="no_gps_message">GPS disabled is system.\nFor detect location you must turn on it in Settings</string>
     <string name="net_gps_message">Your location detected by network.\nFor more accuracy you can turn on GPS is Settings</string>
     <string name="no_location">Unknown localtion</string>
+    <string name="shock_sens">Shock sensitivity</string>
+    <string-array name="levels">
+        <item>Minimal</item>
+        <item>Low</item>
+        <item>Medium</item>
+        <item>High</item>
+        <item>Maximal</item>
+    </string-array>
+    <string name="google">Google maps</string>
+    <string name="osm">OpenStreetMap</string>
+    <string name="show_balance">Show balance</string>
+    <string name="safe_mode">Safe mode</string>
 </resources>

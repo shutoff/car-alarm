@@ -12,6 +12,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 
 import org.json.JSONArray;
@@ -26,7 +27,8 @@ import java.util.regex.Pattern;
 public class FetchService extends Service {
 
     final long REPEAT_AFTER_ERROR = 20 * 1000;
-    final long REPEAT_AFTER_500 = 3600 * 1000;
+    final long REPEAT_AFTER_500 = 600 * 1000;
+    final long SAFEMODE_TIMEOUT = 300 * 1000;
 
     BroadcastReceiver mReceiver;
     PendingIntent pi;
@@ -115,9 +117,10 @@ public class FetchService extends Service {
             requests.remove(key);
             new StatusRequest(car_id);
             long timeout = (error_text != null) ? REPEAT_AFTER_500 : REPEAT_AFTER_ERROR;
-            alarmMgr.setInexactRepeating(AlarmManager.RTC,
+            alarmMgr.setInexactRepeating(preferences.getBoolean(Names.SAFE_MODE, false) ? AlarmManager.RTC_WAKEUP : AlarmManager.RTC,
                     System.currentTimeMillis() + timeout, timeout, pi);
             sendError(ACTION_ERROR, error_text, car_id);
+            State.appendLog("error...");
         }
 
         void start() {
@@ -132,9 +135,10 @@ public class FetchService extends Service {
             if ((activeNetwork == null) || !activeNetwork.isConnected()) {
                 IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
                 registerReceiver(mReceiver, filter);
+                State.appendLog("no network");
                 return;
             }
-            if (!powerMgr.isScreenOn()) {
+            if (!preferences.getBoolean(Names.SAFE_MODE, false) && !powerMgr.isScreenOn()) {
                 IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
                 registerReceiver(mReceiver, filter);
                 return;
@@ -155,8 +159,12 @@ public class FetchService extends Service {
 
     class StatusRequest extends ServerRequest {
 
+        SharedPreferences.Editor ed;
+        int msg_id;
+
         StatusRequest(String id) {
             super("S", id);
+            State.appendLog("Status request");
         }
 
         @Override
@@ -165,10 +173,15 @@ public class FetchService extends Service {
             long eventId = event.getLong("eventId");
             if (eventId == preferences.getLong(Names.EVENT_ID + car_id, 0)) {
                 sendUpdate(ACTION_NOUPDATE, car_id);
+                if (preferences.getBoolean(Names.SAFE_MODE, false)){
+                    State.appendLog("set timeout");
+                    alarmMgr.setRepeating(preferences.getBoolean(Names.SAFE_MODE, false) ? AlarmManager.RTC_WAKEUP : AlarmManager.RTC,
+                            SAFEMODE_TIMEOUT, SAFEMODE_TIMEOUT, pi);
+                }
                 return;
             }
             long eventTime = event.getLong("eventTime");
-            SharedPreferences.Editor ed = preferences.edit();
+            ed = preferences.edit();
             ed.putLong(Names.EVENT_ID + car_id, eventId);
             ed.putLong(Names.EVENT_TIME + car_id, eventTime);
 
@@ -192,26 +205,55 @@ public class FetchService extends Service {
             ed.putBoolean(Names.INPUT2 + car_id, contact.getBoolean("stInput2"));
             ed.putBoolean(Names.INPUT3 + car_id, contact.getBoolean("stInput3"));
             ed.putBoolean(Names.INPUT4 + car_id, contact.getBoolean("stInput4"));
-            ed.putBoolean(Names.ZONE_DOOR + car_id, contact.getBoolean("stZoneDoor"));
-            ed.putBoolean(Names.ZONE_HOOD + car_id, contact.getBoolean("stZoneHood"));
-            ed.putBoolean(Names.ZONE_TRUNK + car_id, contact.getBoolean("stZoneTrunk"));
-            ed.putBoolean(Names.ZONE_ACCESSORY + car_id, contact.getBoolean("stZoneAccessoryOn"));
-            ed.putBoolean(Names.ZONE_IGNITION + car_id, contact.getBoolean("stZoneIgnitionOn"));
+            setState(Names.ZONE_DOOR, contact, "stZoneDoor", 3);
+            setState(Names.ZONE_HOOD, contact, "stZoneHood", 2);
+            setState(Names.ZONE_TRUNK, contact, "stZoneTrunk", 1);
+            setState(Names.ZONE_ACCESSORY, contact, "stZoneAccessoryOn", 7);
+            setState(Names.ZONE_IGNITION, contact, "stZoneIgnitionOn", 4);
             if (contact.getBoolean("stGPS") && contact.getBoolean("stGPSValid"))
                 ed.putString(Names.COURSE + car_id, gps.getString("course"));
+
+            boolean sms_alarm = preferences.getBoolean(Names.SMS_ALARM, false);
+            if (sms_alarm)
+                ed.remove(Names.SMS_ALARM);
 
             ed.commit();
             sendUpdate(ACTION_UPDATE, car_id);
 
+            if (!sms_alarm && (msg_id > 0)){
+                Intent alarmIntent = new Intent(FetchService.this, Alarm.class);
+                alarmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                alarmIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                String[] alarms = getString(R.string.alarm).split("\\|");
+                alarmIntent.putExtra(Names.ALARM, alarms[msg_id]);
+                alarmIntent.putExtra(Names.ID, car_id);
+                FetchService.this.startActivity(alarmIntent);
+            }
+
+            if (preferences.getBoolean(Names.SAFE_MODE, false)){
+                State.appendLog("set timeout");
+                alarmMgr.setRepeating(preferences.getBoolean(Names.SAFE_MODE, false) ? AlarmManager.RTC_WAKEUP : AlarmManager.RTC,
+                    SAFEMODE_TIMEOUT, SAFEMODE_TIMEOUT, pi);
+            }
+
             new EventsRequest(car_id);
         }
-
 
         @Override
         void exec(String api_key) {
             sendUpdate(ACTION_START, car_id);
             execute(STATUS_URL, api_key);
         }
+
+        void setState(String id, JSONObject contact, String key, int msg) throws JSONException {
+            boolean state = contact.getBoolean(key);
+            if (state){
+                if (!preferences.getBoolean(id + car_id, false))
+                    msg_id = msg;
+            }
+            ed.putBoolean(id + car_id, state);
+        }
+
     }
 
     class EventsRequest extends ServerRequest {

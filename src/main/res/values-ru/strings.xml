@@ -7,7 +7,7 @@
         разряжена|Отключен интернет в роуминге
     </string>
     <string name="alarm">Сильный удар|Открыт багажник|Открыт капот|Открыты двери|Включено
-        зажигание|Машина движется|Разбойное нападение
+        зажигание|Машина движется|Разбойное нападение|Зона аксессуаров
     </string>
     <string name="def">по умолчанию</string>
     <string name="phone_number_summary">Укажите номер телефона автомобиля</string>
@@ -199,8 +199,18 @@
     <string name="zone_out">Выезд из зоны</string>
     <string name="position">Мое положение</string>
     <string name="settings">Настройки</string>
-    <string name="no_gps_title">GPS выкллючен</string>
+    <string name="no_gps_title">GPS выключен</string>
     <string name="no_gps_message">GPS выключен в системе.\nДля определения местоположения надо включить GPS в настройках</string>
     <string name="net_gps_message">Местоположение определено по сети.\nДля более точного определения положения надо включить GPS в настройках</string>
     <string name="no_location">Неизвестное местоположение</string>
+    <string name="shock_sens">Чуствительность датчика удара</string>
+    <string-array name="levels">
+        <item>Минимальная</item>
+        <item>Низкая</item>
+        <item>Средняя</item>
+        <item>Высокая</item>
+        <item>Максимальная</item>
+    </string-array>
+    <string name="show_balance">Отображать баланс</string>
+    <string name="safe_mode">Безопасный режим</string>
 </resources>

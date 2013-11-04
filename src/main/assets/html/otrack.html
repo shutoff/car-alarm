@@ -84,6 +84,8 @@ function initialize() {
         }else if (p.length == 3){
             markers.push(p);
             last_mark = true;
+        }else{
+            last_mark = true;
         }
     }
 
@@ -187,11 +189,6 @@ function shareTrack() {
     var sw = bounds.getSouthWest();
     android.share(sw.lat, ne.lat, sw.lng, ne.lng);
 }
-
-
-
-
-
 
     </script>
 </head>

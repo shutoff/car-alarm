@@ -7,6 +7,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
@@ -31,6 +34,8 @@ public class CarWidget extends AppWidgetProvider {
 
     static final String HEIGHT = "Height_";
 
+    static Map<Integer, Bitmap> bitmaps;
+
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
@@ -49,6 +54,8 @@ public class CarWidget extends AppWidgetProvider {
         for (int id : appWidgetIds) {
             ed.remove(HEIGHT + id);
             ed.remove(Names.WIDGET + id);
+            if (bitmaps != null)
+                bitmaps.remove(id);
         }
         ed.commit();
     }
@@ -67,6 +74,7 @@ public class CarWidget extends AppWidgetProvider {
         Intent i = new Intent(context, WidgetService.class);
         i.setAction(WidgetService.ACTION_STOP);
         context.startService(i);
+        bitmaps = null;
     }
 
     @Override
@@ -185,7 +193,13 @@ public class CarWidget extends AppWidgetProvider {
         }
 
         int height = preferences.getInt(HEIGHT + widgetID, 40);
-        widgetView.setViewVisibility(R.id.reserve_block, (height < 60) ? View.GONE : View.VISIBLE);
+        boolean show_balance = preferences.getBoolean(Names.SHOW_BALANCE + car_id, true);
+        boolean show_reserve = (height >= 60);
+        if (!show_reserve && !show_balance)
+            show_reserve = true;
+
+        widgetView.setViewVisibility(R.id.reserve_block, show_reserve ? View.VISIBLE : View.GONE);
+        widgetView.setViewVisibility(R.id.balance_block, show_balance ? View.VISIBLE : View.GONE);
 
         if ((states == null) || !states.containsKey(car_id)) {
             widgetView.setViewVisibility(R.id.refresh, View.VISIBLE);
@@ -208,8 +222,20 @@ public class CarWidget extends AppWidgetProvider {
             drawable = new CarDrawable(context);
 
         drawable.update(preferences, car_id);
-        widgetView.setImageViewBitmap(R.id.car, drawable.getBitmap());
-
+        if (bitmaps == null)
+            bitmaps = new HashMap<Integer, Bitmap>();
+        Bitmap bitmap = bitmaps.get(widgetID);
+        if ((bitmap != null) && ((bitmap.getWidth() != drawable.width) || (bitmap.getHeight() != drawable.height)))
+            bitmap = null;
+        if (bitmap == null){
+            bitmap = Bitmap.createBitmap(drawable.width, drawable.height, Bitmap.Config.ARGB_8888);
+            bitmaps.put(widgetID, bitmap);
+        }
+        Canvas canvas = new Canvas(bitmap);
+        Drawable d = drawable.getDrawable();
+        d.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        d.draw(canvas);
+        widgetView.setImageViewBitmap(R.id.car, bitmap);
         appWidgetManager.updateAppWidget(widgetID, widgetView);
     }
 

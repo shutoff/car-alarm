@@ -24,6 +24,12 @@ public class SeekBarPreference
     public String mDialogMessage, mSuffix;
     public int mMin, mMax, mValue, mDefault = 0;
 
+    static abstract class SummaryGenerator {
+        abstract String summary(int value);
+    }
+
+    SummaryGenerator summaryGenerator;
+
     public SeekBarPreference(Context context, AttributeSet attrs) {
 
         super(context, attrs);
@@ -101,6 +107,10 @@ public class SeekBarPreference
 
     @Override
     public void onProgressChanged(SeekBar seek, int value, boolean fromTouch) {
+        if (summaryGenerator != null){
+            mValueText.setText(summaryGenerator.summary(value + mMin));
+            return;
+        }
         String t = String.valueOf(value + mMin);
         mValueText.setText(mSuffix == null ? t : t.concat(" " + mSuffix));
     }
@@ -141,7 +151,9 @@ public class SeekBarPreference
     }
 
     String summary() {
-        return mValue + " " + mSuffix;
+        if (summaryGenerator == null)
+            return mValue + " " + mSuffix;
+        return summaryGenerator.summary(mValue);
     }
 
 }

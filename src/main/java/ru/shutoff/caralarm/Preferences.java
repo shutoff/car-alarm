@@ -34,7 +34,6 @@ public class Preferences extends PreferenceActivity {
     Preference testPref;
     Preference aboutPref;
     Preference pswdPref;
-    ListPreference mapPref;
 
     String alarmUri;
     String notifyUri;
@@ -114,25 +113,6 @@ public class Preferences extends PreferenceActivity {
                 return true;
             }
         });
-
-        mapPref = (ListPreference) findPreference("map_type");
-        mapPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                mapPref.setSummary(newValue.toString());
-                String[] cars = preferences.getString(Names.CARS, "").split(";");
-                SharedPreferences.Editor ed = preferences.edit();
-                for (String id : cars) {
-                    ed.remove(Names.ADDRESS + id);
-                    ed.remove(Names.ADDR_LAT + id);
-                    ed.remove(Names.ADDR_LNG + id);
-                }
-                ed.commit();
-                return true;
-            }
-        });
-
-        mapPref.setSummary(preferences.getString("map_type", "Google"));
 
         testPref = findPreference("alarm_test");
         testPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {

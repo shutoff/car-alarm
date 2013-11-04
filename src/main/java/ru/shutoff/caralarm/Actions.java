@@ -178,7 +178,7 @@ public class Actions extends PreferenceActivity {
     static void requestPassword(final Context context, final String car_id, final int id_title, int id_message, final String sms, final String answer) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context)
                 .setTitle(id_title)
-                .setMessage(id_message)
+                .setMessage((id_message == 0) ? R.string.input_password : id_message)
                 .setNegativeButton(R.string.cancel, null)
                 .setPositiveButton(R.string.ok, null);
 
@@ -187,6 +187,9 @@ public class Actions extends PreferenceActivity {
         if (password.length() > 0) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
             builder.setView(inflater.inflate(R.layout.password, null));
+        }else if (id_message == 0){
+            send_sms(context, car_id, sms, answer, id_title, null);
+            return;
         }
 
         final AlertDialog dialog = builder.create();

@@ -97,6 +97,8 @@ function initialize() {
         }else if (p.length == 3){
             markers.push(p);
             last_mark = true;
+        }else{
+            last_mark = true;
         }
     }
 
@@ -208,10 +210,6 @@ function shareTrack() {
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
-
-
-
-
 
 </script>
 </head>
