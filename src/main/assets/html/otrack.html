@@ -89,6 +89,13 @@ function initialize() {
         }
     }
 
+    var d_lat = (max_lat - min_lat) / 10;
+    min_lat -= d_lat;
+    max_lat += d_lat;
+    var d_lon = (max_lon - min_lon) / 10;
+    min_lon -= d_lon;
+    max_lon += d_lon;
+
     var lat = (min_lat + max_lat) / 2;
     var lon = (min_lon + max_lon) / 2;
 
@@ -189,6 +196,7 @@ function shareTrack() {
     var sw = bounds.getSouthWest();
     android.share(sw.lat, ne.lat, sw.lng, ne.lng);
 }
+
 
     </script>
 </head>

@@ -9,11 +9,11 @@ public class About extends WebViewActivity {
 
     @Override
     String loadURL() {
-        WebViewClient mWebClient = new WebViewClient(){
+        WebViewClient mWebClient = new WebViewClient() {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if(url.startsWith("mailto:")){
+                if (url.startsWith("mailto:")) {
                     MailTo mt = MailTo.parse(url);
                     Intent i = newEmailIntent(mt.getTo(), mt.getSubject(), mt.getBody(), mt.getCc());
                     startActivity(i);
@@ -27,9 +27,9 @@ public class About extends WebViewActivity {
         return "file:///android_asset/html/about.html";
     }
 
-    public static Intent newEmailIntent(String address, String subject, String body, String cc) {
+    private static Intent newEmailIntent(String address, String subject, String body, String cc) {
         Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.putExtra(Intent.EXTRA_EMAIL, new String[] { address });
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{address});
         intent.putExtra(Intent.EXTRA_TEXT, body);
         intent.putExtra(Intent.EXTRA_SUBJECT, subject);
         intent.putExtra(Intent.EXTRA_CC, cc);

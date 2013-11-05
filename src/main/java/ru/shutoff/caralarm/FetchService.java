@@ -12,7 +12,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 
 import org.json.JSONArray;
@@ -120,7 +119,6 @@ public class FetchService extends Service {
             alarmMgr.setInexactRepeating(preferences.getBoolean(Names.SAFE_MODE, false) ? AlarmManager.RTC_WAKEUP : AlarmManager.RTC,
                     System.currentTimeMillis() + timeout, timeout, pi);
             sendError(ACTION_ERROR, error_text, car_id);
-            State.appendLog("error...");
         }
 
         void start() {
@@ -135,7 +133,6 @@ public class FetchService extends Service {
             if ((activeNetwork == null) || !activeNetwork.isConnected()) {
                 IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
                 registerReceiver(mReceiver, filter);
-                State.appendLog("no network");
                 return;
             }
             if (!preferences.getBoolean(Names.SAFE_MODE, false) && !powerMgr.isScreenOn()) {
@@ -164,7 +161,6 @@ public class FetchService extends Service {
 
         StatusRequest(String id) {
             super("S", id);
-            State.appendLog("Status request");
         }
 
         @Override
@@ -174,7 +170,6 @@ public class FetchService extends Service {
             if (eventId == preferences.getLong(Names.EVENT_ID + car_id, 0)) {
                 sendUpdate(ACTION_NOUPDATE, car_id);
                 if (preferences.getBoolean(Names.SAFE_MODE, false)){
-                    State.appendLog("set timeout");
                     alarmMgr.setRepeating(preferences.getBoolean(Names.SAFE_MODE, false) ? AlarmManager.RTC_WAKEUP : AlarmManager.RTC,
                             SAFEMODE_TIMEOUT, SAFEMODE_TIMEOUT, pi);
                 }
@@ -230,11 +225,8 @@ public class FetchService extends Service {
                 FetchService.this.startActivity(alarmIntent);
             }
 
-            if (preferences.getBoolean(Names.SAFE_MODE, false)){
-                State.appendLog("set timeout");
-                alarmMgr.setRepeating(preferences.getBoolean(Names.SAFE_MODE, false) ? AlarmManager.RTC_WAKEUP : AlarmManager.RTC,
-                    SAFEMODE_TIMEOUT, SAFEMODE_TIMEOUT, pi);
-            }
+            if (preferences.getBoolean(Names.SAFE_MODE, false))
+                alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, SAFEMODE_TIMEOUT, SAFEMODE_TIMEOUT, pi);
 
             new EventsRequest(car_id);
         }

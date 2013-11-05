@@ -48,6 +48,7 @@ public class MapView extends WebViewActivity {
     LocationListener netListener;
     LocationListener gpsListener;
     Cars.Car[] cars;
+    Menu topSubMenu;
 
     static final int REQUEST_ALARM = 4000;
     static final int UPDATE_INTERVAL = 30 * 1000;
@@ -155,6 +156,10 @@ public class MapView extends WebViewActivity {
     @Override
     String loadURL() {
         webView.addJavascriptInterface(new JsInterface(), "android");
+        return getURL();
+    }
+
+    String getURL() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         if (preferences.getString("map_type", "").equals("OSM"))
             return "file:///android_asset/html/omaps.html";
@@ -352,9 +357,24 @@ public class MapView extends WebViewActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        topSubMenu = menu;
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.map, menu);
+        boolean isOSM = preferences.getString("map_type", "").equals("OSM");
+        menu.findItem(R.id.google).setTitle(getCheckedText(R.string.google, !isOSM));
+        menu.findItem(R.id.osm).setTitle(getCheckedText(R.string.osm, isOSM));
         return super.onCreateOptionsMenu(menu);
+    }
+
+
+    String getCheckedText(int id, boolean check) {
+        String check_mark = check ? "\u2714" : "";
+        return check_mark + getString(id);
+    }
+
+    void updateMenu() {
+        topSubMenu.clear();
+        onCreateOptionsMenu(topSubMenu);
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -362,7 +382,7 @@ public class MapView extends WebViewActivity {
             case R.id.map:
                 webView.loadUrl("javascript:center()");
                 break;
-            case R.id.my:
+            case R.id.my: {
                 boolean gps_enabled = false;
                 try {
                     gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
@@ -391,6 +411,23 @@ public class MapView extends WebViewActivity {
                 }
                 webView.loadUrl("javascript:setPosition()");
                 break;
+            }
+            case R.id.google: {
+                SharedPreferences.Editor ed = preferences.edit();
+                ed.putString(Names.MAP_TYPE, "Google");
+                ed.commit();
+                updateMenu();
+                webView.loadUrl(getURL());
+                break;
+            }
+            case R.id.osm: {
+                SharedPreferences.Editor ed = preferences.edit();
+                ed.putString(Names.MAP_TYPE, "OSM");
+                ed.commit();
+                updateMenu();
+                webView.loadUrl(getURL());
+                break;
+            }
         }
         return false;
     }
@@ -412,17 +449,17 @@ public class MapView extends WebViewActivity {
         }
         long GPSLocationTime = 0;
         Date now = new Date();
-        if (locationGPS != null){
+        if (locationGPS != null) {
             GPSLocationTime = locationGPS.getTime();
-            if (GPSLocationTime < now.getTime() - TWO_MINUTES){
+            if (GPSLocationTime < now.getTime() - TWO_MINUTES) {
                 locationGPS = null;
                 GPSLocationTime = 0;
             }
         }
         long NetLocationTime = 0;
-        if (locationNet != null){
+        if (locationNet != null) {
             NetLocationTime = locationNet.getTime();
-            if (NetLocationTime < now.getTime() - TWO_MINUTES){
+            if (NetLocationTime < now.getTime() - TWO_MINUTES) {
                 locationNet = null;
                 NetLocationTime = 0;
             }

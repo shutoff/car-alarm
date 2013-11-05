@@ -11,6 +11,7 @@ import android.text.SpannedString;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.ViewConfiguration;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
@@ -24,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Field;
 import java.util.Vector;
 
 public class TrackView extends WebViewActivity {
@@ -33,7 +35,6 @@ public class TrackView extends WebViewActivity {
     Menu topSubMenu;
 
     static String TRAFFIC = "traffic";
-    static String MAP_TYPE = "map_type";
 
     class JsInterface {
 
@@ -196,6 +197,17 @@ public class TrackView extends WebViewActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        try {
+            ViewConfiguration config = ViewConfiguration.get(this);
+            Field menuKeyField = ViewConfiguration.class.getDeclaredField("sHasPermanentMenuKey");
+            if (menuKeyField != null) {
+                menuKeyField.setAccessible(true);
+                menuKeyField.setBoolean(config, false);
+            }
+        } catch (Exception ex) {
+            // Ignore
+        }
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
         super.onCreate(savedInstanceState);
         setTitle(getIntent().getStringExtra(Names.TITLE));
     }
@@ -206,7 +218,7 @@ public class TrackView extends WebViewActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.track, menu);
         menu.findItem(R.id.traffic).setTitle(getCheckedText(R.string.traffic, preferences.getBoolean(TRAFFIC, true)));
-        boolean isOSM = preferences.getString(MAP_TYPE, "").equals("OSM");
+        boolean isOSM = preferences.getString(Names.MAP_TYPE, "").equals("OSM");
         menu.findItem(R.id.google).setTitle(getCheckedText(R.string.google, !isOSM));
         menu.findItem(R.id.osm).setTitle(getCheckedText(R.string.osm, isOSM));
         return super.onCreateOptionsMenu(menu);
@@ -235,7 +247,7 @@ public class TrackView extends WebViewActivity {
             }
             case R.id.google: {
                 SharedPreferences.Editor ed = preferences.edit();
-                ed.putString(MAP_TYPE, "Google");
+                ed.putString(Names.MAP_TYPE, "Google");
                 ed.commit();
                 updateMenu();
                 webView.loadUrl(getURL());
@@ -243,7 +255,7 @@ public class TrackView extends WebViewActivity {
             }
             case R.id.osm: {
                 SharedPreferences.Editor ed = preferences.edit();
-                ed.putString(MAP_TYPE, "OSM");
+                ed.putString(Names.MAP_TYPE, "OSM");
                 ed.commit();
                 updateMenu();
                 webView.loadUrl(getURL());
@@ -339,7 +351,7 @@ public class TrackView extends WebViewActivity {
     }
 
     String getURL() {
-        if (preferences.getString(MAP_TYPE, "").equals("OSM"))
+        if (preferences.getString(Names.MAP_TYPE, "").equals("OSM"))
             return "file:///android_asset/html/otrack.html";
         return "file:///android_asset/html/track.html";
     }

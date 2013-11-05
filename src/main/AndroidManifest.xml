@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ru.shutoff.caralarm"
     android:versionCode="20"
-    android:versionName="1.1.5">
+    android:versionName="1.2.0">
 
     <uses-sdk
         android:minSdkVersion="8"

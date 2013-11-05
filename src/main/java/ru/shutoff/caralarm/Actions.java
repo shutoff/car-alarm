@@ -27,9 +27,9 @@ import java.util.Date;
 
 public class Actions extends PreferenceActivity {
 
-    SharedPreferences preferences;
+    private SharedPreferences preferences;
 
-    String car_id;
+    private String car_id;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -187,7 +187,7 @@ public class Actions extends PreferenceActivity {
         if (password.length() > 0) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
             builder.setView(inflater.inflate(R.layout.password, null));
-        }else if (id_message == 0){
+        } else if (id_message == 0) {
             send_sms(context, car_id, sms, answer, id_title, null);
             return;
         }
@@ -213,7 +213,7 @@ public class Actions extends PreferenceActivity {
         });
     }
 
-    static void requestCCode(final Context context, final String car_id, final int id_title, int id_message, final String sms, final String answer, final Runnable after) {
+    static private void requestCCode(final Context context, final String car_id, final int id_title, int id_message, final String sms, final String answer, final Runnable after) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
         final AlertDialog dialog = new AlertDialog.Builder(context)
                 .setTitle(id_title)
@@ -253,7 +253,7 @@ public class Actions extends PreferenceActivity {
         });
     }
 
-    static void send_sms(final Context context, final String car_id, String sms, String answer, final int id_title, final Runnable after) {
+    static private void send_sms(final Context context, final String car_id, String sms, String answer, final int id_title, final Runnable after) {
         final ProgressDialog smsProgress = new ProgressDialog(context);
         smsProgress.setMessage(context.getString(id_title));
         smsProgress.show();

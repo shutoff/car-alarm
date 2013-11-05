@@ -12,7 +12,6 @@
         android:title="@string/share"
         android:icon="@android:drawable/ic_menu_share"
         car:showAsAction="ifRoom" />
-
     <item
         android:id="@+id/google"
         android:title="@string/google"
