@@ -12,7 +12,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 
 import org.json.JSONArray;
@@ -26,17 +25,17 @@ import java.util.regex.Pattern;
 
 public class FetchService extends Service {
 
-    final long REPEAT_AFTER_ERROR = 20 * 1000;
-    final long REPEAT_AFTER_500 = 600 * 1000;
-    final long SAFEMODE_TIMEOUT = 300 * 1000;
+    private static final long REPEAT_AFTER_ERROR = 20 * 1000;
+    private static final long REPEAT_AFTER_500 = 600 * 1000;
+    private static final long SAFEMODE_TIMEOUT = 300 * 1000;
 
-    BroadcastReceiver mReceiver;
-    PendingIntent pi;
+    private BroadcastReceiver mReceiver;
+    private PendingIntent pi;
 
-    SharedPreferences preferences;
-    ConnectivityManager conMgr;
-    PowerManager powerMgr;
-    AlarmManager alarmMgr;
+    private SharedPreferences preferences;
+    private ConnectivityManager conMgr;
+    private PowerManager powerMgr;
+    private AlarmManager alarmMgr;
 
     static final String ACTION_UPDATE = "ru.shutoff.caralarm.UPDATE";
     static final String ACTION_NOUPDATE = "ru.shutoff.caralarm.NO_UPDATE";
@@ -44,12 +43,12 @@ public class FetchService extends Service {
     static final String ACTION_START = "ru.shutoff.caralarm.START";
     static final String ACTION_START_UPDATE = "ru.shutoff.caralarm.START_UPDATE";
 
-    static final Pattern balancePattern = Pattern.compile("-?[0-9]+[\\.,][0-9][0-9]");
+    private static final Pattern balancePattern = Pattern.compile("-?[0-9]+[\\.,][0-9][0-9]");
 
-    static final String STATUS_URL = "http://api.car-online.ru/v2?get=lastinfo&skey=$1&content=json";
-    static final String EVENTS_URL = "http://api.car-online.ru/v2?get=events&skey=$1&begin=$2&end=$3&content=json";
-    static final String TEMP_URL = "http://api.car-online.ru/v2?get=temperaturelist&skey=$1&begin=$2&end=$3&content=json";
-    static final String GPS_URL = "http://api.car-online.ru/v2?get=gps&skey=$1&id=$2&time=$3&content=json";
+    private static final String STATUS_URL = "http://api.car-online.ru/v2?get=lastinfo&skey=$1&content=json";
+    private static final String EVENTS_URL = "http://api.car-online.ru/v2?get=events&skey=$1&begin=$2&end=$3&content=json";
+    private static final String TEMP_URL = "http://api.car-online.ru/v2?get=temperaturelist&skey=$1&begin=$2&end=$3&content=json";
+    private static final String GPS_URL = "http://api.car-online.ru/v2?get=gps&skey=$1&id=$2&time=$3&content=json";
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -90,19 +89,19 @@ public class FetchService extends Service {
         }
     }
 
-    Map<String, ServerRequest> requests;
+    private Map<String, ServerRequest> requests;
 
     abstract class ServerRequest extends HttpTask {
 
-        String key;
-        String car_id;
+        final String key;
+        final String car_id;
         boolean started;
 
         ServerRequest(String type, String id) {
             key = type + id;
+            car_id = id;
             if (requests.get(key) != null)
                 return;
-            car_id = id;
             requests.put(key, this);
         }
 
@@ -119,7 +118,7 @@ public class FetchService extends Service {
             long timeout = (error_text != null) ? REPEAT_AFTER_500 : REPEAT_AFTER_ERROR;
             alarmMgr.setInexactRepeating(preferences.getBoolean(Names.SAFE_MODE, false) ? AlarmManager.RTC_WAKEUP : AlarmManager.RTC,
                     System.currentTimeMillis() + timeout, timeout, pi);
-            sendError(ACTION_ERROR, error_text, car_id);
+            sendError(error_text, car_id);
             State.appendLog("error...");
         }
 
@@ -173,7 +172,7 @@ public class FetchService extends Service {
             long eventId = event.getLong("eventId");
             if (eventId == preferences.getLong(Names.EVENT_ID + car_id, 0)) {
                 sendUpdate(ACTION_NOUPDATE, car_id);
-                if (preferences.getBoolean(Names.SAFE_MODE, false)){
+                if (preferences.getBoolean(Names.SAFE_MODE, false)) {
                     State.appendLog("set timeout");
                     alarmMgr.setRepeating(preferences.getBoolean(Names.SAFE_MODE, false) ? AlarmManager.RTC_WAKEUP : AlarmManager.RTC,
                             SAFEMODE_TIMEOUT, SAFEMODE_TIMEOUT, pi);
@@ -200,7 +199,8 @@ public class FetchService extends Service {
             ed.putString(Names.SPEED + car_id, gps.getString("speed"));
 
             JSONObject contact = res.getJSONObject("contact");
-            ed.putBoolean(Names.GUARD + car_id, contact.getBoolean("stGuard"));
+            boolean guard = contact.getBoolean("stGuard");
+            ed.putBoolean(Names.GUARD + car_id, guard);
             ed.putBoolean(Names.INPUT1 + car_id, contact.getBoolean("stInput1"));
             ed.putBoolean(Names.INPUT2 + car_id, contact.getBoolean("stInput2"));
             ed.putBoolean(Names.INPUT3 + car_id, contact.getBoolean("stInput3"));
@@ -220,7 +220,7 @@ public class FetchService extends Service {
             ed.commit();
             sendUpdate(ACTION_UPDATE, car_id);
 
-            if (!sms_alarm && (msg_id > 0)){
+            if (!sms_alarm && (msg_id > 0) && guard) {
                 Intent alarmIntent = new Intent(FetchService.this, Alarm.class);
                 alarmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 alarmIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -230,10 +230,10 @@ public class FetchService extends Service {
                 FetchService.this.startActivity(alarmIntent);
             }
 
-            if (preferences.getBoolean(Names.SAFE_MODE, false)){
+            if (preferences.getBoolean(Names.SAFE_MODE, false)) {
                 State.appendLog("set timeout");
                 alarmMgr.setRepeating(preferences.getBoolean(Names.SAFE_MODE, false) ? AlarmManager.RTC_WAKEUP : AlarmManager.RTC,
-                    SAFEMODE_TIMEOUT, SAFEMODE_TIMEOUT, pi);
+                        SAFEMODE_TIMEOUT, SAFEMODE_TIMEOUT, pi);
             }
 
             new EventsRequest(car_id);
@@ -247,7 +247,7 @@ public class FetchService extends Service {
 
         void setState(String id, JSONObject contact, String key, int msg) throws JSONException {
             boolean state = contact.getBoolean(key);
-            if (state){
+            if (state) {
                 if (!preferences.getBoolean(id + car_id, false))
                     msg_id = msg;
             }
@@ -348,8 +348,8 @@ public class FetchService extends Service {
 
     class GPSRequest extends ServerRequest {
 
-        String event_id;
-        String event_time;
+        final String event_id;
+        final String event_time;
 
         GPSRequest(String id, long eventId, long eventTime) {
             super("G", id);
@@ -420,9 +420,9 @@ public class FetchService extends Service {
     }
 
 
-    void sendError(String action, String error, String car_id) {
+    void sendError(String error, String car_id) {
         try {
-            Intent intent = new Intent(action);
+            Intent intent = new Intent(ACTION_ERROR);
             intent.putExtra(Names.ERROR, error);
             intent.putExtra(Names.ID, car_id);
             sendBroadcast(intent);
