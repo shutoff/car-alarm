@@ -44,6 +44,8 @@ public final class Names {
     static final String LONGITUDE = "Longitude";
     static final String SPEED = "Speed";
     static final String COURSE = "Course";
+    static final String GSM = "gsm";
+    static final String GSM_ZONE = "gsmzone";
 
     static final String VALET_TIME = "ValetTime";
     static final String INIT_TIME = "InitTime";

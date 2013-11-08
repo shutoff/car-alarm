@@ -74,9 +74,39 @@ public class MapView extends WebViewActivity {
             String[] car_data = new String[cars.length];
             for (int i = 0; i < cars.length; i++) {
                 String id = cars[i].id;
+                String lat = preferences.getString(Names.LATITUDE + id, "");
+                String lon = preferences.getString(Names.LONGITUDE + id, "");
+                String zone = "";
+                if ((lat.equals("") || lon.equals("")) && id.equals(car_id) && (point_data == null)) {
+                    zone = preferences.getString(Names.GSM_ZONE + id, "");
+                    String points[] = zone.split("_");
+                    double min_lat = 180;
+                    double max_lat = -180;
+                    double min_lon = 180;
+                    double max_lon = -180;
+                    for (String point : points) {
+                        try {
+                            String[] p = point.split(",");
+                            double p_lat = Double.parseDouble(p[0]);
+                            double p_lon = Double.parseDouble(p[1]);
+                            if (p_lat > max_lat)
+                                max_lat = p_lat;
+                            if (p_lat < min_lat)
+                                min_lat = p_lat;
+                            if (p_lon > max_lon)
+                                max_lon = p_lon;
+                            if (p_lon < min_lon)
+                                min_lon = p_lon;
+                        } catch (Exception ex) {
+                            // ignore
+                        }
+                    }
+                    lat = ((min_lat + max_lat) / 2) + "";
+                    lon = ((min_lon + max_lon) / 2) + "";
+                }
                 String data = id + ";" +
-                        preferences.getString(Names.LATITUDE + id, "0") + ";" +
-                        preferences.getString(Names.LONGITUDE + id, "0") + ";" +
+                        lat + ";" +
+                        lon + ";" +
                         preferences.getString(Names.COURSE + id, "0") + ";";
                 if (cars.length > 1) {
                     String name = preferences.getString(Names.CAR_NAME + id, "");
@@ -110,16 +140,28 @@ public class MapView extends WebViewActivity {
                         // ignore
                     }
                 }
-                data += preferences.getString(Names.LATITUDE + id, "0") + ","
-                        + preferences.getString(Names.LONGITUDE + id, "0") + "<br/>";
-                String address = Address.getAddress(getBaseContext(), id);
-                String[] parts = address.split(", ");
-                if (parts.length >= 3) {
-                    address = parts[0] + ", " + parts[1];
-                    for (int n = 2; n < parts.length; n++)
-                        address += "<br/>" + parts[n];
+                if (zone.equals("")) {
+                    data += lat + "," + lon + "<br/>";
+                    String address = Address.getAddress(getBaseContext(), id);
+                    String[] parts = address.split(", ");
+                    if (parts.length >= 3) {
+                        address = parts[0] + ", " + parts[1];
+                        for (int n = 2; n < parts.length; n++)
+                            address += "<br/>" + parts[n];
+                    }
+                    data += address;
+                    data += ";";
+                } else {
+                    String address = preferences.getString(Names.ADDRESS + id, "");
+                    String[] parts = address.split(", ");
+                    if (parts.length >= 3) {
+                        address = parts[0] + ", " + parts[1];
+                        for (int n = 2; n < parts.length; n++)
+                            address += "<br/>" + parts[n];
+                    }
+                    data += address;
+                    data += ";" + zone;
                 }
-                data += address;
                 car_data[i] = data;
             }
 
@@ -338,7 +380,6 @@ public class MapView extends WebViewActivity {
         alarmMgr.cancel(pi);
     }
 
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -365,7 +406,6 @@ public class MapView extends WebViewActivity {
         menu.findItem(R.id.osm).setTitle(getCheckedText(R.string.osm, isOSM));
         return super.onCreateOptionsMenu(menu);
     }
-
 
     String getCheckedText(int id, boolean check) {
         String check_mark = check ? "\u2714" : "";
@@ -567,4 +607,5 @@ public class MapView extends WebViewActivity {
             return v;
         }
     }
+
 }

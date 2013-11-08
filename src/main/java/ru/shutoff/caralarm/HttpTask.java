@@ -1,6 +1,7 @@
 package ru.shutoff.caralarm;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -32,6 +33,7 @@ public abstract class HttpTask extends AsyncTask<String, Void, JSONObject> {
         for (int i = 1; i < params.length; i++) {
             url = url.replace("$" + i, params[i]);
         }
+        Log.v("url", url);
         String res = null;
         try {
             if (pause > 0)

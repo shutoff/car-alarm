@@ -34,7 +34,10 @@ import java.util.Vector;
 public class EventsActivity extends ActionBarActivity {
 
     final static String EVENTS = "http://api.car-online.ru/v2?get=events&skey=$1&begin=$2&end=$3&content=json";
-    final static String EVENT = "http://api.car-online.ru/v2?get=gps&skey=$1&id=$2&time=$3&content=json";
+    final static String EVENT_GPS = "http://api.car-online.ru/v2?get=gps&skey=$1&id=$2&time=$3&content=json";
+    final static String EVENT_GSM = "http://api.car-online.ru/v2?get=gsm&skey=$1&id=$2&time=$3&content=json";
+    final static String SECTOR_GSM = "http://api.car-online.ru/v2?get=gsmsector&skey=$1&cc=$2&nc=$3&lac=$4&cid=$5&content=json";
+
 
     CaldroidFragment dialogCaldroidFragment;
     LocalDate current;
@@ -216,7 +219,11 @@ public class EventsActivity extends ActionBarActivity {
                         info += getString(R.string.event) + " #" + e.type;
                     info += "</b><br/>";
                     Intent i = new Intent(context, MapView.class);
-                    i.putExtra(Names.POINT_DATA, ";" + e.point + ";" + e.course + ";" + info + e.address.replace("\n", "<br/>"));
+                    String[] point = e.point.split(";");
+                    String point_data = ";" + point[0] + ";" + point[1] + ";" + e.course + ";" + info + e.address.replace("\n", "<br/>");
+                    if (point.length > 2)
+                        point_data += ";" + point[2];
+                    i.putExtra(Names.POINT_DATA, point_data);
                     i.putExtra(Names.ID, car_id);
                     startActivity(i);
                     return;
@@ -224,7 +231,11 @@ public class EventsActivity extends ActionBarActivity {
                 current_item = position;
                 EventsAdapter adapter = (EventsAdapter) lvEvents.getAdapter();
                 adapter.notifyDataSetChanged();
-                new EventRequest(filtered.get(position).id, filtered.get(position).time);
+                if (preferences.getString(Names.LATITUDE + car_id, "").equals("")) {
+                    new GsmEventRequest(filtered.get(position).id, filtered.get(position).time);
+                } else {
+                    new GpsEventRequest(filtered.get(position).id, filtered.get(position).time);
+                }
             }
         });
         tvNoEvents = (TextView) findViewById(R.id.no_events);
@@ -332,7 +343,7 @@ public class EventsActivity extends ActionBarActivity {
             for (int i = 0; i < res.length(); i++) {
                 JSONObject event = res.getJSONObject(i);
                 int type = event.getInt("eventType");
-                if ((type == 94) || (type == 98) || (type == 41) || (type == 33) || (type == 39))
+                if ((type == 94) || (type == 98) || (type == 41) || (type == 33) || (type == 39) || (type == 127))
                     continue;
                 long time = event.getLong("eventTime");
                 long id = event.getLong("eventId");
@@ -502,7 +513,7 @@ public class EventsActivity extends ActionBarActivity {
         String address;
     }
 
-    class EventRequest extends HttpTask {
+    abstract class EventRequest extends HttpTask {
 
         long event_id;
         long event_time;
@@ -510,7 +521,33 @@ public class EventsActivity extends ActionBarActivity {
         EventRequest(long id, long time) {
             event_id = id;
             event_time = time;
-            execute(EVENT, api_key, id + "", time + "");
+        }
+
+        @Override
+        void error() {
+            setAddress(getString(R.string.error_load), null, null);
+        }
+
+        void setAddress(String result, String point, String course) {
+            if (current_item < 0)
+                return;
+            Event e = filtered.get((int) current_item);
+            if ((e.id != event_id) || (e.time != event_time))
+                return;
+            e.address = result;
+            e.point = point;
+            e.course = course;
+            EventsAdapter adapter = (EventsAdapter) lvEvents.getAdapter();
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+
+    class GpsEventRequest extends EventRequest {
+
+        GpsEventRequest(long id, long time) {
+            super(id, time);
+            execute(EVENT_GPS, api_key, id + "", time + "");
         }
 
         @Override
@@ -534,22 +571,87 @@ public class EventsActivity extends ActionBarActivity {
             request.getAddress(preferences, lat + "", lng + "");
         }
 
-        @Override
-        void error() {
-            setAddress(getString(R.string.error_load), null, null);
+    }
+
+    class GsmEventRequest extends EventRequest {
+
+        GsmEventRequest(long id, long time) {
+            super(id, time);
+            execute(EVENT_GSM, api_key, id + "", time + "");
         }
 
-        void setAddress(String result, String point, String course) {
-            if (current_item < 0)
+        @Override
+        void result(JSONObject res) throws JSONException {
+            int cc = res.getInt("cc");
+            int nc = res.getInt("nc");
+            int cid = res.getInt("cid");
+            int lac = res.getInt("lac");
+            String gsm = cc + " " + nc + " " + lac + " " + cid;
+            if (gsm.equals(preferences.getString(Names.GSM + car_id, ""))
+                    && !preferences.getString(Names.GSM_ZONE + car_id, "").equals("")) {
+                setAddress(preferences.getString(Names.ADDRESS + car_id, ""), preferences.getString(Names.GSM_ZONE + car_id, ""), null);
                 return;
-            Event e = filtered.get((int) current_item);
-            if ((e.id != event_id) || (e.time != event_time))
+            }
+            new GsmSectorRequest(event_id, event_time, gsm);
+        }
+
+    }
+
+    class GsmSectorRequest extends EventRequest {
+
+        GsmSectorRequest(long id, long time, String gsm) {
+            super(id, time);
+            String[] p = gsm.split(" ");
+            execute(SECTOR_GSM, api_key, p[0], p[1], p[2], p[3]);
+        }
+
+        @Override
+        void result(JSONObject res) throws JSONException {
+            JSONArray arr = res.getJSONArray("gps");
+            if (arr.length() == 0)
                 return;
-            e.address = result;
-            e.point = point;
-            e.course = course;
-            EventsAdapter adapter = (EventsAdapter) lvEvents.getAdapter();
-            adapter.notifyDataSetChanged();
+            double max_lat = -180;
+            double min_lat = 180;
+            double max_lon = -180;
+            double min_lon = 180;
+            Vector<FetchService.Point> P = new Vector<FetchService.Point>();
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject point = arr.getJSONObject(i);
+                try {
+                    FetchService.Point p = new FetchService.Point();
+                    p.x = point.getDouble("latitude");
+                    p.y = point.getDouble("longitude");
+                    if (p.x > max_lat)
+                        max_lat = p.x;
+                    if (p.x < min_lat)
+                        min_lat = p.x;
+                    if (p.y > max_lon)
+                        max_lon = p.y;
+                    if (p.y < min_lon)
+                        min_lon = p.y;
+                    P.add(p);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    // ignore
+                }
+            }
+            final double lat = (min_lat + max_lat) / 2;
+            final double lon = (min_lon + max_lon) / 2;
+            final String sector = FetchService.convexHull(P);
+            AddressRequest request = new AddressRequest() {
+                @Override
+                void addressResult(String[] parts) {
+                    String addr = lat + "," + lon;
+                    if (parts != null) {
+                        addr += "\n" + parts[0];
+                        for (int i = 1; i < parts.length - 1; i++) {
+                            addr += ", " + parts[i];
+                        }
+                    }
+                    setAddress(addr, lat + ";" + lon + ";" + sector, null);
+                }
+            };
+            request.getAddress(preferences, lat + "", lon + "");
         }
     }
 

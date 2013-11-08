@@ -197,6 +197,8 @@ public class Cars extends ActionBarActivity {
         ed.remove(Names.VALET + id);
         ed.remove(Names.ENGINE + id);
         ed.remove(Names.TEMPERATURE + id);
+        ed.remove(Names.GSM + id);
+        ed.remove(Names.GSM_ZONE + id);
         ed.putString(Names.CARS, res);
         ed.commit();
         setupCars();

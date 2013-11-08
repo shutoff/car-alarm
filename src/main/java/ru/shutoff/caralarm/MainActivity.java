@@ -23,6 +23,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
@@ -68,6 +69,9 @@ public class MainActivity extends ActionBarActivity {
     Cars.Car[] cars;
 
     boolean active;
+    boolean hide_routes;
+
+    Menu topSubMenu;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -219,9 +223,7 @@ public class MainActivity extends ActionBarActivity {
         tvAddress.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getBaseContext(), MapView.class);
-                intent.putExtra(Names.ID, car_id);
-                startActivity(intent);
+                showMap();
             }
         });
 
@@ -343,9 +345,21 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        topSubMenu = menu;
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
+        hide_routes = preferences.getString(Names.LATITUDE + car_id, "").equals("") ||
+                preferences.getString(Names.LONGITUDE + car_id, "").equals("");
+        if (hide_routes)
+            menu.removeItem(R.id.tracks);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    void updateMenu() {
+        if (topSubMenu == null)
+            return;
+        topSubMenu.clear();
+        onCreateOptionsMenu(topSubMenu);
     }
 
     private void removeNotifications() {
@@ -377,9 +391,7 @@ public class MainActivity extends ActionBarActivity {
                 break;
             }
             case R.id.map: {
-                Intent intent = new Intent(this, MapView.class);
-                intent.putExtra(Names.ID, car_id);
-                startActivity(intent);
+                showMap();
                 break;
             }
             case R.id.tracks: {
@@ -396,6 +408,19 @@ public class MainActivity extends ActionBarActivity {
             }
         }
         return false;
+    }
+
+    void showMap() {
+        if ((preferences.getString(Names.LATITUDE + car_id, "").equals("") ||
+                preferences.getString(Names.LONGITUDE + car_id, "").equals("")) &&
+                preferences.getString(Names.GSM_ZONE + car_id, "").equals("")) {
+            Toast toast = Toast.makeText(this, R.string.no_location, Toast.LENGTH_SHORT);
+            toast.show();
+            return;
+        }
+        Intent intent = new Intent(this, MapView.class);
+        intent.putExtra(Names.ID, car_id);
+        startActivity(intent);
     }
 
     void update() {
@@ -440,9 +465,22 @@ public class MainActivity extends ActionBarActivity {
                 // ignore
             }
         }
-        address += preferences.getString(Names.LATITUDE + car_id, "") + " ";
-        address += preferences.getString(Names.LONGITUDE + car_id, "") + "\n";
-        address += Address.getAddress(this, car_id);
+        String lat = preferences.getString(Names.LATITUDE + car_id, "");
+        String lon = preferences.getString(Names.LONGITUDE + car_id, "");
+        if (lat.equals("") || lon.equals("")) {
+            String gsm = preferences.getString(Names.GSM + car_id, "");
+            if (!gsm.equals("")) {
+                String[] parts = gsm.split(" ");
+                address += "MCC: " + parts[0] + " NC: " + parts[1] + " LAC: " + parts[2] + " CID: " + parts[3];
+                String addr = preferences.getString(Names.ADDRESS + car_id, "");
+                if (!addr.equals(""))
+                    address += "\n" + addr;
+            }
+        } else {
+            address += preferences.getString(Names.LATITUDE + car_id, "") + " ";
+            address += preferences.getString(Names.LONGITUDE + car_id, "") + "\n";
+            address += Address.getAddress(this, car_id);
+        }
         tvAddress.setText(address);
 
         if (preferences.getBoolean(Names.CAR_AUTOSTART + car_id, false)) {
@@ -472,6 +510,11 @@ public class MainActivity extends ActionBarActivity {
         }
 
         balanceBlock.setVisibility(preferences.getBoolean(Names.SHOW_BALANCE + car_id, true) ? View.VISIBLE : View.GONE);
+
+        boolean hide_tracks = preferences.getString(Names.LATITUDE + car_id, "").equals("") ||
+                preferences.getString(Names.LONGITUDE + car_id, "").equals("");
+        if (hide_tracks != hide_routes)
+            updateMenu();
     }
 
     void startUpdate() {

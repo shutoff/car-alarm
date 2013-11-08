@@ -18,6 +18,7 @@
 
 var map;
 var markers;
+var zones;
 var infos;
 var my_location;
 var my_marker;
@@ -32,13 +33,43 @@ function initialize() {
     map = L.map('map', {
         center: [car_data[1], car_data[2]],
         zoom: 15
-      });
+    });
+
+    if (car_data[5]){
+        var points = car_data[5].split('_');
+        var min_lat = 180;
+        var max_lat = -180;
+        var min_lon = 180;
+        var max_lon = -180;
+        for (var i in points){
+            var p = points[i].split(',');
+            var lat = parseFloat(p[0]);
+            var lon = parseFloat(p[1]);
+            if (lat < min_lat)
+                min_lat = lat;
+            if (lat > max_lat)
+                max_lat = lat;
+            if (lon < min_lon)
+                min_lon = lon;
+            if (lon > max_lon)
+                max_lon = lon;
+        }
+        var d_lat = (max_lat - min_lat) / 10;
+        var d_lon = (max_lon - min_lon) / 10;
+        min_lat -= d_lat;
+        max_lat += d_lat;
+        min_lon -= d_lon;
+        max_lon += d_lon;
+        var zoom = map.getBoundsZoom([[min_lat, min_lon], [max_lat, max_lon]]);
+        map.setZoom(zoom);
+    }
 
     L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
-	    maxZoom: 19
-	}).addTo(map);
+        maxZoom: 19
+    }).addTo(map);
 
     markers = [];
+    zones = [];
     infos = [];
 
     var icon = L.icon({
@@ -73,6 +104,26 @@ function initialize() {
             var lng = car_data[2];
             var course = car_data[3];
             var text = createText(car_data);
+
+            if (car_data[5]){
+                var path = [];
+                var points = car_data[5].split('_');
+                for (var n = 0; n < points.length; n++){
+                    var point = points[n].split(',');
+                    path.push(new L.LatLng(point[0], point[1]));
+                }
+                var zone = L.polygon(path, { 
+                    stroke: true,
+                    color: '#FF0000',
+                    weight: 2,
+                    opacity: 0.5,
+                    fill: true,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.1
+                }).addTo(map);
+                zones[i] = zone;
+                return;
+            }
 
             var marker = new L.Marker([ lat, lng ], {
                 icon: (i == 0) ? icon : icon_small,
@@ -145,6 +196,37 @@ function myLocation() {
 function setPosition() {
     if (map == null)
         return;
+    if (markers[0] == null){
+        var zone = zones[0];
+        if (zone == null)
+            return;
+        var path = zone.getLatLngs();
+        var min_lat = 180;
+        var max_lat = -180;
+        var min_lng = 180;
+        var max_lng = -180;
+        for (var i in path){
+            var p = path[i];
+            var lat = p.lat;
+            if (lat < min_lat)
+                min_lat = lat;
+            if (lat > max_lat)
+                max_lat = lat;
+            var lng = p.lng;
+            if (lng < min_lng)
+                min_lng = lng;
+            if (lng > max_lng)
+                max_lng = lng;
+        };
+        var d_lat = (max_lat - min_lat) / 10;
+        var d_lng = (max_lng - min_lng) / 10;
+        min_lat -= d_lat;
+        max_lat += d_lat;
+        min_lng -= d_lng;
+        max_lng += d_lng;
+        map.fitBounds([[min_lat, min_lng], [max_lat, max_lng]]);
+        return;
+    }
     var pos = markers[0].getLatLng();
     var lat1 = pos.lat;
     var lng1 = pos.lng;
@@ -171,8 +253,6 @@ function setPosition() {
 
 function createText(data) {
     var res = data[4];
-    if (data[5])
-        res = '<b>' + data[5] + '</b> ' + res;
     if (data[6])
         res += '<br/>' + data[6];
     return res;
@@ -208,6 +288,7 @@ function center() {
     var pos = markers[0].getLatLng();
     map.setView([ pos.lat, pos.lng ], map.getZoom(), { animate: true });
 }
+
 
 </script>
 </head>
